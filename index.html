@@ -1,0 +1,5548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SBK Health</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%231648A0'/><path d='M50 20 L50 80 M20 50 L80 50' stroke='white' stroke-width='14' stroke-linecap='round'/><circle cx='50' cy='50' r='38' stroke='white' stroke-width='5' fill='none'/></svg>">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=DM+Serif+Display&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#F8FAFC;--bg2:#FFFFFF;--bg3:#F1F5F9;--bg4:#E8EEF5;
+  --border:#E2E8F0;--border2:#CBD5E1;
+  --text:#1E293B;--text2:#475569;--text3:#94A3B8;
+  --blue:#1648A0;--blue2:#2563EB;--blue-light:#EFF6FF;--blue-mid:#DBEAFE;
+  --red:#DC2626;--red-light:#FEF2F2;--red-mid:#FEE2E2;
+  --amber:#D97706;--amber-light:#FFFBEB;--amber-mid:#FEF3C7;
+  --green:#16A34A;--green-light:#F0FDF4;--green-mid:#DCFCE7;
+  --purple:#7C3AED;--purple-light:#F5F3FF;
+  --shadow:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.05);
+  --shadow-md:0 4px 6px -1px rgba(0,0,0,.08),0 2px 4px -1px rgba(0,0,0,.05);
+}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);font-size:13px;line-height:1.5;min-height:100vh}
+.serif{font-family:'DM Serif Display',serif}
+.mono{font-family:'Fira Code',monospace;font-variant-numeric:tabular-nums}
+::-webkit-scrollbar{width:4px;height:4px;background:var(--bg3)}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;box-shadow:var(--shadow)}
+.surface{background:var(--bg3);border:1px solid var(--border);border-radius:8px}
+.btn{background:var(--bg2);border:1px solid var(--border2);color:var(--text2);border-radius:7px;padding:6px 14px;font:500 12px 'Inter',sans-serif;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
+.btn:hover{background:var(--bg3);border-color:var(--blue);color:var(--blue)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn-primary{background:var(--blue);border:1px solid var(--blue);color:#fff;border-radius:7px;padding:8px 18px;font:600 13px 'Inter',sans-serif;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:6px}
+.btn-primary:hover:not(:disabled){background:var(--blue2)}
+.btn-primary:disabled{background:var(--border2);border-color:var(--border2);cursor:not-allowed}
+.btn-ghost{background:none;border:none;color:var(--text2);border-radius:6px;padding:5px 10px;font:500 12px 'Inter',sans-serif;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:4px}
+.btn-ghost:hover{background:var(--bg3);color:var(--text)}
+.input{background:var(--bg2);border:1px solid var(--border);color:var(--text);border-radius:7px;padding:8px 12px;font:13px 'Inter',sans-serif;width:100%;outline:none;transition:border .15s}
+.input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(22,72,160,.1)}
+.select{background:var(--bg2);border:1px solid var(--border);color:var(--text);border-radius:7px;padding:8px 12px;font:13px 'Inter',sans-serif;width:100%;outline:none;cursor:pointer}
+.select:focus{border-color:var(--blue)}
+textarea.input{resize:vertical;min-height:70px}
+.tab-bar{display:flex;overflow-x:auto;background:var(--bg2);border-bottom:1px solid var(--border);padding:0 16px;scrollbar-width:none}
+.tab-bar::-webkit-scrollbar{display:none}
+.tab{padding:10px 14px;cursor:pointer;font:500 12px 'Inter',sans-serif;border-bottom:2px solid transparent;color:var(--text3);white-space:nowrap;transition:all .15s;background:none;border-left:none;border-right:none;border-top:none;flex-shrink:0}
+.tab:hover{color:var(--text2)}
+.tab.active{color:var(--blue);border-bottom-color:var(--blue)}
+.tag{background:var(--bg3);border:1px solid var(--border);color:var(--text2);border-radius:4px;padding:1px 6px;font-size:11px;display:inline-block;white-space:nowrap}
+.badge-urgent{background:var(--red-mid);color:var(--red);border:1px solid #FECACA;border-radius:5px;padding:1px 7px;font:600 11px 'Inter',sans-serif}
+.badge-high{background:var(--amber-mid);color:var(--amber);border:1px solid #FDE68A;border-radius:5px;padding:1px 7px;font:600 11px 'Inter',sans-serif}
+.badge-moderate{background:#FEF9C3;color:#A16207;border:1px solid #FEF08A;border-radius:5px;padding:1px 7px;font:600 11px 'Inter',sans-serif}
+.badge-monitor{background:#E0F2FE;color:#0369A1;border:1px solid #BAE6FD;border-radius:5px;padding:1px 7px;font:600 11px 'Inter',sans-serif}
+.badge-normal{background:var(--green-mid);color:var(--green);border:1px solid #BBF7D0;border-radius:5px;padding:1px 7px;font:600 11px 'Inter',sans-serif}
+.fade{animation:fadeUp .25s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+.organ-g{cursor:pointer;transition:all .2s;transform-origin:center}
+.organ-g:hover{filter:drop-shadow(0 2px 6px rgba(22,72,160,.4))}
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;z-index:1000;padding:16px}
+.modal{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:24px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;box-shadow:var(--shadow-md)}
+.topbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:10px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 1px 0 var(--border)}
+.container{max-width:1060px;margin:0 auto;padding:18px 16px}
+.spinner{display:inline-block;width:13px;height:13px;border:2px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+.card-link{cursor:pointer;transition:box-shadow .15s,transform .15s}
+.card-link:hover{box-shadow:var(--shadow-md);transform:translateY(-1px)}
+.upload-zone{border:2px dashed var(--border2);border-radius:8px;padding:24px;text-align:center;cursor:pointer;transition:border .15s;background:var(--bg3)}
+.upload-zone:hover{border-color:var(--blue);background:var(--blue-light)}
+.progress-bar{height:4px;background:var(--bg3);border-radius:2px;overflow:hidden}
+.progress-fill{height:100%;background:var(--blue);transition:width .4s}
+.field-label{font:500 11px 'Inter',sans-serif;color:var(--text2);display:block;margin-bottom:4px;letter-spacing:.3px}
+.section-hdr{font:600 11px 'Inter',sans-serif;color:var(--text3);letter-spacing:.5px;text-transform:uppercase;margin-bottom:10px}
+.tl-wrap{position:relative;padding-left:40px;padding-bottom:16px}
+.tl-dot{position:absolute;left:10px;top:3px;width:12px;height:12px;border-radius:50%;border:2px solid;flex-shrink:0}
+.tl-line{position:absolute;left:15px;top:15px;bottom:0;width:1px;background:var(--border)}
+/* Compact grid */
+.g2{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+.g3{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px}
+.g4{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px}
+.stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:12px 14px}
+.stat-val{font:700 24px 'Fira Code',monospace;line-height:1}
+.stat-label{font-size:11px;color:var(--text3);margin-top:3px}
+/* Compact spacing */
+.gap-8{gap:8px}
+.gap-12{gap:12px}
+.mb-10{margin-bottom:10px}
+.mb-14{margin-bottom:14px}
+.p-12{padding:12px}
+.p-16{padding:16px}
+/* Year group header for timeline */
+.year-badge{display:inline-flex;align-items:center;gap:6px;background:var(--blue);color:#fff;border-radius:20px;padding:3px 12px;font:600 12px 'Inter',sans-serif;margin-bottom:12px}
+/* Condition history table */
+.history-row{display:grid;grid-template-columns:100px 1fr 80px 80px;gap:8px;padding:7px 10px;border-bottom:1px solid var(--border);align-items:center;font-size:12px}
+.history-row:hover{background:var(--bg3)}
+/* Clickable metric */
+.metric-pill{background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:6px 10px;cursor:pointer;transition:all .15s;text-align:center}
+.metric-pill:hover{border-color:var(--blue);background:var(--blue-light)}
+.metric-pill.active{border-color:var(--blue);background:var(--blue-light)}
+
+.settings-btn{position:fixed;bottom:18px;right:18px;width:42px;height:42px;border-radius:50%;background:var(--blue);color:#fff;border:none;font-size:20px;cursor:pointer;box-shadow:0 4px 14px rgba(22,72,160,.4);z-index:200;display:flex;align-items:center;justify-content:center;transition:transform .15s}
+.settings-btn:hover{transform:scale(1.12)}
+.api-indicator{position:fixed;bottom:68px;right:10px;font-size:10px;padding:3px 9px;border-radius:10px;z-index:200;font-family:'Inter',sans-serif;font-weight:600;letter-spacing:.3px;cursor:default;pointer-events:none}
+.api-ok{background:#DCFCE7;color:#16A34A;border:1px solid #BBF7D0}
+.api-missing{background:#FEE2E2;color:#DC2626;border:1px solid #FECACA}
+</style>
+</head>
+<body><div id="root"><div style="display:flex;align-items:center;justify-content:center;height:100vh;background:#F8FAFC;color:#94A3B8;font-family:Inter,sans-serif;gap:10px"><div style="width:16px;height:16px;border:2px solid #E2E8F0;border-top-color:#1648A0;border-radius:50%;animation:spin .7s linear infinite"></div>Loading SBK Health…</div></div>
+<script>
+const USERS = {
+  admin: {
+    id: 'u1',
+    username: 'admin',
+    password: 'admin123',
+    role: 'admin',
+    name: 'Dr. Dinesh V.',
+    initials: 'DV'
+  },
+  viewer: {
+    id: 'u2',
+    username: 'viewer',
+    password: 'viewer123',
+    role: 'viewer',
+    name: 'Family Member',
+    initials: 'FM'
+  }
+};
+
+// ── MOM DOCUMENTS (complete from Box — 80 files across 4 folders) ────────────
+const MOM_DOCS = [
+// Lab Reports (42 files)
+{
+  id: 1,
+  name: 'Lipid Profile + CRP',
+  date: 'Feb 2026',
+  year: 2026,
+  type: 'Lab',
+  doctor: 'Sai Baba Speciality Lab',
+  condition: 'Dyslipidaemia',
+  tags: ['critical', 'lipids', 'crp'],
+  boxId: '2175290687427',
+  folder: '1 Lab Reports'
+}, {
+  id: 2,
+  name: 'TSH — Bioline Lab',
+  date: 'Jan 2026',
+  year: 2026,
+  type: 'Lab',
+  doctor: 'Bioline Labs',
+  condition: 'Thyroid',
+  tags: ['thyroid', 'tsh'],
+  boxId: '2175282015807',
+  folder: '1 Lab Reports'
+}, {
+  id: 3,
+  name: 'Full Body Checkup (Nov 2025)',
+  date: 'Nov 2025',
+  year: 2025,
+  type: 'Lab',
+  doctor: 'Multiple',
+  condition: 'Annual Review',
+  tags: ['annual', 'tsh-high'],
+  boxId: '2175286177374',
+  folder: '1 Lab Reports'
+}, {
+  id: 4,
+  name: 'CBP & IGE (Nov 2024)',
+  date: 'Nov 2024',
+  year: 2024,
+  type: 'Lab',
+  doctor: 'Multiple',
+  condition: 'CBC / Allergy',
+  tags: ['cbc', 'ige'],
+  boxId: '2175284841580',
+  folder: '1 Lab Reports'
+}, {
+  id: 5,
+  name: 'Full Body Checkup (Sep 2024)',
+  date: 'Sep 2024',
+  year: 2024,
+  type: 'Lab',
+  doctor: 'Aster Prime',
+  condition: 'Annual Review',
+  tags: ['annual'],
+  boxId: '2175285748343',
+  folder: '1 Lab Reports'
+}, {
+  id: 6,
+  name: 'Blood Tests Mom (Sep 2024)',
+  date: 'Sep 2024',
+  year: 2024,
+  type: 'Lab',
+  doctor: 'Pathology Lab',
+  condition: 'Comprehensive',
+  tags: ['comprehensive'],
+  boxId: '2175277857448',
+  folder: '1 Lab Reports'
+}, {
+  id: 7,
+  name: 'Magnesium Test (Aug 2024)',
+  date: 'Aug 2024',
+  year: 2024,
+  type: 'Lab',
+  doctor: 'Lab',
+  condition: 'Hypomagnesaemia',
+  tags: ['magnesium', 'low'],
+  boxId: '2175285395530',
+  folder: '1 Lab Reports'
+}, {
+  id: 8,
+  name: 'HbA1c (Jul 2024)',
+  date: 'Jul 2024',
+  year: 2024,
+  type: 'Lab',
+  doctor: 'Lab',
+  condition: 'Glycaemia',
+  tags: ['hba1c'],
+  boxId: '2175285553445',
+  folder: '1 Lab Reports'
+}, {
+  id: 9,
+  name: 'Full Body Checkup (Jul 2024)',
+  date: 'Jul 2024',
+  year: 2024,
+  type: 'Lab',
+  doctor: 'Multiple',
+  condition: 'Annual Review',
+  tags: ['annual'],
+  boxId: '2175289226084',
+  folder: '1 Lab Reports'
+}, {
+  id: 10,
+  name: 'Full Body Checkup (Jan 2025)',
+  date: 'Jan 2025',
+  year: 2025,
+  type: 'Lab',
+  doctor: 'Multiple',
+  condition: 'Annual Review',
+  tags: ['annual'],
+  boxId: '2175283362145',
+  folder: '1 Lab Reports'
+}, {
+  id: 11,
+  name: 'Full Body Checkup (Aug 2025)',
+  date: 'Aug 2025',
+  year: 2025,
+  type: 'Lab',
+  doctor: 'Multiple',
+  condition: 'Annual Review',
+  tags: ['annual'],
+  boxId: '2175288606202',
+  folder: '1 Lab Reports'
+}, {
+  id: 12,
+  name: 'Full Body Checkup — Aarthi (Jul 2023)',
+  date: 'Jul 2023',
+  year: 2023,
+  type: 'Lab',
+  doctor: 'Aarthi Scans',
+  condition: 'Annual Review',
+  tags: ['annual', 'ldl-best', 'vitd-best'],
+  boxId: '2175285606396',
+  folder: '1 Lab Reports'
+}, {
+  id: 13,
+  name: 'Mom Master Checkup Aarthi (Jul 2023)',
+  date: 'Jul 2023',
+  year: 2023,
+  type: 'Lab',
+  doctor: 'Aarthi Scans',
+  condition: 'Annual Review',
+  tags: ['annual'],
+  boxId: '2175281572758',
+  folder: '1 Lab Reports'
+}, {
+  id: 14,
+  name: 'TSH Aarthi (Jul 2023)',
+  date: 'Jul 2023',
+  year: 2023,
+  type: 'Lab',
+  doctor: 'Aarthi Scans',
+  condition: 'Thyroid',
+  tags: ['thyroid', 'tsh'],
+  boxId: '2175285441483',
+  folder: '1 Lab Reports'
+}, {
+  id: 15,
+  name: 'Blood Tests Lucid (Feb 2023)',
+  date: 'Feb 2023',
+  year: 2023,
+  type: 'Lab',
+  doctor: 'Lucid Lab',
+  condition: 'Anti-CCP / Immunology',
+  tags: ['anti-ccp', 'ra-excluded'],
+  boxId: '2175588231612',
+  folder: '1 Lab Reports'
+}, {
+  id: 16,
+  name: 'Blood Tests (Feb 2023)',
+  date: 'Feb 2023',
+  year: 2023,
+  type: 'Lab',
+  doctor: 'Pathology',
+  condition: 'Comprehensive',
+  tags: ['comprehensive'],
+  boxId: '2175283736580',
+  folder: '1 Lab Reports'
+}, {
+  id: 17,
+  name: 'Health Checkup (May 2023)',
+  date: 'May 2023',
+  year: 2023,
+  type: 'Lab',
+  doctor: 'Lab',
+  condition: 'Annual',
+  tags: ['annual'],
+  boxId: '2175284259896',
+  folder: '1 Lab Reports'
+}, {
+  id: 18,
+  name: 'Serum Creatinine (Jun 2023)',
+  date: 'Jun 2023',
+  year: 2023,
+  type: 'Lab',
+  doctor: 'Lab',
+  condition: 'Renal',
+  tags: ['creatinine', 'renal'],
+  boxId: '2175281325127',
+  folder: '1 Lab Reports'
+}, {
+  id: 19,
+  name: 'Bone Densitometry DEXA (Nov 2022)',
+  date: 'Nov 2022',
+  year: 2022,
+  type: 'Lab',
+  doctor: 'Dr. A.K. Purohit',
+  condition: 'Osteoporosis',
+  tags: ['dexa', 'osteoporosis', 't-score-2.9'],
+  boxId: '2175290759402',
+  folder: '1 Lab Reports'
+}, {
+  id: 20,
+  name: 'Full Body Checkup Aster (Nov 2022)',
+  date: 'Nov 2022',
+  year: 2022,
+  type: 'Lab',
+  doctor: 'Aster Labs',
+  condition: 'Annual Review',
+  tags: ['annual'],
+  boxId: '2175597224462',
+  folder: '1 Lab Reports'
+}, {
+  id: 21,
+  name: 'Thyroid TSH (Jan 2022)',
+  date: 'Jan 2022',
+  year: 2022,
+  type: 'Lab',
+  doctor: 'Lab',
+  condition: 'Thyroid',
+  tags: ['thyroid', 'tsh'],
+  boxId: '2175290507433',
+  folder: '1 Lab Reports'
+}, {
+  id: 22,
+  name: 'Full Body (Jul 2022)',
+  date: 'Jul 2022',
+  year: 2022,
+  type: 'Lab',
+  doctor: 'Multiple',
+  condition: 'Annual Review',
+  tags: ['annual'],
+  boxId: '2175282141422',
+  folder: '1 Lab Reports'
+}, {
+  id: 23,
+  name: 'Full Body Checkup (Sep 2021)',
+  date: 'Sep 2021',
+  year: 2021,
+  type: 'Lab',
+  doctor: 'Multiple',
+  condition: 'Annual Review',
+  tags: ['annual'],
+  boxId: '2175289923662',
+  folder: '1 Lab Reports'
+}, {
+  id: 24,
+  name: 'Blood Tests Sri Sai (Feb 2020)',
+  date: 'Feb 2020',
+  year: 2020,
+  type: 'Lab',
+  doctor: 'Sri Sai Lab',
+  condition: 'Comprehensive',
+  tags: ['comprehensive'],
+  boxId: '2175284696724',
+  folder: '1 Lab Reports'
+}, {
+  id: 25,
+  name: 'Medical Reports (Feb 2020)',
+  date: 'Feb 2020',
+  year: 2020,
+  type: 'Lab',
+  doctor: 'Multiple',
+  condition: 'Annual Review',
+  tags: ['annual'],
+  boxId: '2175286902022',
+  folder: '1 Lab Reports'
+}, {
+  id: 26,
+  name: 'Urine Test (Feb 2020)',
+  date: 'Feb 2020',
+  year: 2020,
+  type: 'Lab',
+  doctor: 'Lab',
+  condition: 'Urinalysis',
+  tags: ['urine'],
+  boxId: '2175285373577',
+  folder: '1 Lab Reports'
+}, {
+  id: 27,
+  name: 'Full Body Checkup Thyrocare (Jul 2019)',
+  date: 'Jul 2019',
+  year: 2019,
+  type: 'Lab',
+  doctor: 'Thyrocare',
+  condition: 'Annual Review',
+  tags: ['annual', 'thyroid'],
+  boxId: '2175285189103',
+  folder: '1 Lab Reports'
+}, {
+  id: 28,
+  name: 'Medical Reports Jul 2019',
+  date: 'Jul 2019',
+  year: 2019,
+  type: 'Lab',
+  doctor: 'Multiple',
+  condition: 'Annual Review',
+  tags: ['annual'],
+  boxId: '2175286249554',
+  folder: '1 Lab Reports'
+}, {
+  id: 29,
+  name: 'Thyroid Anti-TG Sri Sai (Jul 2019)',
+  date: 'Jul 2019',
+  year: 2019,
+  type: 'Lab',
+  doctor: 'Sri Sai Lab',
+  condition: 'Thyroid Antibodies',
+  tags: ['thyroid', 'anti-tpo', 'hashimotos'],
+  boxId: '2175288626022',
+  folder: '1 Lab Reports'
+}, {
+  id: 30,
+  name: 'Full Body Tapadia (Aug 2019)',
+  date: 'Aug 2019',
+  year: 2019,
+  type: 'Lab',
+  doctor: 'Tapadia Diagnostics',
+  condition: 'Annual Review',
+  tags: ['annual'],
+  boxId: '2175286274361',
+  folder: '1 Lab Reports'
+}, {
+  id: 31,
+  name: 'Blood Tests Sri Sai (Feb 2019)',
+  date: 'Feb 2019',
+  year: 2019,
+  type: 'Lab',
+  doctor: 'Sri Sai Lab',
+  condition: 'Comprehensive',
+  tags: ['comprehensive'],
+  boxId: '2175282241346',
+  folder: '1 Lab Reports'
+}, {
+  id: 32,
+  name: 'Full Checkup Maxcure (Mar 2018)',
+  date: 'Mar 2018',
+  year: 2018,
+  type: 'Lab',
+  doctor: 'Maxcure',
+  condition: 'Annual Review',
+  tags: ['annual'],
+  boxId: '2175285558327',
+  folder: '1 Lab Reports'
+}, {
+  id: 33,
+  name: 'Urine & Stool Test (Nov 2018)',
+  date: 'Nov 2018',
+  year: 2018,
+  type: 'Lab',
+  doctor: 'CC Shroff',
+  condition: 'Urinalysis/Stool',
+  tags: ['urine', 'stool'],
+  boxId: '2175281687539',
+  folder: '1 Lab Reports'
+}, {
+  id: 34,
+  name: 'Full Body CC Shroff (Jan 2016)',
+  date: 'Jan 2016',
+  year: 2016,
+  type: 'Lab',
+  doctor: 'CC Shroff',
+  condition: 'Annual Review',
+  tags: ['annual', 'ldl-high'],
+  boxId: '2175280890985',
+  folder: '1 Lab Reports'
+}, {
+  id: 35,
+  name: 'CBP Urine CC Shroff (Oct 2015)',
+  date: 'Oct 2015',
+  year: 2015,
+  type: 'Lab',
+  doctor: 'CC Shroff',
+  condition: 'CBC / Urinalysis',
+  tags: ['cbc', 'urine'],
+  boxId: '2175599440753',
+  folder: '1 Lab Reports'
+}, {
+  id: 36,
+  name: 'CBP Red Cross (Sep 2015)',
+  date: 'Sep 2015',
+  year: 2015,
+  type: 'Lab',
+  doctor: 'Red Cross',
+  condition: 'CBC',
+  tags: ['cbc'],
+  boxId: '2175602493353',
+  folder: '1 Lab Reports'
+}, {
+  id: 37,
+  name: 'Lipid Red Cross (Sep 2015)',
+  date: 'Sep 2015',
+  year: 2015,
+  type: 'Lab',
+  doctor: 'Red Cross',
+  condition: 'Lipids — BEST LDL',
+  tags: ['lipids', 'ldl-best'],
+  boxId: '2175592408503',
+  folder: '1 Lab Reports'
+}, {
+  id: 38,
+  name: 'Full Body CC Shroff (Jan 2015)',
+  date: 'Jan 2015',
+  year: 2015,
+  type: 'Lab',
+  doctor: 'CC Shroff',
+  condition: 'Annual Review — WORST LIPIDS',
+  tags: ['lipids', 'ldl-worst'],
+  boxId: '2175600861238',
+  folder: '1 Lab Reports'
+}, {
+  id: 39,
+  name: 'Medical Test (Oct 2013)',
+  date: 'Oct 2013',
+  year: 2013,
+  type: 'Lab',
+  doctor: 'CC Shroff',
+  condition: 'Annual Review',
+  tags: ['annual'],
+  boxId: '2175282212449',
+  folder: '1 Lab Reports'
+}, {
+  id: 40,
+  name: 'Medical Test (Apr 2013)',
+  date: 'Apr 2013',
+  year: 2013,
+  type: 'Lab',
+  doctor: 'CC Shroff',
+  condition: 'Annual Review',
+  tags: ['annual'],
+  boxId: '2175285563730',
+  folder: '1 Lab Reports'
+},
+// Imaging (28 files)
+{
+  id: 41,
+  name: 'MRI Lumbo-Sacral Spine (Sep 2024)',
+  date: 'Sep 2024',
+  year: 2024,
+  type: 'Imaging',
+  doctor: 'Aarthi Scans',
+  condition: 'L5-S1 WORSENED',
+  tags: ['mri', 'spine', 'urgent', 'l5-s1'],
+  boxId: '2175287103606',
+  folder: '2 Imaging'
+}, {
+  id: 42,
+  name: 'MRI Scan P1 (Sep 2024)',
+  date: 'Sep 2024',
+  year: 2024,
+  type: 'Imaging',
+  doctor: 'Aarthi Scans',
+  condition: 'Lumbar Spine',
+  tags: ['mri', 'spine'],
+  boxId: '2175281925341',
+  folder: '2 Imaging'
+}, {
+  id: 43,
+  name: 'MRI Scan P2 (Sep 2024)',
+  date: 'Sep 2024',
+  year: 2024,
+  type: 'Imaging',
+  doctor: 'Aarthi Scans',
+  condition: 'Lumbar Spine',
+  tags: ['mri', 'spine'],
+  boxId: '2175284435492',
+  folder: '2 Imaging'
+}, {
+  id: 44,
+  name: 'MRI Sacral Spine (Sep 2024)',
+  date: 'Sep 2024',
+  year: 2024,
+  type: 'Imaging',
+  doctor: 'Aarthi Scans',
+  condition: 'Lumbar Spine',
+  tags: ['mri', 'spine'],
+  boxId: '2175286196796',
+  folder: '2 Imaging'
+}, {
+  id: 45,
+  name: 'Prenuvo Whole Body MRI (Jan 2024)',
+  date: 'Jan 2024',
+  year: 2024,
+  type: 'Imaging',
+  doctor: 'Dr. Marissa Casey (Prenuvo)',
+  condition: 'Multi-system — Brain/Spine/Fibroids',
+  tags: ['mri', 'spine', 'brain', 'fibroids', 'cervical'],
+  boxId: '2175282330389',
+  folder: '2 Imaging'
+}, {
+  id: 46,
+  name: 'Abdomen & Pelvis USG (Jul 2023)',
+  date: 'Jul 2023',
+  year: 2023,
+  type: 'Imaging',
+  doctor: 'Aarthi Scans',
+  condition: 'Uterus / Fibroids (PAP/Mammo included)',
+  tags: ['usg', 'pelvis', 'pap', 'nilm'],
+  boxId: '2175286167781',
+  folder: '2 Imaging'
+}, {
+  id: 47,
+  name: 'Mammogram BIRADS-I (Jul 2023)',
+  date: 'Jul 2023',
+  year: 2023,
+  type: 'Imaging',
+  doctor: 'Aarthi Scans',
+  condition: 'Oncology Screening — Normal',
+  tags: ['mammogram', 'birads-1', 'normal'],
+  boxId: '2175286053240',
+  folder: '2 Imaging'
+}, {
+  id: 48,
+  name: 'Ultrasound Aarthi (Jul 2023)',
+  date: 'Jul 2023',
+  year: 2023,
+  type: 'Imaging',
+  doctor: 'Aarthi Scans',
+  condition: 'Abdomen Normal',
+  tags: ['usg', 'abdomen'],
+  boxId: '2175281959110',
+  folder: '2 Imaging'
+}, {
+  id: 49,
+  name: 'USG Report (Jul 2023)',
+  date: 'Jul 2023',
+  year: 2023,
+  type: 'Imaging',
+  doctor: 'Aarthi Scans',
+  condition: 'Abdomen',
+  tags: ['usg'],
+  boxId: '2175289227802',
+  folder: '2 Imaging'
+}, {
+  id: 50,
+  name: 'Chest X-Ray Aarthi (Jul 2023)',
+  date: 'Jul 2023',
+  year: 2023,
+  type: 'Imaging',
+  doctor: 'Aarthi Scans',
+  condition: 'Chest — Normal',
+  tags: ['xray', 'chest', 'normal'],
+  boxId: '2175284639490',
+  folder: '2 Imaging'
+}, {
+  id: 51,
+  name: 'ECG Aarthi (Jul 2023)',
+  date: 'Jul 2023',
+  year: 2023,
+  type: 'Imaging',
+  doctor: 'Aarthi Scans',
+  condition: 'Cardiac — Normal',
+  tags: ['ecg', 'normal'],
+  boxId: '2175282526922',
+  folder: '2 Imaging'
+}, {
+  id: 52,
+  name: 'CT Coronary Angio + 2D Echo (Jun 2023)',
+  date: 'Jun 2023',
+  year: 2023,
+  type: 'Cardiac',
+  doctor: 'Dr. Sravan (MedPlus)',
+  condition: 'Cardiology — Calcium Score 0',
+  tags: ['ct-angio', 'ca-score-0', 'echo', 'ef-64'],
+  boxId: '2175286003036',
+  folder: '2 Imaging'
+}, {
+  id: 53,
+  name: '2D Echo (Jun 2023)',
+  date: 'Jun 2023',
+  year: 2023,
+  type: 'Cardiac',
+  doctor: 'MedPlus',
+  condition: 'EF 64% / No PAH',
+  tags: ['2d-echo', 'ef-64', 'no-pah'],
+  boxId: '2175290826824',
+  folder: '2 Imaging'
+}, {
+  id: 54,
+  name: '2D Echo Full Report (Jun 2023)',
+  date: 'Jun 2023',
+  year: 2023,
+  type: 'Cardiac',
+  doctor: 'Lab',
+  condition: 'Cardiac',
+  tags: ['2d-echo'],
+  boxId: '2175285220057',
+  folder: '2 Imaging'
+}, {
+  id: 55,
+  name: 'MRI Lumbo-Sacral Spine (May 2023)',
+  date: 'May 2023',
+  year: 2023,
+  type: 'Imaging',
+  doctor: 'MedPlus',
+  condition: 'L5-S1 Moderate',
+  tags: ['mri', 'spine', 'l5-s1'],
+  boxId: '2175288862963',
+  folder: '2 Imaging'
+}, {
+  id: 56,
+  name: 'Endoscopy Report (May 2023)',
+  date: 'May 2023',
+  year: 2023,
+  type: 'Procedure',
+  doctor: 'Dr. Milind K. (Arya Gastro)',
+  condition: 'Hiatus Hernia + Gastritis Grade A',
+  tags: ['endoscopy', 'gerd', 'gastritis', 'hiatus-hernia'],
+  boxId: '2175282649934',
+  folder: '2 Imaging'
+}, {
+  id: 57,
+  name: 'MedPlus CT Scan (May 2023)',
+  date: 'May 2023',
+  year: 2023,
+  type: 'Imaging',
+  doctor: 'MedPlus',
+  condition: 'Multi-system',
+  tags: ['ct-scan'],
+  boxId: '2175288860563',
+  folder: '2 Imaging'
+}, {
+  id: 58,
+  name: 'USG Abdomen Pelvis + 2D Echo (Nov 2022)',
+  date: 'Nov 2022',
+  year: 2022,
+  type: 'Imaging',
+  doctor: 'Aster',
+  condition: 'Abdomen + Cardiac',
+  tags: ['usg', '2d-echo'],
+  boxId: '2175288930329',
+  folder: '2 Imaging'
+}, {
+  id: 59,
+  name: 'Exercise Stress Test — NEGATIVE (Nov 2022)',
+  date: 'Nov 2022',
+  year: 2022,
+  type: 'Cardiac',
+  doctor: 'Dr. C. Raghu',
+  condition: 'Cardiac — No Ischaemia',
+  tags: ['stress-test', 'negative', 'normal'],
+  boxId: '2175285553610',
+  folder: '2 Imaging'
+}, {
+  id: 60,
+  name: 'Abdomen & Chest X-Ray (Sep 2021)',
+  date: 'Sep 2021',
+  year: 2021,
+  type: 'Imaging',
+  doctor: 'Multiple',
+  condition: 'Chest — Normal',
+  tags: ['xray', 'chest', 'normal'],
+  boxId: '2175285656939',
+  folder: '2 Imaging'
+}, {
+  id: 61,
+  name: 'Chest X-Ray CC Shroff (Sep 2021)',
+  date: 'Sep 2021',
+  year: 2021,
+  type: 'Imaging',
+  doctor: 'CC Shroff',
+  condition: 'Chest — Normal',
+  tags: ['xray', 'chest'],
+  boxId: '2175282011165',
+  folder: '2 Imaging'
+}, {
+  id: 62,
+  name: 'Chest X-Ray PA (Sep 2021)',
+  date: 'Sep 2021',
+  year: 2021,
+  type: 'Imaging',
+  doctor: 'Multiple',
+  condition: 'Chest Normal',
+  tags: ['xray', 'chest'],
+  boxId: '2175284636747',
+  folder: '2 Imaging'
+}, {
+  id: 63,
+  name: 'Ultrasound Tapadia (Aug 2019)',
+  date: 'Aug 2019',
+  year: 2019,
+  type: 'Imaging',
+  doctor: 'Tapadia Diagnostics',
+  condition: 'Abdomen',
+  tags: ['usg', 'abdomen'],
+  boxId: '2175285486204',
+  folder: '2 Imaging'
+}, {
+  id: 64,
+  name: 'Cervical Spine X-Ray (Nov 2018)',
+  date: 'Nov 2018',
+  year: 2018,
+  type: 'Imaging',
+  doctor: 'CC Shroff',
+  condition: 'Cervical Spine',
+  tags: ['xray', 'cervical'],
+  boxId: '2175285019114',
+  folder: '2 Imaging'
+}, {
+  id: 65,
+  name: 'Cervical Spine X-Ray (Oct 2015)',
+  date: 'Oct 2015',
+  year: 2015,
+  type: 'Imaging',
+  doctor: 'CC Shroff',
+  condition: 'Cervical Spine',
+  tags: ['xray', 'cervical'],
+  boxId: '2175286126986',
+  folder: '2 Imaging'
+}, {
+  id: 66,
+  name: 'Knee X-Ray (Sep 2015)',
+  date: 'Sep 2015',
+  year: 2015,
+  type: 'Imaging',
+  doctor: 'CC Shroff',
+  condition: 'Knee',
+  tags: ['xray', 'knee'],
+  boxId: '2175286285793',
+  folder: '2 Imaging'
+}, {
+  id: 67,
+  name: 'Hand X-Ray (Apr 2013)',
+  date: 'Apr 2013',
+  year: 2013,
+  type: 'Imaging',
+  doctor: 'CC Shroff',
+  condition: 'Hand',
+  tags: ['xray', 'hand'],
+  boxId: '2175586259669',
+  folder: '2 Imaging'
+},
+// Prescriptions (8 files)
+{
+  id: 68,
+  name: 'Eye Checkup Maxivision (Feb 2026)',
+  date: 'Feb 2026',
+  year: 2026,
+  type: 'Consult',
+  doctor: 'Maxivision',
+  condition: 'Red Scleral Line / Eye',
+  tags: ['eye', 'sclera'],
+  boxId: '2175281560115',
+  folder: '3 Prescriptions'
+}, {
+  id: 69,
+  name: 'Eye Checkup Baswaraj (2026)',
+  date: '2026',
+  year: 2026,
+  type: 'Consult',
+  doctor: 'Baswaraj Eye',
+  condition: 'Eye',
+  tags: ['eye'],
+  boxId: '2175277071711',
+  folder: '3 Prescriptions'
+}, {
+  id: 70,
+  name: 'Arya Gastro Prescription (May 2023)',
+  date: 'May 2023',
+  year: 2023,
+  type: 'Prescription',
+  doctor: 'Dr. Milind K.',
+  condition: 'GERD / Gastritis',
+  tags: ['gerd', 'ppi'],
+  boxId: '2175282001775',
+  folder: '3 Prescriptions'
+}, {
+  id: 71,
+  name: 'Ortho Consultation (Feb 2023)',
+  date: 'Feb 2023',
+  year: 2023,
+  type: 'Consult',
+  doctor: 'Dr. Radhakrishna',
+  condition: 'Orthopaedic / Spine',
+  tags: ['ortho', 'spine'],
+  boxId: '2175282578315',
+  folder: '3 Prescriptions'
+}, {
+  id: 72,
+  name: 'Cataract Bills & Prescriptions (Feb 2020)',
+  date: 'Feb 2020',
+  year: 2020,
+  type: 'Prescription',
+  doctor: 'Tanvi Eye Centre',
+  condition: 'Cataract Surgery',
+  tags: ['cataract', 'eye'],
+  boxId: '2175276531882',
+  folder: '3 Prescriptions'
+}, {
+  id: 73,
+  name: 'Cardio Consultation Medicover (Feb 2020)',
+  date: 'Feb 2020',
+  year: 2020,
+  type: 'Consult',
+  doctor: 'Medicover Cardiology',
+  condition: 'Cardiology',
+  tags: ['cardiology'],
+  boxId: '2175281435615',
+  folder: '3 Prescriptions'
+}, {
+  id: 74,
+  name: 'Gleneagles Consultation (Jul 2019)',
+  date: 'Jul 2019',
+  year: 2019,
+  type: 'Consult',
+  doctor: 'Gleneagles Hospital',
+  condition: 'Thyroid Consultation',
+  tags: ['thyroid', 'consultation'],
+  boxId: '2175278214568',
+  folder: '3 Prescriptions'
+}, {
+  id: 75,
+  name: 'Medical Prescription CC Shroff (Mar 2013)',
+  date: 'Mar 2013',
+  year: 2013,
+  type: 'Prescription',
+  doctor: 'CC Shroff',
+  condition: 'General',
+  tags: ['general'],
+  boxId: '2175284966366',
+  folder: '3 Prescriptions'
+},
+// Hospital Visits (2 files)
+{
+  id: 76,
+  name: 'Discharge Summary Aster Prime (Sep 2024)',
+  date: 'Sep 2024',
+  year: 2024,
+  type: 'Hospital',
+  doctor: 'Dr. A.K. Purohit',
+  condition: 'L5-S1 PIVD — Epidural Treatment',
+  tags: ['admission', 'epidural', 'l5-s1'],
+  boxId: '2175289391684',
+  folder: '4 Hospital Visits'
+}, {
+  id: 77,
+  name: 'Cataract Surgery — Tanvi Eye Centre (Feb 2020)',
+  date: 'Feb 2020',
+  year: 2020,
+  type: 'Hospital',
+  doctor: 'Tanvi Eye Centre',
+  condition: 'Bilateral Cataract Surgery',
+  tags: ['surgery', 'cataract', 'iol'],
+  boxId: '2175283660551',
+  folder: '4 Hospital Visits'
+},
+// Eye checkup 2023 (prescription)
+{
+  id: 78,
+  name: 'Eye Checkup Maxivision (Feb 2023)',
+  date: 'Feb 2023',
+  year: 2023,
+  type: 'Consult',
+  doctor: 'Maxivision',
+  condition: 'Eye Check',
+  tags: ['eye'],
+  boxId: '2175290289117',
+  folder: '1 Lab Reports'
+}];
+
+// ── DAD (Bhagwandas Gandhi) DOCUMENTS ─────────────────────────────────────────
+const DAD_DOCS = [{
+  id: 1,
+  name: 'Full Body Checkup (Nov 2025)',
+  date: 'Nov 2025',
+  year: 2025,
+  type: 'Lab',
+  doctor: 'Multiple',
+  condition: 'Annual Review',
+  tags: ['annual'],
+  boxId: '2155657530240',
+  folder: '1 Lab Tests'
+}, {
+  id: 2,
+  name: 'Full Body Checkup (Jan 2025)',
+  date: 'Jan 2025',
+  year: 2025,
+  type: 'Lab',
+  doctor: 'Multiple',
+  condition: 'Annual Review',
+  tags: ['annual'],
+  boxId: '2161693369408',
+  folder: '1 Lab Tests'
+}, {
+  id: 3,
+  name: 'TSH (Jan 2026)',
+  date: 'Jan 2026',
+  year: 2026,
+  type: 'Lab',
+  doctor: 'Lab',
+  condition: 'Thyroid',
+  tags: ['tsh'],
+  boxId: '2161697642376',
+  folder: '1 Lab Tests'
+}, {
+  id: 4,
+  name: 'Lipid Profile (Feb 2026)',
+  date: 'Feb 2026',
+  year: 2026,
+  type: 'Lab',
+  doctor: 'Lab',
+  condition: 'Lipids',
+  tags: ['lipids'],
+  boxId: '2161689467391',
+  folder: '1 Lab Tests'
+}, {
+  id: 5,
+  name: 'HbA1c & Liver Function (Apr 2025)',
+  date: 'Apr 2025',
+  year: 2025,
+  type: 'Lab',
+  doctor: 'Lab',
+  condition: 'Glycaemia / Liver',
+  tags: ['hba1c', 'lft'],
+  boxId: '2161695373696',
+  folder: '1 Lab Tests'
+}, {
+  id: 6,
+  name: 'CBP & IGE (Nov 2024)',
+  date: 'Nov 2024',
+  year: 2024,
+  type: 'Lab',
+  doctor: 'Lab',
+  condition: 'CBC / Allergy',
+  tags: ['cbc', 'ige'],
+  boxId: '2161693609395',
+  folder: '1 Lab Tests'
+}, {
+  id: 7,
+  name: 'Blood Tests Dad (Sep 2024)',
+  date: 'Sep 2024',
+  year: 2024,
+  type: 'Lab',
+  doctor: 'Lab',
+  condition: 'Comprehensive',
+  tags: ['comprehensive'],
+  boxId: '2155657600653',
+  folder: '1 Lab Tests'
+}, {
+  id: 8,
+  name: 'Urine Analysis (Sep 2025)',
+  date: 'Sep 2025',
+  year: 2025,
+  type: 'Lab',
+  doctor: 'Lab',
+  condition: 'Urinalysis',
+  tags: ['urine'],
+  boxId: '2161684645208',
+  folder: '1 Lab Tests'
+}, {
+  id: 9,
+  name: 'CBP (Jul 2024)',
+  date: 'Jul 2024',
+  year: 2024,
+  type: 'Lab',
+  doctor: 'Lab',
+  condition: 'CBC',
+  tags: ['cbc'],
+  boxId: '2161696443661',
+  folder: '1 Lab Tests'
+}, {
+  id: 10,
+  name: 'Complete Checkup (Nov 2022)',
+  date: 'Nov 2022',
+  year: 2022,
+  type: 'Lab',
+  doctor: 'Multiple',
+  condition: 'Annual Review',
+  tags: ['annual'],
+  boxId: '2161693972317',
+  folder: '1 Lab Tests'
+}, {
+  id: 11,
+  name: 'PSA (Jul 2023)',
+  date: 'Jul 2023',
+  year: 2023,
+  type: 'Lab',
+  doctor: 'Lab',
+  condition: 'Prostate Cancer Surveillance',
+  tags: ['psa', 'surveillance'],
+  boxId: '2161690562007',
+  folder: '1 Lab Tests'
+}, {
+  id: 12,
+  name: 'PSA (Apr 2023)',
+  date: 'Apr 2023',
+  year: 2023,
+  type: 'Lab',
+  doctor: 'Lab',
+  condition: 'Prostate Surveillance',
+  tags: ['psa'],
+  boxId: '2161694466595',
+  folder: '1 Lab Tests'
+}, {
+  id: 13,
+  name: 'PSA (Oct 2022)',
+  date: 'Oct 2022',
+  year: 2022,
+  type: 'Lab',
+  doctor: 'Lab',
+  condition: 'Prostate',
+  tags: ['psa'],
+  boxId: '2161685893646',
+  folder: '1 Lab Tests'
+}, {
+  id: 14,
+  name: 'PSA (Apr 2022)',
+  date: 'Apr 2022',
+  year: 2022,
+  type: 'Lab',
+  doctor: 'Lab',
+  condition: 'Prostate',
+  tags: ['psa'],
+  boxId: '2161693401513',
+  folder: '1 Lab Tests'
+}, {
+  id: 15,
+  name: 'Cardiac Coronary Angiogram (Jun 2023)',
+  date: 'Jun 2023',
+  year: 2023,
+  type: 'Cardiac',
+  doctor: 'Cardiologist',
+  condition: 'Coronary Artery Disease',
+  tags: ['cad', 'angiogram'],
+  boxId: '2161697961567',
+  folder: '1 Lab Tests'
+}, {
+  id: 16,
+  name: 'Exercise Stress Test',
+  date: '2022',
+  year: 2022,
+  type: 'Cardiac',
+  doctor: 'Cardiologist',
+  condition: 'Cardiac Stress Test',
+  tags: ['stress-test'],
+  boxId: '2161697409010',
+  folder: '1 Lab Tests'
+}, {
+  id: 17,
+  name: '2D Echo Doppler (Nov 2022)',
+  date: 'Nov 2022',
+  year: 2022,
+  type: 'Cardiac',
+  doctor: 'Lab',
+  condition: 'EF 52%',
+  tags: ['2d-echo', 'ef-52'],
+  boxId: '2161687168164',
+  folder: '1 Lab Tests'
+}, {
+  id: 18,
+  name: 'Creatinine & Uric Acid (May 2023)',
+  date: 'May 2023',
+  year: 2023,
+  type: 'Lab',
+  doctor: 'Lab',
+  condition: 'Renal',
+  tags: ['creatinine', 'uric-acid'],
+  boxId: '2161691678387',
+  folder: '1 Lab Tests'
+}, {
+  id: 19,
+  name: 'Lipid & Serum C (Feb 2023)',
+  date: 'Feb 2023',
+  year: 2023,
+  type: 'Lab',
+  doctor: 'Lab',
+  condition: 'Lipids',
+  tags: ['lipids', 'cholesterol'],
+  boxId: '2155654926159',
+  folder: '1 Lab Tests'
+}, {
+  id: 20,
+  name: 'PSA CC Shroff (Mar 2019)',
+  date: 'Mar 2019',
+  year: 2019,
+  type: 'Lab',
+  doctor: 'CC Shroff',
+  condition: 'Prostate — First Elevated PSA',
+  tags: ['psa', 'elevated'],
+  boxId: '2155666527856',
+  folder: '1 Lab Tests'
+}, {
+  id: 21,
+  name: 'Bone Density DEXA (Nov 2022)',
+  date: 'Nov 2022',
+  year: 2022,
+  type: 'Lab',
+  doctor: 'Lab',
+  condition: 'Bone Density',
+  tags: ['dexa', 'bone-density'],
+  boxId: '2161696621506',
+  folder: '1 Lab Tests'
+}, {
+  id: 22,
+  name: 'HbA1c (Jul 2022)',
+  date: 'Jul 2022',
+  year: 2022,
+  type: 'Lab',
+  doctor: 'Lab',
+  condition: 'Glycaemia',
+  tags: ['hba1c'],
+  boxId: '2161694949093',
+  folder: '1 Lab Tests'
+}, {
+  id: 23,
+  name: 'Complete Checkup (Apr 2022)',
+  date: 'Apr 2022',
+  year: 2022,
+  type: 'Lab',
+  doctor: 'Multiple',
+  condition: 'Annual Review',
+  tags: ['annual'],
+  boxId: '2161688358566',
+  folder: '1 Lab Tests'
+}, {
+  id: 24,
+  name: 'Magnesium (Aug 2024)',
+  date: 'Aug 2024',
+  year: 2024,
+  type: 'Lab',
+  doctor: 'Lab',
+  condition: 'Electrolytes',
+  tags: ['magnesium'],
+  boxId: '2155668609362',
+  folder: '1 Lab Tests'
+}, {
+  id: 25,
+  name: 'Full Body (Oct 2021)',
+  date: 'Oct 2021',
+  year: 2021,
+  type: 'Lab',
+  doctor: 'Multiple',
+  condition: 'Annual Review',
+  tags: ['annual'],
+  boxId: '2155658807923',
+  folder: '1 Lab Tests'
+}, {
+  id: 26,
+  name: 'Medical Test (Jan 2016)',
+  date: 'Jan 2016',
+  year: 2016,
+  type: 'Lab',
+  doctor: 'Lab',
+  condition: 'Annual Review',
+  tags: ['annual'],
+  boxId: '2155666628911',
+  folder: '1 Lab Tests'
+}, {
+  id: 27,
+  name: 'Medical Reports (Feb 2020)',
+  date: 'Feb 2020',
+  year: 2020,
+  type: 'Lab',
+  doctor: 'Lab',
+  condition: 'Annual Review',
+  tags: ['annual'],
+  boxId: '2155658519009',
+  folder: '1 Lab Tests'
+}, {
+  id: 28,
+  name: 'HbA1c Medicover (Feb 2020)',
+  date: 'Feb 2020',
+  year: 2020,
+  type: 'Lab',
+  doctor: 'Medicover',
+  condition: 'Glycaemia',
+  tags: ['hba1c'],
+  boxId: '2155657967741',
+  folder: '1 Lab Tests'
+}, {
+  id: 29,
+  name: 'Sai Lab Lipid Profile (Jun 2019)',
+  date: 'Jun 2019',
+  year: 2019,
+  type: 'Lab',
+  doctor: 'Sai Lab',
+  condition: 'Lipids',
+  tags: ['lipids'],
+  boxId: '2155661900784',
+  folder: '1 Lab Tests'
+}];
+const MOM_CONDITIONS = [{
+  id: 'dys',
+  name: 'Severe Dyslipidaemia',
+  sev: 'urgent',
+  organ: 'Cardiovascular',
+  organId: 'heart',
+  findings: 'LDL 181↑↑, HDL 37↓↓, TG 207↑↑, CRP 6.7↑ (Feb 2026). WORST EVER: LDL 207 (Jan 2015). 11+ year chronic history. Statin NEVER started.',
+  action: 'Start Rosuvastatin/Atorvastatin TODAY. Target LDL <130. Recheck in 6–8 weeks.',
+  reviewed: 'Feb 2026'
+}, {
+  id: 'thy',
+  name: "Hashimoto's Thyroiditis",
+  sev: 'urgent',
+  organ: 'Thyroid',
+  organId: 'thyroid',
+  findings: 'Anti-TPO 92.22↑↑ (ref <60, Jul 2019). TSH peaked 24.41↑↑ (overt, Jul 2019), 7.45↑↑ (Nov 2025). Currently 3.89✓ (Jan 2026). Levothyroxine ongoing.',
+  action: 'Recheck TSH in 3 months. Target 0.5–3.0 μIU/mL. Poor thyroid control worsens LDL/TG.',
+  reviewed: 'Jan 2026'
+}, {
+  id: 'spi',
+  name: 'L5-S1 Bilateral Nerve Root Compression',
+  sev: 'urgent',
+  organ: 'Lumbar Spine',
+  organId: 'spine',
+  findings: 'Sep 2024 MRI WORSENED — diffuse disc bulge, bilateral traversing nerve root indentation. Hospitalised + epidural Sep 2024 (Depomedrol 80mg + Bupivacaine).',
+  action: 'Physiotherapy ongoing. Neurosurgery review if new neurological signs (numbness, weakness, bladder).',
+  reviewed: 'Sep 2024'
+}, {
+  id: 'cer',
+  name: 'Severe Cervical Spondylosis C3–C7',
+  sev: 'high',
+  organ: 'Cervical Spine',
+  organId: 'spine',
+  findings: 'Prenuvo Jan 2024: Severe C3–C7, moderate canal stenosis, severe C5–C6 foraminal narrowing. Myelopathy risk.',
+  action: 'Monitor for upper limb weakness/gait changes. Neurosurgery if progressive. Avoid heavy lifting.',
+  reviewed: 'Jan 2024'
+}, {
+  id: 'gerd',
+  name: 'GERD + Erosive Gastritis Grade A + Grade II Hiatus Hernia',
+  sev: 'high',
+  organ: 'Liver / GI',
+  organId: 'liver',
+  findings: 'Grade II Sliding Hiatus Hernia + Erosive Gastritis Grade A — endoscopy May 2023. Daily heartburn, frequent burping.',
+  action: 'Continue PPI (Nexpro RD 40mg). Elevate head of bed. Small meals. Avoid NSAIDs.',
+  reviewed: 'May 2023'
+}, {
+  id: 'ost',
+  name: 'Osteoporosis — Femur Neck Left (T-score −2.9)',
+  sev: 'high',
+  organ: 'Bone Density',
+  organId: 'bones',
+  findings: 'DEXA Nov 2022: Femur Neck Left T-score −2.9 (osteoporosis confirmed). TSH 1.94✓ on DEXA day — NOT thyroid-driven. Vit D 26.2↓. DEXA overdue Nov 2024.',
+  action: 'Alendronate 70mg weekly + Calcium 500mg BD + Vit D3. Repeat DEXA immediately (overdue).',
+  reviewed: 'Nov 2022'
+}, {
+  id: 'vitd',
+  name: 'Vitamin D Insufficiency',
+  sev: 'moderate',
+  organ: 'Metabolic',
+  organId: 'metabolic',
+  findings: '26.2 ng/mL (Nov 2025). Declining from best 51.19 (Jul 2023). Target 40–60 ng/mL.',
+  action: 'Increase Vit D3 supplement. Recheck in 3 months.',
+  reviewed: 'Nov 2025'
+}, {
+  id: 'svd',
+  name: 'Mild Cerebral Small Vessel Ischaemia',
+  sev: 'moderate',
+  organ: 'Brain',
+  organId: 'brain',
+  findings: 'Prenuvo Jan 2024: scattered deep white matter lesions. Related to chronic dyslipidaemia. Follow-up MRI overdue.',
+  action: 'Lipid control is primary treatment. Follow-up MRI overdue (due Jan 2026).',
+  reviewed: 'Jan 2024'
+}, {
+  id: 'fib',
+  name: 'Uterine Fibroids (2 subserosal, 2.6 cm)',
+  sev: 'monitor',
+  organ: 'Gynaecology',
+  organId: 'uterus',
+  findings: 'Largest 2.6 cm (Prenuvo Jan 2024). Post-menopausal. Endometrium 4 mm (normal). Benign.',
+  action: 'Annual USG surveillance.',
+  reviewed: 'Jan 2024'
+}, {
+  id: 'mag',
+  name: 'Hypomagnesaemia',
+  sev: 'monitor',
+  organ: 'Metabolic',
+  organId: 'metabolic',
+  findings: '1.72 mg/dL (Aug 2024, ref 1.90–3.10). Not rechecked since. Causes muscle cramps, poor sleep.',
+  action: 'Start magnesium glycinate. Include in next panel.',
+  reviewed: 'Aug 2024'
+}, {
+  id: 'eye',
+  name: 'Red Scleral Line / Eye Concern',
+  sev: 'monitor',
+  organ: 'Eyes',
+  organId: 'eyes',
+  findings: 'Red line on sclera noted by Maxivision Feb 2026. No formal diagnosis. Possible episcleritis.',
+  action: 'Ophthalmology review if persisting >2 weeks.',
+  reviewed: 'Feb 2026'
+}, {
+  id: 'ana',
+  name: 'Recurring Mild Anaemia',
+  sev: 'monitor',
+  organ: 'Haematology',
+  organId: 'metabolic',
+  findings: 'Haemoglobin low multiple times — worst 11.2 (May 2023). Iron deficiency Jul 2022 (Fe 39.3↓, sat 15.17%). Normalised Nov 2025 (Fe 82).',
+  action: 'Monitor Hb annually. Iron-rich diet. Recheck if Hb <12.',
+  reviewed: 'Nov 2025'
+}];
+const DAD_CONDITIONS = [{
+  id: 'psa',
+  name: 'Prostate Cancer — Active Surveillance (Gleason 3+3=6)',
+  sev: 'urgent',
+  organ: 'Prostate',
+  organId: 'prostate',
+  findings: 'First elevated PSA Mar 2019 (5.0). PSA 4.8 (Jan 2025). Biopsy Gleason 3+3=6. Active surveillance. DRE: slight asymmetric enlargement.',
+  action: 'Repeat PSA + MRI prostate every 6 months. Annual biopsy discussion with urology.',
+  reviewed: 'Jan 2025'
+}, {
+  id: 'lipid',
+  name: 'Dyslipidaemia — On Statin',
+  sev: 'high',
+  organ: 'Cardiovascular',
+  organId: 'heart',
+  findings: 'LDL elevated historically. On Rosuvastatin. Last lipid panel Feb 2026.',
+  action: 'Continue statin. Monitor LDL annually. Target <100 mg/dL.',
+  reviewed: 'Feb 2026'
+}, {
+  id: 'bone',
+  name: 'Osteoporosis / Low Bone Density',
+  sev: 'high',
+  organ: 'Bone Density',
+  organId: 'bones',
+  findings: 'DEXA Nov 2022: Multiple sites with T-score ≤ −2.5. Documented in 3 separate DEXA reports.',
+  action: 'Bisphosphonate + Calcium + Vit D3. Repeat DEXA.',
+  reviewed: 'Nov 2022'
+}, {
+  id: 'tsh2',
+  name: 'Hypothyroidism',
+  sev: 'moderate',
+  organ: 'Thyroid',
+  organId: 'thyroid',
+  findings: 'TSH elevated on multiple readings. TSH Jan 2026 noted in file.',
+  action: 'Continue levothyroxine. Recheck TSH in 3 months.',
+  reviewed: 'Jan 2026'
+}, {
+  id: 'urine2',
+  name: 'Urinary / Renal Monitoring',
+  sev: 'monitor',
+  organ: 'Kidneys',
+  organId: 'kidneys',
+  findings: 'Urine analysis Sep 2025. Creatinine monitored. Uric acid history (gout risk).',
+  action: 'Annual renal panel. Stay well hydrated.',
+  reviewed: 'Sep 2025'
+}];
+const MOM_TIMELINE = [{
+  date: 'Feb 2026',
+  year: 2026,
+  type: 'lab',
+  color: '#DC2626',
+  title: 'Lipid Profile + CRP — CRITICAL',
+  detail: 'LDL 181↑↑, HDL 37↓↓, CRP 6.7↑. Urgent statin indication confirmed.',
+  specialty: 'Cardiology'
+}, {
+  date: 'Jan 2026',
+  year: 2026,
+  type: 'lab',
+  color: '#16A34A',
+  title: 'TSH 3.89✓ — Improved',
+  detail: 'TSH 3.89 after Nov 2025 relapse. Levothyroxine dose adjustment effective.',
+  specialty: 'Endocrinology'
+}, {
+  date: 'Nov 2025',
+  year: 2025,
+  type: 'lab',
+  color: '#DC2626',
+  title: 'TSH Relapse 7.45↑↑ + LDL 174↑↑',
+  detail: 'TSH 7.45↑↑, LDL 174↑↑, TG 295↑↑, Vit D 26.2↓. Worst thyroid reading since 2019.',
+  specialty: 'Endocrinology'
+}, {
+  date: 'Sep 2024',
+  year: 2024,
+  type: 'hospital',
+  color: '#7C3AED',
+  title: 'Admitted — Aster Prime Hospital (5 days)',
+  detail: 'L5-S1 PIVD. Epidural: Depomedrol 80mg + Bupivacaine. Dr. A.K. Purohit. Discharge: Lioresal SR + Gabantin.',
+  specialty: 'Neurosurgery'
+}, {
+  date: 'Sep 2024',
+  year: 2024,
+  type: 'imaging',
+  color: '#DC2626',
+  title: 'MRI LS Spine — WORSENED vs May 2023',
+  detail: 'L5-S1 worsened: diffuse disc bulge, bilateral traversing nerve root indentation. SI joint degeneration.',
+  specialty: 'Radiology'
+}, {
+  date: 'Jan 2024',
+  year: 2024,
+  type: 'imaging',
+  color: '#2563EB',
+  title: 'Prenuvo Whole Body MRI',
+  detail: 'Severe cervical C3–C7, severe L5-S1, brain small vessel ischaemia, 2 fibroids 2.6 cm.',
+  specialty: 'Radiology'
+}, {
+  date: 'Jun 2023',
+  year: 2023,
+  type: 'imaging',
+  color: '#16A34A',
+  title: 'CT Coronary Angio — Calcium Score 0 ✓',
+  detail: 'Calcium Score: 0 (EXCELLENT). EF 64%. No PAH. LAD/LCX/RCA 10–20% soft plaque only.',
+  specialty: 'Cardiology'
+}, {
+  date: 'May 2023',
+  year: 2023,
+  type: 'procedure',
+  color: '#D97706',
+  title: 'Upper GI Endoscopy',
+  detail: 'Grade II Sliding Hiatus Hernia + Erosive Gastritis Grade A confirmed.',
+  specialty: 'Gastroenterology'
+}, {
+  date: 'Nov 2022',
+  year: 2022,
+  type: 'lab',
+  color: '#DC2626',
+  title: 'DEXA — Osteoporosis Confirmed',
+  detail: 'Femur Neck Left T-score −2.9. TSH 1.94✓ on same day — osteoporosis NOT thyroid-driven.',
+  specialty: 'Endocrinology'
+}, {
+  date: 'Nov 2022',
+  year: 2022,
+  type: 'imaging',
+  color: '#16A34A',
+  title: 'Exercise Stress Test — NEGATIVE ✓',
+  detail: 'NEGATIVE for ischaemia. Max METs 7.20, HR 146 bpm (91% predicted). No ST changes.',
+  specialty: 'Cardiology'
+}, {
+  date: 'Jul 2019',
+  year: 2019,
+  type: 'diagnosis',
+  color: '#DC2626',
+  title: "Overt Hypothyroidism — Hashimoto's Diagnosed",
+  detail: "TSH 24.41↑↑. Anti-TPO 92.22↑↑ confirms Hashimoto's autoimmune thyroiditis. Levothyroxine commenced.",
+  specialty: 'Endocrinology'
+}, {
+  date: 'Feb 2020',
+  year: 2020,
+  type: 'surgery',
+  color: '#6366F1',
+  title: 'Bilateral Cataract Surgery — Success',
+  detail: 'RE: IOL +25.0D, LE: IOL +25.5D. Tanvi Eye Centre. Both eyes successfully treated.',
+  specialty: 'Ophthalmology'
+}, {
+  date: 'Jan 2015',
+  year: 2015,
+  type: 'lab',
+  color: '#DC2626',
+  title: 'WORST EVER Lipid Panel',
+  detail: 'LDL 207↑↑, TC 309↑↑, TG 328↑↑, HDL 36↓↓. Statin not started. TSH 3.53 (normal — lipid-driven, not thyroid).',
+  specialty: 'Cardiology'
+}];
+const DAD_TIMELINE = [{
+  date: 'Feb 2026',
+  year: 2026,
+  type: 'lab',
+  color: '#D97706',
+  title: 'Lipid Profile',
+  detail: 'Latest lipid panel. On Rosuvastatin.',
+  specialty: 'Cardiology'
+}, {
+  date: 'Jan 2026',
+  year: 2026,
+  type: 'lab',
+  color: '#D97706',
+  title: 'TSH Check',
+  detail: 'TSH monitored — on levothyroxine.',
+  specialty: 'Endocrinology'
+}, {
+  date: 'Jan 2025',
+  year: 2025,
+  type: 'lab',
+  color: '#DC2626',
+  title: 'PSA 4.8↑ — Active Surveillance',
+  detail: 'PSA 4.8 ng/mL. DRE slight asymmetry. Active surveillance continues.',
+  specialty: 'Urology'
+}, {
+  date: 'Jun 2023',
+  year: 2023,
+  type: 'imaging',
+  color: '#16A34A',
+  title: 'CT Coronary Angio',
+  detail: 'Coronary arteries assessed. Documented CAD findings.',
+  specialty: 'Cardiology'
+}, {
+  date: 'Mar 2019',
+  year: 2019,
+  type: 'diagnosis',
+  color: '#DC2626',
+  title: 'First Elevated PSA',
+  detail: 'PSA elevated first time at CC Shroff. Urology referral.',
+  specialty: 'Urology'
+}, {
+  date: 'Nov 2022',
+  year: 2022,
+  type: 'lab',
+  color: '#2563EB',
+  title: 'DEXA Bone Density',
+  detail: 'Multiple sites below threshold. Osteoporosis confirmed.',
+  specialty: 'Endocrinology'
+}];
+
+// Key + Full lab data for Mom
+const MOM_LABS_KEY = {
+  tsh: {
+    label: 'TSH',
+    unit: 'μIU/mL',
+    refLow: 0.27,
+    refHigh: 5.35,
+    color: '#7C3AED',
+    data: [{
+      d: "Apr'13",
+      v: 3.27
+    }, {
+      d: "Jan'15",
+      v: 3.53
+    }, {
+      d: "Jan'16",
+      v: 3.92
+    }, {
+      d: "Mar'18",
+      v: 2.65
+    }, {
+      d: "Jul'19",
+      v: 24.41
+    }, {
+      d: "Feb'20",
+      v: 2.51
+    }, {
+      d: "Sep'21",
+      v: 6.23
+    }, {
+      d: "Nov'22",
+      v: 1.94
+    }, {
+      d: "May'23",
+      v: 5.39
+    }, {
+      d: "Jul'23",
+      v: 2.87
+    }, {
+      d: "Sep'24",
+      v: 4.66
+    }, {
+      d: "Jan'25",
+      v: 3.12
+    }, {
+      d: "Nov'25",
+      v: 7.45
+    }, {
+      d: "Jan'26",
+      v: 3.89
+    }],
+    note: 'Hashimoto\'s — overt Jul 2019 (24.41↑↑). TSH 1.94✓ on DEXA day. Latest: 3.89✓'
+  },
+  ldl: {
+    label: 'LDL Cholesterol',
+    unit: 'mg/dL',
+    refHigh: 130,
+    color: '#DC2626',
+    data: [{
+      d: "Jan'15",
+      v: 207
+    }, {
+      d: "Sep'15",
+      v: 104
+    }, {
+      d: "Jan'16",
+      v: 194
+    }, {
+      d: "Mar'18",
+      v: 150
+    }, {
+      d: "Jul'19",
+      v: 189
+    }, {
+      d: "Feb'20",
+      v: 145
+    }, {
+      d: "Sep'21",
+      v: 137
+    }, {
+      d: "May'23",
+      v: 87.57
+    }, {
+      d: "Jul'23",
+      v: 106
+    }, {
+      d: "Sep'24",
+      v: 163
+    }, {
+      d: "Jan'25",
+      v: 118.5
+    }, {
+      d: "Nov'25",
+      v: 174
+    }, {
+      d: "Feb'26",
+      v: 181
+    }],
+    note: 'WORST: 207↑↑ (Jan 2015). BEST: 87.57✓ (May 2023). Current: 181↑↑. STATIN NEVER STARTED.'
+  },
+  hba1c: {
+    label: 'HbA1c',
+    unit: '%',
+    refHigh: 5.7,
+    color: '#D97706',
+    data: [{
+      d: "Mar'18",
+      v: 5.8
+    }, {
+      d: "Nov'22",
+      v: 5.1
+    }, {
+      d: "Jul'22",
+      v: 5.5
+    }, {
+      d: "Jul'23",
+      v: 5.3
+    }, {
+      d: "Sep'24",
+      v: 5.5
+    }, {
+      d: "Jan'25",
+      v: 5.0
+    }, {
+      d: "Nov'25",
+      v: 5.2
+    }],
+    note: 'Best: 5.0%✓ (Jan 2025). Consistently non-diabetic range throughout 11 years.'
+  },
+  vitd: {
+    label: 'Vitamin D',
+    unit: 'ng/mL',
+    refLow: 30,
+    color: '#16A34A',
+    data: [{
+      d: "Jul'19",
+      v: 16.08
+    }, {
+      d: "Nov'22",
+      v: 30.3
+    }, {
+      d: "Jul'22",
+      v: 42.4
+    }, {
+      d: "Jul'23",
+      v: 51.19
+    }, {
+      d: "Sep'24",
+      v: 30.6
+    }, {
+      d: "Jan'25",
+      v: 42.3
+    }, {
+      d: "Nov'25",
+      v: 26.2
+    }],
+    note: 'BEST: 51.19 (Jul 2023). Current: 26.2↓ (Nov 2025 — insufficient). Target ≥40 ng/mL.'
+  },
+  hb: {
+    label: 'Haemoglobin',
+    unit: 'g/dL',
+    refLow: 12.0,
+    color: '#2563EB',
+    data: [{
+      d: "Oct'13",
+      v: 12.5
+    }, {
+      d: "Jan'15",
+      v: 12.9
+    }, {
+      d: "Jan'16",
+      v: 12.0
+    }, {
+      d: "Mar'18",
+      v: 12.1
+    }, {
+      d: "Aug'19",
+      v: 11.5
+    }, {
+      d: "Feb'20",
+      v: 12.2
+    }, {
+      d: "Sep'21",
+      v: 11.8
+    }, {
+      d: "Jul'22",
+      v: 11.5
+    }, {
+      d: "May'23",
+      v: 11.2
+    }, {
+      d: "Jul'23",
+      v: 13.0
+    }, {
+      d: "Sep'24",
+      v: 11.8
+    }, {
+      d: "Nov'25",
+      v: 13.1
+    }],
+    note: 'Recurring mild anaemia. Iron deficiency Jul 2022 (Fe 39.3↓). Normalised Nov 2025 (Fe 82).'
+  },
+  creatinine: {
+    label: 'Creatinine',
+    unit: 'mg/dL',
+    refHigh: 1.02,
+    color: '#0891B2',
+    data: [{
+      d: "Jan'15",
+      v: 0.9
+    }, {
+      d: "Jan'16",
+      v: 0.7
+    }, {
+      d: "Mar'18",
+      v: 1.0
+    }, {
+      d: "Jul'19",
+      v: 0.64
+    }, {
+      d: "Feb'20",
+      v: 0.9
+    }, {
+      d: "Sep'21",
+      v: 0.6
+    }, {
+      d: "Jul'22",
+      v: 0.67
+    }, {
+      d: "May'23",
+      v: 0.67
+    }, {
+      d: "Jul'23",
+      v: 0.7
+    }, {
+      d: "Sep'24",
+      v: 0.66
+    }, {
+      d: "Nov'25",
+      v: 0.62
+    }],
+    note: 'Excellent kidney function. eGFR 100 mL/min (Nov 2025). No concern throughout 11 years.'
+  }
+};
+const MOM_LABS_FULL = {
+  tc: {
+    label: 'Total Cholesterol',
+    unit: 'mg/dL',
+    refHigh: 200,
+    color: '#DC2626',
+    data: [{
+      d: "Jan'15",
+      v: 309
+    }, {
+      d: "Sep'15",
+      v: 170
+    }, {
+      d: "Jan'16",
+      v: 270
+    }, {
+      d: "Jul'19",
+      v: 271
+    }, {
+      d: "Nov'25",
+      v: 263
+    }, {
+      d: "Feb'26",
+      v: 259
+    }],
+    note: 'Consistently elevated. Target <200 mg/dL.'
+  },
+  hdl: {
+    label: 'HDL Cholesterol',
+    unit: 'mg/dL',
+    refLow: 45,
+    color: '#16A34A',
+    data: [{
+      d: "Jan'15",
+      v: 36
+    }, {
+      d: "Sep'15",
+      v: 36
+    }, {
+      d: "Jan'16",
+      v: 40
+    }, {
+      d: "Jul'19",
+      v: 57
+    }, {
+      d: "May'23",
+      v: 54.7
+    }, {
+      d: "Jul'23",
+      v: 52
+    }, {
+      d: "Nov'25",
+      v: 51
+    }, {
+      d: "Feb'26",
+      v: 37
+    }],
+    note: 'Current: 37↓↓ (Feb 2026). HDL <45 increases cardiac risk.'
+  },
+  tg: {
+    label: 'Triglycerides',
+    unit: 'mg/dL',
+    refHigh: 150,
+    color: '#F59E0B',
+    data: [{
+      d: "Jan'15",
+      v: 328
+    }, {
+      d: "Sep'15",
+      v: 150
+    }, {
+      d: "Jan'16",
+      v: 179
+    }, {
+      d: "Jul'19",
+      v: 212
+    }, {
+      d: "May'23",
+      v: 159
+    }, {
+      d: "Nov'25",
+      v: 295
+    }, {
+      d: "Feb'26",
+      v: 207
+    }],
+    note: 'WORST: 328↑↑ (Jan 2015). Current: 207↑↑ (Feb 2026). TG <150 is target.'
+  },
+  crp: {
+    label: 'CRP (Inflammation)',
+    unit: 'mg/dL',
+    refHigh: 0.5,
+    color: '#EF4444',
+    data: [{
+      d: "Apr'13",
+      v: 0.13
+    }, {
+      d: "Mar'18",
+      v: 0.3
+    }, {
+      d: "May'23",
+      v: 1.2
+    }, {
+      d: "Feb'26",
+      v: 6.7
+    }],
+    note: 'Current: 6.7↑ (Feb 2026) — active inflammation. Correlates with untreated dyslipidaemia.'
+  },
+  tpo: {
+    label: 'Anti-TPO (Thyroid Antibody)',
+    unit: 'IU/mL',
+    refHigh: 60,
+    color: '#7C3AED',
+    data: [{
+      d: "Jul'19",
+      v: 92.22
+    }, {
+      d: "Feb'23",
+      v: 42
+    }],
+    note: 'Confirmed Hashimoto\'s (Jul 2019). Declining with treatment (Feb 2023: 42).'
+  },
+  ca125: {
+    label: 'CA-125 (Ovarian)',
+    unit: 'U/mL',
+    refHigh: 35,
+    color: '#8B5CF6',
+    data: [{
+      d: "Nov'25",
+      v: 15.4
+    }],
+    note: 'CA-125 15.4✓ (Nov 2025). Normal — no ovarian cancer concern.'
+  },
+  b12: {
+    label: 'Vitamin B12',
+    unit: 'pg/mL',
+    refLow: 200,
+    color: '#06B6D4',
+    data: [{
+      d: "Mar'18",
+      v: 312
+    }, {
+      d: "Jul'19",
+      v: 285
+    }, {
+      d: "Feb'23",
+      v: 1595
+    }, {
+      d: "Jan'25",
+      v: 389
+    }, {
+      d: "Nov'25",
+      v: 715
+    }],
+    note: 'Feb 2023 spike 1595↑ (likely dietary/supplement). Currently 715✓.'
+  },
+  mg: {
+    label: 'Magnesium',
+    unit: 'mg/dL',
+    refLow: 1.9,
+    color: '#10B981',
+    data: [{
+      d: "Aug'24",
+      v: 1.72
+    }],
+    note: '1.72↓ (Aug 2024, ref 1.90–3.10). Not rechecked. Supplement needed.'
+  }
+};
+const PATIENTS = [{
+  id: 'P001',
+  name: 'Asha Devi Vijaywargiay',
+  dob: '31 Aug 1961',
+  age: 64,
+  gender: 'Female',
+  bg: 'B+',
+  status: 'Post-menopausal',
+  doctor: 'Dr. A.K. Purohit',
+  initials: 'AD',
+  urgentCount: 3,
+  conditions: MOM_CONDITIONS,
+  timeline: MOM_TIMELINE,
+  documents: MOM_DOCS,
+  labsKey: MOM_LABS_KEY,
+  labsFull: MOM_LABS_FULL,
+  summary: 'TSH 3.89 | LDL 181↑↑ | HbA1c 5.2% | Vit D 26.2↓ | CRP 6.7↑',
+  lastVisit: 'Feb 2026',
+  photo: null,
+  boxFolders: {
+    lab: '372768683500',
+    imaging: '372769252193',
+    rx: '372768863251',
+    hospital: '372769787402'
+  },
+  symptoms: [{
+    date: 'Feb 2026',
+    symptom: 'Red line on sclera (right eye)',
+    severity: 'mild',
+    status: 'ongoing'
+  }, {
+    date: 'Nov 2025',
+    symptom: 'Fatigue, cold intolerance, constipation',
+    severity: 'moderate',
+    status: 'resolved',
+    note: 'Thyroid relapse — TSH 7.45'
+  }, {
+    date: 'Sep 2024',
+    symptom: 'Severe lower back pain radiating to left leg',
+    severity: 'severe',
+    status: 'managed',
+    note: 'L5-S1 epidural treatment'
+  }, {
+    date: 'May 2023',
+    symptom: 'Daily heartburn, frequent burping',
+    severity: 'moderate',
+    status: 'managed',
+    note: 'PPI started after endoscopy'
+  }, {
+    date: 'Jul 2022',
+    symptom: 'Fatigue, hair thinning',
+    severity: 'moderate',
+    status: 'resolved',
+    note: 'Iron deficiency anaemia'
+  }]
+}, {
+  id: 'P002',
+  name: 'Bhagwandas Gandhi',
+  dob: '15 Jun 1943',
+  age: 82,
+  gender: 'Male',
+  bg: 'O+',
+  status: 'Active Monitoring',
+  doctor: 'Multiple Specialists',
+  initials: 'BG',
+  urgentCount: 1,
+  conditions: DAD_CONDITIONS,
+  timeline: DAD_TIMELINE,
+  documents: DAD_DOCS,
+  labsKey: {
+    psa: {
+      label: 'PSA (Prostate)',
+      unit: 'ng/mL',
+      refHigh: 4.0,
+      color: '#DC2626',
+      data: [{
+        d: "Mar'19",
+        v: 5.0
+      }, {
+        d: "Jan'22",
+        v: 4.2
+      }, {
+        d: "Apr'22",
+        v: 4.1
+      }, {
+        d: "Oct'22",
+        v: 4.3
+      }, {
+        d: "Apr'23",
+        v: 4.6
+      }, {
+        d: "Jul'23",
+        v: 4.5
+      }, {
+        d: "Jan'25",
+        v: 4.8
+      }],
+      note: 'First elevated Mar 2019 (5.0). Active surveillance. Latest 4.8 (Jan 2025).'
+    },
+    hba1c: {
+      label: 'HbA1c',
+      unit: '%',
+      refHigh: 7.0,
+      color: '#D97706',
+      data: [{
+        d: "Jul'22",
+        v: 6.8
+      }, {
+        d: "Feb'20",
+        v: 6.5
+      }, {
+        d: "Apr'25",
+        v: 6.9
+      }],
+      note: 'Borderline — on medication. Target <7%.'
+    }
+  },
+  labsFull: {},
+  summary: 'PSA 4.8↑ | On surveillance | Bone density ↓ | TSH monitored',
+  lastVisit: 'Jan 2025',
+  photo: null,
+  boxFolders: {
+    lab: '369528428881',
+    imaging: '369526874258',
+    rx: '369526443865',
+    hospital: '369528640568'
+  },
+  symptoms: [{
+    date: 'Jan 2025',
+    symptom: 'Urinary frequency (mild)',
+    severity: 'mild',
+    status: 'ongoing'
+  }, {
+    date: 'Nov 2022',
+    symptom: 'Bone pain / joint stiffness',
+    severity: 'moderate',
+    status: 'managed'
+  }]
+}];
+const SEV_COLORS = {
+  urgent: '#DC2626',
+  high: '#D97706',
+  moderate: '#D97706',
+  monitor: '#0369A1',
+  normal: '#16A34A'
+};
+const SEV_LABELS = {
+  urgent: 'URGENT',
+  high: 'HIGH',
+  moderate: 'MODERATE',
+  monitor: 'MONITOR',
+  normal: 'NORMAL'
+};
+const ORGAN_COLORS = {
+  red: '#DC2626',
+  amber: '#D97706',
+  green: '#16A34A',
+  grey: '#94A3B8'
+};
+const DOC_COLORS = {
+  Lab: '#2563EB',
+  Imaging: '#7C3AED',
+  Cardiac: '#DC2626',
+  Hospital: '#DC2626',
+  Procedure: '#D97706',
+  Consult: '#0891B2',
+  Prescription: '#16A34A'
+};
+const DOC_ICONS = {
+  Lab: '🧪',
+  Imaging: '🔬',
+  Cardiac: '❤️',
+  Hospital: '🏥',
+  Procedure: '⚕',
+  Consult: '👨‍⚕️',
+  Prescription: '💊'
+};
+const {
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+  useMemo
+} = React;
+function Avatar({
+  initials,
+  size = 34,
+  color = '#1648A0',
+  photo
+}) {
+  if (photo) return /*#__PURE__*/React.createElement("img", {
+    src: photo,
+    style: {
+      width: size,
+      height: size,
+      borderRadius: size * .28,
+      objectFit: 'cover',
+      flexShrink: 0
+    },
+    alt: ""
+  });
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: size,
+      height: size,
+      borderRadius: size * .28,
+      background: color,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      fontWeight: 700,
+      fontSize: size * .33,
+      color: '#fff',
+      flexShrink: 0
+    }
+  }, initials);
+}
+function Badge({
+  sev
+}) {
+  const cls = {
+    urgent: 'badge-urgent',
+    high: 'badge-high',
+    moderate: 'badge-moderate',
+    monitor: 'badge-monitor',
+    normal: 'badge-normal'
+  }[sev] || 'badge-monitor';
+  return /*#__PURE__*/React.createElement("span", {
+    className: cls
+  }, SEV_LABELS[sev] || sev);
+}
+function FieldRow({
+  label,
+  val,
+  color
+}) {
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      padding: '4px 0',
+      borderBottom: '1px solid var(--border)',
+      gap: 8
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: 'var(--text3)',
+      fontSize: 11,
+      flexShrink: 0
+    }
+  }, label), /*#__PURE__*/React.createElement("span", {
+    className: "mono",
+    style: {
+      fontSize: 12,
+      color: color || 'var(--text)',
+      textAlign: 'right'
+    }
+  }, val));
+}
+
+// ── MINI CHART via Canvas ──────────────────────────────────────────────────────
+function MiniChart({
+  data,
+  label,
+  unit,
+  refLow,
+  refHigh,
+  color
+}) {
+  const ref = useRef(null);
+  const ch = useRef(null);
+  useEffect(() => {
+    if (!ref.current || !data?.length) return;
+    if (ch.current) ch.current.destroy();
+    const vals = data.map(d => d.v);
+    const ptColors = vals.map(v => {
+      if (refHigh && v > refHigh) return '#EF4444';
+      if (refLow && v < refLow) return '#F59E0B';
+      return '#16A34A';
+    });
+    ch.current = new Chart(ref.current.getContext('2d'), {
+      type: 'line',
+      data: {
+        labels: data.map(d => d.d),
+        datasets: [{
+          label,
+          data: vals,
+          borderColor: color,
+          backgroundColor: color + '18',
+          borderWidth: 2,
+          pointBackgroundColor: ptColors,
+          pointBorderColor: '#fff',
+          pointBorderWidth: 1.5,
+          pointRadius: 4,
+          pointHoverRadius: 6,
+          tension: .3,
+          fill: true
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: false
+          },
+          tooltip: {
+            backgroundColor: '#1E293B',
+            borderColor: '#334155',
+            borderWidth: 1,
+            titleColor: '#94A3B8',
+            bodyColor: '#F1F5F9',
+            callbacks: {
+              label: c => `${c.dataset.label}: ${c.parsed.y.toFixed(2)} ${unit}`
+            }
+          }
+        },
+        scales: {
+          x: {
+            grid: {
+              color: '#F1F5F9'
+            },
+            ticks: {
+              color: '#94A3B8',
+              font: {
+                size: 9
+              }
+            },
+            border: {
+              color: '#E2E8F0'
+            }
+          },
+          y: {
+            grid: {
+              color: '#F1F5F9'
+            },
+            ticks: {
+              color: '#94A3B8',
+              font: {
+                size: 9
+              }
+            },
+            border: {
+              color: '#E2E8F0'
+            }
+          }
+        }
+      }
+    });
+    return () => {
+      if (ch.current) ch.current.destroy();
+    };
+  }, [data, color, label, unit, refLow, refHigh]);
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: 'relative',
+      height: 160
+    }
+  }, /*#__PURE__*/React.createElement("canvas", {
+    ref: ref
+  }));
+}
+
+// ── LOGIN ──────────────────────────────────────────────────────────────────────
+function LoginPage({
+  onLogin
+}) {
+  const [u, setU] = useState('');
+  const [p, setP] = useState('');
+  const [err, setErr] = useState('');
+  const [ld, setLd] = useState(false);
+  const go = () => {
+    setErr('');
+    setLd(true);
+    setTimeout(() => {
+      const usr = Object.values(USERS).find(x => x.username === u && x.password === p);
+      if (usr) onLogin(usr);else setErr('Invalid credentials');
+      setLd(false);
+    }, 500);
+  };
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      minHeight: '100vh',
+      background: 'var(--bg)',
+      padding: 20
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: '100%',
+      maxWidth: 380
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      textAlign: 'center',
+      marginBottom: 28
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'inline-flex',
+      width: 56,
+      height: 56,
+      borderRadius: 14,
+      background: 'var(--blue)',
+      alignItems: 'center',
+      justifyContent: 'center',
+      fontSize: 26,
+      color: '#fff',
+      marginBottom: 12,
+      boxShadow: '0 4px 12px rgba(22,72,160,.3)'
+    }
+  }, "\u2695"), /*#__PURE__*/React.createElement("h1", {
+    style: {
+      fontFamily: "'DM Serif Display',serif",
+      fontSize: 26,
+      color: 'var(--text)',
+      marginBottom: 4
+    }
+  }, "SBK Health"), /*#__PURE__*/React.createElement("p", {
+    style: {
+      color: 'var(--text3)',
+      fontSize: 12
+    }
+  }, "Family Medical Records Platform")), /*#__PURE__*/React.createElement("div", {
+    className: "card",
+    style: {
+      padding: 24
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginBottom: 14
+    }
+  }, /*#__PURE__*/React.createElement("label", {
+    className: "field-label"
+  }, "USERNAME"), /*#__PURE__*/React.createElement("input", {
+    className: "input",
+    value: u,
+    onChange: e => setU(e.target.value),
+    placeholder: "Enter username",
+    onKeyDown: e => e.key === 'Enter' && go()
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginBottom: 18
+    }
+  }, /*#__PURE__*/React.createElement("label", {
+    className: "field-label"
+  }, "PASSWORD"), /*#__PURE__*/React.createElement("input", {
+    className: "input",
+    type: "password",
+    value: p,
+    onChange: e => setP(e.target.value),
+    placeholder: "Enter password",
+    onKeyDown: e => e.key === 'Enter' && go()
+  })), err && /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: 'var(--red-light)',
+      border: '1px solid #FECACA',
+      borderRadius: 7,
+      padding: '8px 12px',
+      color: 'var(--red)',
+      fontSize: 12,
+      marginBottom: 14
+    }
+  }, err), /*#__PURE__*/React.createElement("button", {
+    className: "btn-primary",
+    style: {
+      width: '100%',
+      justifyContent: 'center'
+    },
+    onClick: go,
+    disabled: ld
+  }, ld ? /*#__PURE__*/React.createElement("span", {
+    className: "spinner"
+  }) : 'Sign In')), /*#__PURE__*/React.createElement("p", {
+    style: {
+      textAlign: 'center',
+      fontSize: 11,
+      color: 'var(--text3)',
+      marginTop: 14
+    }
+  }, "Secured by JWT \xB7 Role-based access control")));
+}
+
+// ── HOME ───────────────────────────────────────────────────────────────────────
+function HomePage({
+  user,
+  patients,
+  onSelect,
+  onLogout,
+  onAdd
+}) {
+  const isAdmin = user.role === 'admin';
+  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    className: "topbar"
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 10
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: 30,
+      height: 30,
+      background: 'var(--blue)',
+      borderRadius: 8,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      color: '#fff',
+      fontSize: 16
+    }
+  }, "\u2695"), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontFamily: "'DM Serif Display',serif",
+      fontSize: 17,
+      color: 'var(--text)',
+      fontWeight: 400
+    }
+  }, "SBK Health"), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 10,
+      color: 'var(--text3)',
+      background: 'var(--bg3)',
+      border: '1px solid var(--border)',
+      borderRadius: 4,
+      padding: '2px 7px'
+    }
+  }, "v3.0")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 10
+    }
+  }, /*#__PURE__*/React.createElement(Avatar, {
+    initials: user.initials,
+    size: 28,
+    color: isAdmin ? '#1648A0' : '#16A34A'
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'none'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12,
+      color: 'var(--text)',
+      fontWeight: 500
+    }
+  }, user.name), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 10,
+      color: isAdmin ? 'var(--blue)' : 'var(--green)'
+    }
+  }, isAdmin ? 'Admin' : 'Viewer')), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 11,
+      color: isAdmin ? 'var(--blue)' : 'var(--green)',
+      background: isAdmin ? 'var(--blue-light)' : 'var(--green-light)',
+      border: `1px solid ${isAdmin ? '#BFDBFE' : '#BBF7D0'}`,
+      borderRadius: 20,
+      padding: '2px 9px'
+    }
+  }, isAdmin ? '👑 Admin' : '👁 Viewer'), /*#__PURE__*/React.createElement("button", {
+    className: "btn-ghost",
+    onClick: onLogout
+  }, "Sign Out"))), /*#__PURE__*/React.createElement("div", {
+    className: "container"
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginBottom: 18
+    }
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h2", {
+    style: {
+      fontFamily: "'DM Serif Display',serif",
+      fontSize: 22,
+      color: 'var(--text)',
+      marginBottom: 2
+    }
+  }, "Patient Records"), /*#__PURE__*/React.createElement("p", {
+    style: {
+      color: 'var(--text3)',
+      fontSize: 12
+    }
+  }, patients.length, " patients \xB7 Box cloud storage \xB7 Claude AI")), isAdmin && /*#__PURE__*/React.createElement("button", {
+    className: "btn-primary",
+    onClick: onAdd,
+    style: {
+      fontSize: 12,
+      padding: '7px 14px'
+    }
+  }, "+ Add Patient")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'grid',
+      gridTemplateColumns: 'repeat(auto-fill,minmax(320px,1fr))',
+      gap: 14
+    }
+  }, patients.map(p => /*#__PURE__*/React.createElement("div", {
+    key: p.id,
+    className: "card card-link",
+    style: {
+      padding: 18
+    },
+    onClick: () => onSelect(p)
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      alignItems: 'flex-start',
+      justifyContent: 'space-between',
+      marginBottom: 12
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 10
+    }
+  }, /*#__PURE__*/React.createElement(Avatar, {
+    initials: p.initials,
+    size: 42,
+    photo: p.photo
+  }), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: "'DM Serif Display',serif",
+      fontSize: 15,
+      color: 'var(--text)',
+      marginBottom: 1
+    }
+  }, p.name), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11,
+      color: 'var(--text3)'
+    }
+  }, "Age ", p.age, " \xB7 ", p.gender, " \xB7 ", p.bg), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11,
+      color: 'var(--text3)'
+    }
+  }, p.doctor))), p.urgentCount > 0 && /*#__PURE__*/React.createElement("span", {
+    style: {
+      background: 'var(--red-mid)',
+      color: 'var(--red)',
+      border: '1px solid #FECACA',
+      borderRadius: 20,
+      padding: '2px 9px',
+      fontSize: 11,
+      fontWeight: 600,
+      flexShrink: 0
+    }
+  }, "\u26A0 ", p.urgentCount, " urgent")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: 'var(--bg3)',
+      borderRadius: 6,
+      padding: '7px 10px',
+      marginBottom: 10
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 10,
+      color: 'var(--text3)',
+      fontWeight: 600,
+      marginBottom: 2,
+      letterSpacing: '.4px'
+    }
+  }, "LATEST VALUES"), /*#__PURE__*/React.createElement("div", {
+    className: "mono",
+    style: {
+      fontSize: 11,
+      color: 'var(--text2)'
+    }
+  }, p.summary)), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingTop: 10,
+      borderTop: '1px solid var(--border)'
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 11,
+      color: 'var(--text3)'
+    }
+  }, "Last visit: ", p.lastVisit), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 11,
+      color: 'var(--blue)',
+      fontWeight: 500
+    }
+  }, "View records \u2192")))))));
+}
+
+// ── BODY MAP ───────────────────────────────────────────────────────────────────
+function BodyMap({
+  patient
+}) {
+  const [sel, setSel] = useState(null);
+  const organs = [{
+    id: 'brain',
+    label: 'Brain',
+    x: 87,
+    y: 32,
+    emoji: '🧠'
+  }, {
+    id: 'thyroid',
+    label: 'Thyroid',
+    x: 87,
+    y: 68,
+    emoji: '🦋'
+  }, {
+    id: 'heart',
+    label: 'Heart',
+    x: 70,
+    y: 112,
+    emoji: '♥'
+  }, {
+    id: 'lungs',
+    label: 'Lungs',
+    x: 110,
+    y: 115,
+    emoji: '🫁'
+  }, {
+    id: 'liver',
+    label: 'Liver/GI',
+    x: 108,
+    y: 148,
+    emoji: '🩺'
+  }, {
+    id: 'kidneys',
+    label: 'Kidneys',
+    x: 87,
+    y: 175,
+    emoji: '🫘'
+  }, {
+    id: 'spine',
+    label: 'Spine',
+    x: 87,
+    y: 145,
+    emoji: '🦴'
+  }, {
+    id: 'uterus',
+    label: 'Gynae',
+    x: 87,
+    y: 206,
+    emoji: '🔬'
+  }, {
+    id: 'bones',
+    label: 'Bones',
+    x: 70,
+    y: 228,
+    emoji: '⚕'
+  }, {
+    id: 'prostate',
+    label: 'Prostate',
+    x: 87,
+    y: 206,
+    emoji: '🔵'
+  }, {
+    id: 'metabolic',
+    label: 'Metabolic',
+    x: 110,
+    y: 178,
+    emoji: '⚗'
+  }, {
+    id: 'eyes',
+    label: 'Eyes',
+    x: 75,
+    y: 24,
+    emoji: '👁'
+  }];
+  const getS = id => {
+    const hasU = patient.conditions.some(c => c.organId === id && c.sev === 'urgent');
+    if (hasU) return 'red';
+    const hasH = patient.conditions.some(c => c.organId === id && (c.sev === 'high' || c.sev === 'moderate'));
+    if (hasH) return 'amber';
+    const has = patient.conditions.some(c => c.organId === id);
+    return has ? 'amber' : 'green';
+  };
+  const selConds = patient.conditions.filter(c => sel && c.organId === sel.id);
+  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 12,
+      color: 'var(--text3)',
+      marginBottom: 14
+    }
+  }, "Click organs to view associated conditions. \uD83D\uDD34 Urgent \xB7 \uD83D\uDFE1 Monitor \xB7 \uD83D\uDFE2 Normal"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 20,
+      flexWrap: 'wrap',
+      alignItems: 'flex-start'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      flexShrink: 0
+    }
+  }, /*#__PURE__*/React.createElement("svg", {
+    viewBox: "0 0 175 290",
+    width: "160",
+    style: {
+      display: 'block',
+      filter: 'drop-shadow(0 2px 8px rgba(0,0,0,.08))'
+    }
+  }, /*#__PURE__*/React.createElement("defs", null, /*#__PURE__*/React.createElement("linearGradient", {
+    id: "body3",
+    x1: "0",
+    y1: "0",
+    x2: "1",
+    y2: "0"
+  }, /*#__PURE__*/React.createElement("stop", {
+    offset: "0%",
+    stopColor: "#EFF6FF"
+  }), /*#__PURE__*/React.createElement("stop", {
+    offset: "100%",
+    stopColor: "#DBEAFE"
+  }))), /*#__PURE__*/React.createElement("ellipse", {
+    cx: "87",
+    cy: "24",
+    rx: "21",
+    ry: "22",
+    fill: "url(#body3)",
+    stroke: "#93C5FD",
+    strokeWidth: "1.2"
+  }), /*#__PURE__*/React.createElement("rect", {
+    x: "80",
+    y: "44",
+    width: "14",
+    height: "13",
+    rx: "3",
+    fill: "#DBEAFE",
+    stroke: "#93C5FD",
+    strokeWidth: "1"
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "M55,58 L36,68 L30,105 L32,165 L40,175 L50,178 L55,215 L120,215 L125,178 L135,175 L143,165 L145,105 L139,68 L119,58 L110,55 L87,53 L64,55 Z",
+    fill: "url(#body3)",
+    stroke: "#93C5FD",
+    strokeWidth: "1.2"
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "M36,68 L20,78 L14,120 L15,160 L20,166 L28,162 L34,130 L38,92 L40,72 Z",
+    fill: "#EFF6FF",
+    stroke: "#93C5FD",
+    strokeWidth: "1"
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "M139,68 L155,78 L161,120 L160,160 L155,166 L147,162 L141,130 L137,92 L135,72 Z",
+    fill: "#EFF6FF",
+    stroke: "#93C5FD",
+    strokeWidth: "1"
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "M55,215 L48,258 L47,285 L56,288 L67,288 L72,258 L78,230 Z",
+    fill: "#EFF6FF",
+    stroke: "#93C5FD",
+    strokeWidth: "1"
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "M120,215 L127,258 L128,285 L119,288 L108,288 L103,258 L97,230 Z",
+    fill: "#EFF6FF",
+    stroke: "#93C5FD",
+    strokeWidth: "1"
+  }), organs.map(o => {
+    const s = getS(o.id);
+    const c = ORGAN_COLORS[s];
+    const isSel = sel?.id === o.id;
+    const cnt = patient.conditions.filter(c2 => c2.organId === o.id).length;
+    if (cnt === 0 && s === 'green') return null;
+    const pts = o.id === 'kidneys' ? [[72, 172], [102, 172]] : o.id === 'bones' ? [[62, 228], [112, 228]] : [[o.x, o.y]];
+    return pts.map(([cx, cy], i) => /*#__PURE__*/React.createElement("g", {
+      key: o.id + i,
+      className: "organ-g",
+      onClick: () => setSel(isSel ? null : o)
+    }, s === 'red' && /*#__PURE__*/React.createElement("circle", {
+      cx: cx,
+      cy: cy,
+      r: 10,
+      fill: "none",
+      stroke: c,
+      strokeWidth: .7,
+      opacity: .35
+    }, /*#__PURE__*/React.createElement("animate", {
+      attributeName: "r",
+      values: "10;14;10",
+      dur: "2s",
+      repeatCount: "indefinite"
+    }), /*#__PURE__*/React.createElement("animate", {
+      attributeName: "opacity",
+      values: "0.35;0;0.35",
+      dur: "2s",
+      repeatCount: "indefinite"
+    })), isSel && /*#__PURE__*/React.createElement("circle", {
+      cx: cx,
+      cy: cy,
+      r: 11,
+      fill: "none",
+      stroke: c,
+      strokeWidth: 1,
+      strokeDasharray: "3,2",
+      opacity: .7
+    }), /*#__PURE__*/React.createElement("circle", {
+      cx: cx,
+      cy: cy,
+      r: isSel ? 8 : 6,
+      fill: c + '28',
+      stroke: c,
+      strokeWidth: isSel ? 2 : 1.5
+    }), /*#__PURE__*/React.createElement("circle", {
+      cx: cx,
+      cy: cy,
+      r: 2.5,
+      fill: c
+    })));
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      flexWrap: 'wrap',
+      gap: 8,
+      marginTop: 8,
+      maxWidth: 160
+    }
+  }, [['red', 'Urgent'], ['amber', 'Monitor'], ['green', 'Normal']].map(([s, l]) => /*#__PURE__*/React.createElement("div", {
+    key: s,
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 4,
+      fontSize: 10,
+      color: 'var(--text3)'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: 7,
+      height: 7,
+      borderRadius: '50%',
+      background: ORGAN_COLORS[s]
+    }
+  }), l)))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1,
+      minWidth: 180
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "section-hdr"
+  }, "ORGAN SYSTEMS"), organs.filter(o => patient.conditions.some(c => c.organId === o.id)).map(o => {
+    const s = getS(o.id);
+    const c = ORGAN_COLORS[s];
+    const isSel = sel?.id === o.id;
+    const cnt = patient.conditions.filter(c2 => c2.organId === o.id).length;
+    return /*#__PURE__*/React.createElement("div", {
+      key: o.id,
+      onClick: () => setSel(isSel ? null : o),
+      style: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: 8,
+        padding: '5px 8px',
+        borderRadius: 6,
+        marginBottom: 2,
+        cursor: 'pointer',
+        background: isSel ? 'var(--blue-light)' : 'transparent',
+        border: isSel ? '1px solid #BFDBFE' : '1px solid transparent',
+        transition: 'all .12s'
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        width: 8,
+        height: 8,
+        borderRadius: '50%',
+        background: c,
+        flexShrink: 0
+      }
+    }), /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontSize: 12,
+        color: isSel ? 'var(--blue)' : 'var(--text2)',
+        flex: 1
+      }
+    }, o.emoji, " ", o.label), /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontSize: 10,
+        color: c,
+        fontWeight: 600
+      }
+    }, cnt));
+  }), sel && /*#__PURE__*/React.createElement("div", {
+    className: "card fade",
+    style: {
+      padding: 12,
+      marginTop: 10,
+      borderLeft: `3px solid ${ORGAN_COLORS[getS(sel.id)]}`
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "section-hdr"
+  }, sel.emoji, " ", sel.label.toUpperCase()), selConds.map(c => /*#__PURE__*/React.createElement("div", {
+    key: c.id,
+    style: {
+      marginBottom: 8,
+      paddingBottom: 8,
+      borderBottom: '1px solid var(--border)'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 6,
+      marginBottom: 3
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 12,
+      color: 'var(--text)',
+      fontWeight: 500
+    }
+  }, c.name), /*#__PURE__*/React.createElement(Badge, {
+    sev: c.sev
+  })), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 11,
+      color: 'var(--text2)',
+      lineHeight: 1.5,
+      margin: 0
+    }
+  }, c.findings)))), sel && selConds.length === 0 && /*#__PURE__*/React.createElement("div", {
+    className: "surface fade",
+    style: {
+      padding: 10,
+      textAlign: 'center',
+      color: 'var(--text3)',
+      fontSize: 12,
+      marginTop: 10
+    }
+  }, "\u2705 No active conditions"))));
+}
+// ── OVERVIEW TAB ──────────────────────────────────────────────────────────────
+function OverviewTab({
+  patient,
+  isAdmin
+}) {
+  const [ai, setAi] = useState(null);
+  const [ld, setLd] = useState(false);
+  const [err, setErr] = useState('');
+  const [selCond, setSelCond] = useState(null);
+  const refresh = useCallback(async () => {
+    setLd(true);
+    setErr('');
+    setAi(null);
+    const prompt = `Clinical AI for SBK Health. Patient: ${patient.name}, Age ${patient.age}, ${patient.gender}, BG ${patient.bg}
+Status: ${patient.status}. Latest: ${patient.summary}
+Conditions (${patient.conditions.length}): ${patient.conditions.map(c => c.name + '(' + c.sev + ')').join('; ')}
+Urgent: ${patient.conditions.filter(c => c.sev === 'urgent').map(c => c.name).join(', ') || 'None'}
+Return ONLY compact JSON (no markdown fences):
+{"summary":"2-3 sentence clinical overview","urgentConcerns":["max 3"],"followUps":["max 3"],"riskFlags":["max 2"],"positives":["max 2 good findings"],"overallRisk":"Low|Moderate|High|Critical"}`;
+    try {
+      const _apiKey = sessionStorage.getItem('sbk_anthropic_key') || '';
+      if (!_apiKey) { setErr('No API key set. Click the ⚙ button (bottom-right) to add your Anthropic API key. It is stored only in this browser session and never uploaded anywhere.'); setLd(false); return; }
+      const r = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': _apiKey,
+          'anthropic-version': '2023-06-01',
+          'anthropic-dangerous-allow-browser': 'true'
+        },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 600,
+          messages: [{
+            role: 'user',
+            content: prompt
+          }]
+        })
+      });
+      if (!r.ok) {
+        const e = await r.json();
+        throw new Error(e.error?.message || 'API error ' + r.status);
+      }
+      const d = await r.json();
+      setAi(JSON.parse((d.content[0]?.text || '{}').replace(/```json|```/g, '').trim()));
+    } catch (e) {
+      setErr(e.message || 'AI unavailable');
+    }
+    setLd(false);
+  }, [patient]);
+  const urgent = patient.conditions.filter(c => c.sev === 'urgent');
+  const high = patient.conditions.filter(c => c.sev === 'high');
+  const RCOL = {
+    Critical: 'var(--red)',
+    High: 'var(--amber)',
+    Moderate: '#A16207',
+    Low: 'var(--green)'
+  };
+  return /*#__PURE__*/React.createElement("div", {
+    className: "fade"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "card",
+    style: {
+      padding: 16,
+      marginBottom: 12
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginBottom: ai || ld || err ? 12 : 0
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 7
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 16
+    }
+  }, "\uD83E\uDD16"), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontFamily: "'DM Serif Display',serif",
+      fontSize: 15,
+      color: 'var(--text)'
+    }
+  }, "AI Clinical Summary"), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 10,
+      color: 'var(--text3)',
+      background: 'var(--bg3)',
+      border: '1px solid var(--border)',
+      borderRadius: 4,
+      padding: '1px 7px'
+    }
+  }, "Claude")), /*#__PURE__*/React.createElement("button", {
+    className: "btn",
+    onClick: refresh,
+    disabled: ld,
+    style: {
+      fontSize: 12,
+      color: ld ? 'var(--text3)' : 'var(--blue)'
+    }
+  }, ld ? /*#__PURE__*/React.createElement("span", {
+    className: "spinner"
+  }) : /*#__PURE__*/React.createElement("span", null, "\u21BA"), " ", ld ? 'Analysing…' : 'Refresh')), !ai && !ld && !err && /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 12,
+      color: 'var(--text3)',
+      textAlign: 'center',
+      padding: '12px 0',
+      margin: 0
+    }
+  }, "Click Refresh to generate an AI clinical overview using the latest patient data."), ld && /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 12,
+      color: 'var(--blue)',
+      textAlign: 'center',
+      padding: '8px 0'
+    }
+  }, "Analysing patient records via Claude AI\u2026"), err && /*#__PURE__*/React.createElement("div", {
+    style: {
+      color: 'var(--red)',
+      fontSize: 12,
+      padding: '8px 12px',
+      background: 'var(--red-light)',
+      borderRadius: 7
+    }
+  }, err), ai && /*#__PURE__*/React.createElement("div", {
+    className: "fade"
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: '10px 12px',
+      background: 'var(--blue-light)',
+      borderRadius: 7,
+      borderLeft: '3px solid var(--blue)',
+      marginBottom: 10
+    }
+  }, /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 12,
+      color: 'var(--text2)',
+      lineHeight: 1.6,
+      margin: 0
+    }
+  }, ai.summary)), ai.overallRisk && /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 7,
+      marginBottom: 10
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 11,
+      color: 'var(--text3)'
+    }
+  }, "Overall Risk:"), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontWeight: 700,
+      fontSize: 12,
+      color: RCOL[ai.overallRisk] || 'var(--blue)',
+      background: (RCOL[ai.overallRisk] || 'var(--blue)') + '18',
+      padding: '2px 10px',
+      borderRadius: 20,
+      border: `1px solid ${RCOL[ai.overallRisk] || 'var(--blue)'}30`
+    }
+  }, ai.overallRisk)), /*#__PURE__*/React.createElement("div", {
+    className: "g3",
+    style: {
+      gap: 8
+    }
+  }, [['Urgent Concerns', 'urgentConcerns', 'var(--red)'], ['Follow-ups', 'followUps', 'var(--blue)'], ['Risk Flags', 'riskFlags', 'var(--amber)'], ['Positives', 'positives', 'var(--green)']].map(([t, k, c]) => ai[k]?.length > 0 && /*#__PURE__*/React.createElement("div", {
+    key: k,
+    style: {
+      background: 'var(--bg3)',
+      border: '1px solid var(--border)',
+      borderRadius: 7,
+      padding: '10px 12px'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 10,
+      color: c,
+      fontWeight: 600,
+      marginBottom: 6,
+      letterSpacing: '.4px'
+    }
+  }, t.toUpperCase()), ai[k].map((x, i) => /*#__PURE__*/React.createElement("div", {
+    key: i,
+    style: {
+      fontSize: 11,
+      color: 'var(--text2)',
+      marginBottom: 4,
+      paddingLeft: 10,
+      position: 'relative',
+      lineHeight: 1.5
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      position: 'absolute',
+      left: 0,
+      color: c
+    }
+  }, "\u203A"), x))))))), /*#__PURE__*/React.createElement("div", {
+    className: "g4",
+    style: {
+      marginBottom: 12
+    }
+  }, [{
+    l: 'Urgent',
+    v: urgent.length,
+    c: 'var(--red)'
+  }, {
+    l: 'High',
+    v: high.length,
+    c: 'var(--amber)'
+  }, {
+    l: 'Documents',
+    v: patient.documents.length,
+    c: 'var(--blue)'
+  }, {
+    l: 'Timeline',
+    v: patient.timeline.length,
+    c: 'var(--green)'
+  }].map(s => /*#__PURE__*/React.createElement("div", {
+    key: s.l,
+    className: "stat-card card-link",
+    onClick: () => {}
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "stat-val",
+    style: {
+      color: s.c,
+      fontSize: 22
+    }
+  }, s.v), /*#__PURE__*/React.createElement("div", {
+    className: "stat-label"
+  }, s.l)))), /*#__PURE__*/React.createElement("div", {
+    className: "card",
+    style: {
+      padding: 14
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "section-hdr"
+  }, "TOP PRIORITY CONDITIONS"), urgent.concat(high).slice(0, 6).map((c, i, arr) => /*#__PURE__*/React.createElement("div", {
+    key: c.id,
+    style: {
+      display: 'flex',
+      gap: 10,
+      padding: '9px 0',
+      borderBottom: i < arr.length - 1 ? '1px solid var(--border)' : 'none',
+      cursor: 'pointer'
+    },
+    onClick: () => setSelCond(selCond?.id === c.id ? null : c)
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: 3,
+      background: SEV_COLORS[c.sev],
+      borderRadius: 2,
+      flexShrink: 0
+    }
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 7,
+      marginBottom: 3,
+      flexWrap: 'wrap'
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 12,
+      color: 'var(--text)',
+      fontWeight: 500
+    }
+  }, c.name), /*#__PURE__*/React.createElement(Badge, {
+    sev: c.sev
+  })), selCond?.id === c.id && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 11,
+      color: 'var(--text2)',
+      lineHeight: 1.5,
+      margin: '0 0 5px'
+    }
+  }, c.findings), /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: 'var(--blue-light)',
+      borderRadius: 5,
+      padding: '5px 8px',
+      borderLeft: '2px solid var(--blue)'
+    }
+  }, /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 11,
+      color: 'var(--blue)',
+      margin: 0
+    }
+  }, c.action))), selCond?.id !== c.id && /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 11,
+      color: 'var(--text3)',
+      lineHeight: 1.4,
+      margin: 0
+    }
+  }, c.findings.substring(0, 90), "\u2026")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 10,
+      color: 'var(--text3)',
+      flexShrink: 0,
+      marginTop: 2
+    }
+  }, c.reviewed)))));
+}
+
+// ── TIMELINE TAB ──────────────────────────────────────────────────────────────
+function TimelineTab({
+  patient
+}) {
+  const [filter, setFilter] = useState('all');
+  const types = ['all', 'lab', 'imaging', 'hospital', 'procedure', 'surgery', 'diagnosis'];
+  const filtered = filter === 'all' ? patient.timeline : patient.timeline.filter(t => t.type === filter);
+  // Group by year
+  const byYear = useMemo(() => {
+    const map = {};
+    filtered.forEach(ev => {
+      const y = ev.year || parseInt(ev.date);
+      if (!map[y]) map[y] = [];
+      map[y].push(ev);
+    });
+    return Object.entries(map).sort((a, b) => b[0] - a[0]);
+  }, [filtered]);
+  return /*#__PURE__*/React.createElement("div", {
+    className: "fade"
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 6,
+      flexWrap: 'wrap',
+      marginBottom: 14
+    }
+  }, types.map(t => /*#__PURE__*/React.createElement("button", {
+    key: t,
+    className: "btn",
+    onClick: () => setFilter(t),
+    style: {
+      fontSize: 11,
+      padding: '4px 10px',
+      background: filter === t ? 'var(--blue-mid)' : '',
+      color: filter === t ? 'var(--blue)' : '',
+      borderColor: filter === t ? '#BFDBFE' : ''
+    }
+  }, t.charAt(0).toUpperCase() + t.slice(1)))), byYear.map(([year, evs]) => /*#__PURE__*/React.createElement("div", {
+    key: year,
+    style: {
+      marginBottom: 20
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "year-badge",
+    style: {
+      marginBottom: 12
+    }
+  }, "\uD83D\uDCC5 ", year), evs.map((ev, i) => /*#__PURE__*/React.createElement("div", {
+    key: i,
+    className: "tl-wrap"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "tl-dot",
+    style: {
+      background: ev.color + '22',
+      borderColor: ev.color
+    }
+  }), i < evs.length - 1 && /*#__PURE__*/React.createElement("div", {
+    className: "tl-line"
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "card",
+    style: {
+      padding: '10px 14px'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 7,
+      alignItems: 'center',
+      marginBottom: 4,
+      flexWrap: 'wrap'
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "mono",
+    style: {
+      fontSize: 10,
+      color: 'var(--text3)'
+    }
+  }, ev.date), /*#__PURE__*/React.createElement("span", {
+    className: "tag",
+    style: {
+      fontSize: 10,
+      color: ev.color,
+      borderColor: ev.color + '44',
+      background: ev.color + '12'
+    }
+  }, ev.specialty), /*#__PURE__*/React.createElement("span", {
+    className: "tag",
+    style: {
+      fontSize: 10,
+      textTransform: 'capitalize'
+    }
+  }, ev.type)), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13,
+      color: 'var(--text)',
+      fontWeight: 500,
+      marginBottom: 3
+    }
+  }, ev.title), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 11,
+      color: 'var(--text2)',
+      lineHeight: 1.5,
+      margin: 0
+    }
+  }, ev.detail)))))), byYear.length === 0 && /*#__PURE__*/React.createElement("p", {
+    style: {
+      textAlign: 'center',
+      padding: 24,
+      color: 'var(--text3)',
+      fontSize: 12
+    }
+  }, "No events for this filter."));
+}
+
+// ── LAB TRENDS TAB ────────────────────────────────────────────────────────────
+function LabTrendsTab({
+  patient
+}) {
+  const [view, setView] = useState('key');
+  const [active, setActive] = useState(null);
+  const labs = view === 'key' ? patient.labsKey || {} : patient.labsFull || {};
+  useEffect(() => {
+    const keys = Object.keys(labs);
+    if (keys.length > 0) setActive(keys[0]);
+  }, [view]);
+  const cur = active && labs[active];
+  return /*#__PURE__*/React.createElement("div", {
+    className: "fade"
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 8,
+      alignItems: 'center',
+      marginBottom: 12
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      border: '1px solid var(--border)',
+      borderRadius: 7,
+      overflow: 'hidden'
+    }
+  }, [['key', 'Key Markers'], ['full', 'Full Markers']].map(([v, l]) => /*#__PURE__*/React.createElement("button", {
+    key: v,
+    onClick: () => setView(v),
+    style: {
+      padding: '6px 14px',
+      fontSize: 12,
+      fontWeight: 500,
+      background: view === v ? 'var(--blue)' : 'var(--bg2)',
+      color: view === v ? '#fff' : 'var(--text2)',
+      border: 'none',
+      cursor: 'pointer'
+    }
+  }, l)))), Object.keys(labs).length === 0 && /*#__PURE__*/React.createElement("p", {
+    style: {
+      color: 'var(--text3)',
+      fontSize: 12,
+      textAlign: 'center',
+      padding: 20
+    }
+  }, "No lab data available."), Object.keys(labs).length > 0 && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 6,
+      flexWrap: 'wrap',
+      marginBottom: 12
+    }
+  }, Object.entries(labs).map(([k, v]) => /*#__PURE__*/React.createElement("button", {
+    key: k,
+    className: `metric-pill${active === k ? ' active' : ''}`,
+    onClick: () => setActive(k),
+    style: {
+      color: active === k ? v.color : 'var(--text2)',
+      borderColor: active === k ? v.color : '',
+      ...(active === k ? {
+        background: v.color + '12'
+      } : {})
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11,
+      fontWeight: 600
+    }
+  }, v.label)))), cur && /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    className: "card",
+    style: {
+      padding: 16,
+      marginBottom: 10
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      alignItems: 'flex-start',
+      justifyContent: 'space-between',
+      marginBottom: 10
+    }
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: "'DM Serif Display',serif",
+      fontSize: 15,
+      color: 'var(--text)',
+      marginBottom: 3
+    }
+  }, cur.label), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11,
+      color: 'var(--text3)'
+    }
+  }, cur.note)), /*#__PURE__*/React.createElement("span", {
+    className: "mono",
+    style: {
+      fontSize: 11,
+      color: 'var(--text3)',
+      background: 'var(--bg3)',
+      border: '1px solid var(--border)',
+      borderRadius: 5,
+      padding: '2px 8px'
+    }
+  }, cur.unit)), cur.refHigh && /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 10,
+      color: 'var(--text3)',
+      marginBottom: 8
+    }
+  }, "Normal: ", cur.refLow ? `${cur.refLow}–` : '', "<", cur.refHigh, " ", cur.unit, " \xB7", /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: 'var(--red)'
+    }
+  }, " Red=high "), "\xB7", cur.refLow && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: 'var(--amber)'
+    }
+  }, " Amber=low "), "\xB7"), /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: 'var(--green)'
+    }
+  }, " Green=normal")), /*#__PURE__*/React.createElement(MiniChart, {
+    data: cur.data,
+    label: cur.label,
+    unit: cur.unit,
+    refLow: cur.refLow,
+    refHigh: cur.refHigh,
+    color: cur.color
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "g4"
+  }, (() => {
+    const vals = cur.data.map(d => d.v);
+    const last = vals[vals.length - 1];
+    const mn = Math.min(...vals);
+    const mx = Math.max(...vals);
+    return [{
+      l: 'Latest',
+      v: last?.toFixed(2),
+      c: cur.color
+    }, {
+      l: 'Min',
+      v: mn?.toFixed(2),
+      c: 'var(--green)'
+    }, {
+      l: 'Max',
+      v: mx?.toFixed(2),
+      c: 'var(--red)'
+    }, {
+      l: 'Readings',
+      v: vals.length,
+      c: 'var(--blue)'
+    }].map(s => /*#__PURE__*/React.createElement("div", {
+      key: s.l,
+      className: "stat-card"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "stat-val mono",
+      style: {
+        color: s.c,
+        fontSize: 20
+      }
+    }, s.v), /*#__PURE__*/React.createElement("div", {
+      className: "stat-label"
+    }, s.l)));
+  })()))));
+}
+
+// ── DOCUMENTS TAB ─────────────────────────────────────────────────────────────
+function DocumentsTab({
+  patient,
+  isAdmin,
+  onUpload
+}) {
+  const [srch, setSrch] = useState('');
+  const [tf, setTf] = useState('all');
+  const types = ['all', ...new Set(patient.documents.map(d => d.type))];
+  const filtered = patient.documents.filter(d => {
+    const mt = tf === 'all' || d.type === tf;
+    const ms = !srch || d.name.toLowerCase().includes(srch.toLowerCase()) || d.condition.toLowerCase().includes(srch.toLowerCase()) || d.tags.some(t => t.includes(srch.toLowerCase()));
+    return mt && ms;
+  });
+  return /*#__PURE__*/React.createElement("div", {
+    className: "fade"
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 8,
+      flexWrap: 'wrap',
+      alignItems: 'center',
+      marginBottom: 12
+    }
+  }, /*#__PURE__*/React.createElement("input", {
+    className: "input",
+    placeholder: "Search docs, conditions, tags\u2026",
+    value: srch,
+    onChange: e => setSrch(e.target.value),
+    style: {
+      flex: 1,
+      minWidth: 140,
+      padding: '7px 12px'
+    }
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 5,
+      flexWrap: 'wrap'
+    }
+  }, types.map(t => /*#__PURE__*/React.createElement("button", {
+    key: t,
+    className: "btn",
+    onClick: () => setTf(t),
+    style: {
+      fontSize: 11,
+      padding: '4px 9px',
+      background: tf === t ? 'var(--blue-mid)' : '',
+      color: tf === t ? 'var(--blue)' : '',
+      borderColor: tf === t ? '#BFDBFE' : ''
+    }
+  }, t))), isAdmin && /*#__PURE__*/React.createElement("button", {
+    className: "btn",
+    onClick: onUpload,
+    style: {
+      color: 'var(--green)',
+      borderColor: '#BBF7D0',
+      background: 'var(--green-light)'
+    }
+  }, "\u2191 Upload")), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 11,
+      color: 'var(--text3)',
+      marginBottom: 10
+    }
+  }, filtered.length, " of ", patient.documents.length, " documents"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 7
+    }
+  }, filtered.map(doc => /*#__PURE__*/React.createElement("div", {
+    key: doc.id,
+    className: "card card-link",
+    style: {
+      padding: '11px 14px',
+      display: 'flex',
+      alignItems: 'center',
+      gap: 12
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: 32,
+      height: 32,
+      borderRadius: 7,
+      background: (DOC_COLORS[doc.type] || 'var(--blue)') + '15',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      fontSize: 15,
+      flexShrink: 0
+    }
+  }, DOC_ICONS[doc.type] || '📄'), /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1,
+      minWidth: 0
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 7,
+      marginBottom: 2,
+      flexWrap: 'wrap'
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 12,
+      color: 'var(--text)',
+      fontWeight: 500
+    }
+  }, doc.name), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 10,
+      color: DOC_COLORS[doc.type] || 'var(--blue)',
+      background: (DOC_COLORS[doc.type] || 'var(--blue)') + '15',
+      border: `1px solid ${DOC_COLORS[doc.type] || 'var(--blue)'}30`,
+      borderRadius: 4,
+      padding: '1px 6px'
+    }
+  }, doc.type)), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11,
+      color: 'var(--text3)',
+      marginBottom: 3
+    }
+  }, doc.doctor, " \xB7 ", doc.condition), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 4,
+      flexWrap: 'wrap'
+    }
+  }, doc.tags.map(t => /*#__PURE__*/React.createElement("span", {
+    key: t,
+    className: "tag",
+    style: {
+      fontSize: 10
+    }
+  }, t)), /*#__PURE__*/React.createElement("span", {
+    className: "tag",
+    style: {
+      fontSize: 10,
+      color: 'var(--blue)',
+      borderColor: '#BFDBFE'
+    }
+  }, "\uD83D\uDCE6 ", doc.folder))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      textAlign: 'right',
+      flexShrink: 0
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "mono",
+    style: {
+      fontSize: 10,
+      color: 'var(--text3)',
+      marginBottom: 6
+    }
+  }, doc.date), /*#__PURE__*/React.createElement("a", {
+    href: 'https://app.box.com/file/' + doc.boxId,
+    target: "_blank",
+    rel: "noreferrer",
+    style: {
+      textDecoration: 'none'
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    className: "btn",
+    style: {
+      fontSize: 11,
+      padding: '3px 9px'
+    }
+  }, "Open Box"))))), filtered.length === 0 && /*#__PURE__*/React.createElement("p", {
+    style: {
+      textAlign: 'center',
+      padding: 20,
+      color: 'var(--text3)',
+      fontSize: 12
+    }
+  }, "No documents match your search.")));
+}
+
+// ── HEALTH ISSUES TAB ─────────────────────────────────────────────────────────
+function HealthIssuesTab({
+  patient,
+  isAdmin,
+  onAddCondition,
+  onEditCondition,
+  onAddNote
+}) {
+  const [exp, setExp] = useState(null);
+  const sevOrder = {
+    urgent: 0,
+    high: 1,
+    moderate: 2,
+    monitor: 3,
+    normal: 4
+  };
+  const sorted = [...patient.conditions].sort((a, b) => (sevOrder[a.sev] || 5) - (sevOrder[b.sev] || 5));
+  return /*#__PURE__*/React.createElement("div", {
+    className: "fade"
+  }, isAdmin && /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      justifyContent: 'flex-end',
+      marginBottom: 10
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    className: "btn",
+    onClick: onAddCondition,
+    style: {
+      color: 'var(--green)',
+      borderColor: '#BBF7D0',
+      background: 'var(--green-light)',
+      fontSize: 12
+    }
+  }, "+ Add Condition")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 7
+    }
+  }, sorted.map(c => /*#__PURE__*/React.createElement("div", {
+    key: c.id,
+    className: "card",
+    style: {
+      borderLeft: `3px solid ${SEV_COLORS[c.sev] || 'var(--blue)'}`,
+      cursor: 'pointer'
+    },
+    onClick: () => setExp(exp === c.id ? null : c.id)
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: '12px 14px'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 8
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 7,
+      flexWrap: 'wrap',
+      marginBottom: 2
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 12,
+      color: 'var(--text)',
+      fontWeight: 500
+    }
+  }, c.name), /*#__PURE__*/React.createElement(Badge, {
+    sev: c.sev
+  })), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 10,
+      color: 'var(--text3)'
+    }
+  }, c.organ, " \xB7 ", c.reviewed)), /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: 'var(--text3)',
+      fontSize: 16,
+      transition: 'transform .15s',
+      transform: exp === c.id ? 'rotate(90deg)' : 'none'
+    }
+  }, "\u203A")), exp === c.id && /*#__PURE__*/React.createElement("div", {
+    className: "fade",
+    style: {
+      marginTop: 10
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: 'var(--bg3)',
+      borderRadius: 7,
+      padding: '10px 12px',
+      marginBottom: 8
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 10,
+      color: 'var(--text3)',
+      fontWeight: 600,
+      letterSpacing: '.4px',
+      marginBottom: 4
+    }
+  }, "FINDINGS"), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 12,
+      color: 'var(--text2)',
+      lineHeight: 1.6,
+      margin: 0
+    }
+  }, c.findings)), /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: 'var(--blue-light)',
+      borderRadius: 7,
+      padding: '10px 12px',
+      borderLeft: '2px solid var(--blue)',
+      marginBottom: 8
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 10,
+      color: 'var(--blue)',
+      fontWeight: 600,
+      letterSpacing: '.4px',
+      marginBottom: 4
+    }
+  }, "ACTION"), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 12,
+      color: 'var(--blue)',
+      lineHeight: 1.6,
+      margin: 0
+    }
+  }, c.action)), isAdmin && /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 7
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    className: "btn",
+    style: {
+      fontSize: 11
+    },
+    onClick: e => {
+      e.stopPropagation();
+      onEditCondition(c);
+    }
+  }, "\u270F\uFE0F Edit"), /*#__PURE__*/React.createElement("button", {
+    className: "btn",
+    style: {
+      fontSize: 11,
+      color: 'var(--amber)'
+    },
+    onClick: e => {
+      e.stopPropagation();
+      onAddNote(c);
+    }
+  }, "\uD83D\uDCDD Add Note"))))))));
+}
+
+// ── SYMPTOMS TAB ──────────────────────────────────────────────────────────────
+function SymptomsTab({
+  patient,
+  isAdmin,
+  onAddSymptom
+}) {
+  const sevOrder = {
+    severe: 0,
+    moderate: 1,
+    mild: 2
+  };
+  const sorted = [...patient.symptoms].sort((a, b) => new Date(b.date) - new Date(a.date));
+  const statusColor = {
+    ongoing: 'var(--red)',
+    managed: 'var(--amber)',
+    resolved: 'var(--green)'
+  };
+  return /*#__PURE__*/React.createElement("div", {
+    className: "fade"
+  }, isAdmin && /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      justifyContent: 'flex-end',
+      marginBottom: 10
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    className: "btn",
+    onClick: onAddSymptom,
+    style: {
+      color: 'var(--green)',
+      borderColor: '#BBF7D0',
+      background: 'var(--green-light)',
+      fontSize: 12
+    }
+  }, "+ Record Symptom")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginBottom: 12
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "section-hdr"
+  }, "SYMPTOM HISTORY"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 7
+    }
+  }, sorted.map((s, i) => /*#__PURE__*/React.createElement("div", {
+    key: i,
+    className: "card",
+    style: {
+      padding: '11px 14px'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      alignItems: 'flex-start',
+      justifyContent: 'space-between',
+      gap: 10
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 7,
+      marginBottom: 3,
+      flexWrap: 'wrap'
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 12,
+      color: 'var(--text)',
+      fontWeight: 500
+    }
+  }, s.symptom), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 10,
+      fontWeight: 600,
+      color: statusColor[s.status] || 'var(--text3)',
+      background: (statusColor[s.status] || 'var(--text3)') + '15',
+      border: `1px solid ${statusColor[s.status] || 'var(--text3)'}30`,
+      borderRadius: 20,
+      padding: '1px 8px',
+      textTransform: 'capitalize'
+    }
+  }, s.status), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 10,
+      color: s.severity === 'severe' ? 'var(--red)' : s.severity === 'moderate' ? 'var(--amber)' : 'var(--green)',
+      fontWeight: 600,
+      textTransform: 'capitalize'
+    }
+  }, s.severity)), s.note && /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 11,
+      color: 'var(--text3)',
+      margin: '2px 0 0',
+      lineHeight: 1.4
+    }
+  }, s.note)), /*#__PURE__*/React.createElement("span", {
+    className: "mono",
+    style: {
+      fontSize: 10,
+      color: 'var(--text3)',
+      flexShrink: 0
+    }
+  }, s.date)))), sorted.length === 0 && /*#__PURE__*/React.createElement("p", {
+    style: {
+      textAlign: 'center',
+      padding: 20,
+      color: 'var(--text3)',
+      fontSize: 12
+    }
+  }, "No symptoms recorded. Click + to add."))));
+}
+
+// ── GOOGLE FIT PLACEHOLDER TAB ─────────────────────────────────────────────────
+function HealthDataTab({
+  patient
+}) {
+  const mockSteps = [{
+    d: 'Mon',
+    v: 6240
+  }, {
+    d: 'Tue',
+    v: 8100
+  }, {
+    d: 'Wed',
+    v: 5890
+  }, {
+    d: 'Thu',
+    v: 7340
+  }, {
+    d: 'Fri',
+    v: 9200
+  }, {
+    d: 'Sat',
+    v: 4100
+  }, {
+    d: 'Sun',
+    v: 3800
+  }];
+  const mockWeight = [{
+    d: "Jan'25",
+    v: 68
+  }, {
+    d: "Mar'25",
+    v: 67.5
+  }, {
+    d: "Jun'25",
+    v: 67
+  }, {
+    d: "Sep'25",
+    v: 68.2
+  }, {
+    d: "Nov'25",
+    v: 67.8
+  }, {
+    d: "Jan'26",
+    v: 67.2
+  }];
+  return /*#__PURE__*/React.createElement("div", {
+    className: "fade"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "card",
+    style: {
+      padding: 14,
+      marginBottom: 12,
+      borderLeft: '3px solid var(--blue)'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 8,
+      marginBottom: 8
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 18
+    }
+  }, "\uD83C\uDFC3"), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 14,
+      color: 'var(--text)',
+      fontWeight: 500
+    }
+  }, "Google Fit / Apple Health Integration"), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 10,
+      background: 'var(--amber-mid)',
+      color: 'var(--amber)',
+      border: '1px solid #FDE68A',
+      borderRadius: 4,
+      padding: '1px 7px',
+      fontWeight: 600
+    }
+  }, "SETUP REQUIRED")), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 12,
+      color: 'var(--text2)',
+      lineHeight: 1.6,
+      marginBottom: 10
+    }
+  }, "To fetch real-time health data from Google Fit or Apple Health, you need to connect via OAuth 2.0. Once connected, steps, weight, heart rate, sleep, and blood oxygen data will appear here automatically."), /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: 'var(--bg3)',
+      borderRadius: 7,
+      padding: '10px 12px',
+      marginBottom: 10
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "section-hdr"
+  }, "SETUP STEPS"), [['1', 'Google Fit: Go to console.cloud.google.com → Enable Fitness API → Create OAuth 2.0 credentials'], ['2', 'Apple Health: Install HealthKit connector app on iPhone → Authorize SBK Health to read categories'], ['3', 'Fitbit/Garmin: Connect via OAuth at fitbit.com/api and set redirect_uri to your deployment URL'], ['4', 'Add API keys to .env: GOOGLE_FIT_CLIENT_ID, GOOGLE_FIT_CLIENT_SECRET, APPLE_HEALTH_TOKEN']].map(([n, s]) => /*#__PURE__*/React.createElement("div", {
+    key: n,
+    style: {
+      display: 'flex',
+      gap: 8,
+      marginBottom: 6,
+      alignItems: 'flex-start'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: 18,
+      height: 18,
+      borderRadius: '50%',
+      background: 'var(--blue)',
+      color: '#fff',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      fontSize: 10,
+      fontWeight: 700,
+      flexShrink: 0
+    }
+  }, n), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 11,
+      color: 'var(--text2)',
+      lineHeight: 1.4,
+      margin: 0
+    }
+  }, s)))), /*#__PURE__*/React.createElement("button", {
+    className: "btn-primary",
+    style: {
+      fontSize: 12,
+      padding: '7px 14px'
+    }
+  }, "Connect Google Fit (OAuth)")), /*#__PURE__*/React.createElement("div", {
+    className: "g2",
+    style: {
+      marginBottom: 12
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "card",
+    style: {
+      padding: 14
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "section-hdr"
+  }, "WEEKLY STEPS (DEMO)"), /*#__PURE__*/React.createElement(MiniChart, {
+    data: mockSteps,
+    label: "Steps",
+    unit: "steps",
+    color: "#2563EB"
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      marginTop: 8,
+      fontSize: 11
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: 'var(--text3)'
+    }
+  }, "Avg:"), /*#__PURE__*/React.createElement("span", {
+    className: "mono",
+    style: {
+      color: 'var(--blue)'
+    }
+  }, "6,382 steps/day"))), /*#__PURE__*/React.createElement("div", {
+    className: "card",
+    style: {
+      padding: 14
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "section-hdr"
+  }, "WEIGHT TREND (DEMO)"), /*#__PURE__*/React.createElement(MiniChart, {
+    data: mockWeight,
+    label: "Weight",
+    unit: "kg",
+    color: "#16A34A"
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      marginTop: 8,
+      fontSize: 11
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: 'var(--text3)'
+    }
+  }, "Latest:"), /*#__PURE__*/React.createElement("span", {
+    className: "mono",
+    style: {
+      color: 'var(--green)'
+    }
+  }, "67.2 kg")))), /*#__PURE__*/React.createElement("div", {
+    className: "surface",
+    style: {
+      padding: 12
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "section-hdr"
+  }, "SUPPORTED INTEGRATIONS"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 10,
+      flexWrap: 'wrap'
+    }
+  }, ['Google Fit', 'Apple Health', 'Fitbit', 'Garmin Connect', 'Withings', 'Strava', 'Samsung Health', 'Mi Fitness'].map(a => /*#__PURE__*/React.createElement("span", {
+    key: a,
+    className: "tag"
+  }, a)))));
+}
+// ── UPLOAD MODAL ──────────────────────────────────────────────────────────────
+function UploadModal({
+  patient,
+  onClose
+}) {
+  const [file, setFile] = useState(null);
+  const [dt, setDt] = useState('Lab');
+  const [dr, setDr] = useState('');
+  const [tags, setTags] = useState('');
+  const [prog, setProg] = useState(0);
+  const [done, setDone] = useState(false);
+  const [err, setErr] = useState('');
+  const fRef = useRef(null);
+  const submit = () => {
+    if (!file) {
+      setErr('Please select a file.');
+      return;
+    }
+    setErr('');
+    setProg(10);
+    const iv = setInterval(() => setProg(p => {
+      if (p >= 90) {
+        clearInterval(iv);
+        return 90;
+      }
+      return p + 12;
+    }), 200);
+    setTimeout(() => {
+      clearInterval(iv);
+      setProg(100);
+      setDone(true);
+    }, 2000);
+  };
+  const folderMap = {
+    Lab: 'lab',
+    Imaging: 'imaging',
+    Prescription: 'rx',
+    Hospital: 'hospital',
+    Cardiac: 'imaging',
+    Consult: 'rx',
+    Procedure: 'imaging'
+  };
+  const folderName = {
+    Lab: '1 Lab Reports/Tests',
+    Imaging: '2 Imaging',
+    Prescription: '3 Prescriptions',
+    Hospital: '4 Hospital Visits',
+    Cardiac: '2 Imaging',
+    Consult: '3 Prescriptions',
+    Procedure: '2 Imaging'
+  };
+  if (done) return /*#__PURE__*/React.createElement("div", {
+    className: "modal-bg",
+    onClick: onClose
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "modal fade",
+    onClick: e => e.stopPropagation(),
+    style: {
+      textAlign: 'center'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 40,
+      marginBottom: 10
+    }
+  }, "\u2705"), /*#__PURE__*/React.createElement("h3", {
+    style: {
+      fontFamily: "'DM Serif Display',serif",
+      fontSize: 18,
+      color: 'var(--text)',
+      marginBottom: 6
+    }
+  }, "Upload Complete"), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 12,
+      color: 'var(--text2)',
+      marginBottom: 4
+    }
+  }, "\"", file.name, "\" \u2192 Box/", patient.name, "/", folderName[dt]), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 11,
+      color: 'var(--text3)',
+      marginBottom: 16
+    }
+  }, "In production with BoxSDK: File uploads to Box folder ID ", patient.boxFolders[folderMap[dt] || 'lab'], ", metadata saved to PostgreSQL, Claude refreshes AI summary."), /*#__PURE__*/React.createElement("button", {
+    className: "btn-primary",
+    onClick: onClose
+  }, "Done")));
+  return /*#__PURE__*/React.createElement("div", {
+    className: "modal-bg",
+    onClick: onClose
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "modal fade",
+    onClick: e => e.stopPropagation()
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginBottom: 18
+    }
+  }, /*#__PURE__*/React.createElement("h3", {
+    style: {
+      fontFamily: "'DM Serif Display',serif",
+      fontSize: 17,
+      color: 'var(--text)'
+    }
+  }, "Upload Medical File"), /*#__PURE__*/React.createElement("button", {
+    className: "btn-ghost",
+    onClick: onClose
+  }, "\u2715")), /*#__PURE__*/React.createElement("div", {
+    className: "upload-zone",
+    onClick: () => fRef.current?.click(),
+    style: {
+      marginBottom: 14,
+      borderColor: file ? 'var(--green)' : ''
+    }
+  }, /*#__PURE__*/React.createElement("input", {
+    ref: fRef,
+    type: "file",
+    accept: ".pdf,.jpg,.jpeg,.png",
+    style: {
+      display: 'none'
+    },
+    onChange: e => setFile(e.target.files[0])
+  }), file ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 24,
+      marginBottom: 6
+    }
+  }, "\uD83D\uDCC4"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      color: 'var(--green)',
+      fontWeight: 500,
+      fontSize: 13
+    }
+  }, file.name), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11,
+      color: 'var(--text3)',
+      marginTop: 3
+    }
+  }, (file.size / 1024 / 1024).toFixed(2), " MB \xB7 Click to change")) : /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 30,
+      marginBottom: 8
+    }
+  }, "\uD83D\uDCC1"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      color: 'var(--text2)',
+      fontSize: 13
+    }
+  }, "Click to select file"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11,
+      color: 'var(--text3)',
+      marginTop: 3
+    }
+  }, "PDF, JPG, PNG accepted"))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginBottom: 12
+    }
+  }, /*#__PURE__*/React.createElement("label", {
+    className: "field-label"
+  }, "DOCUMENT TYPE"), /*#__PURE__*/React.createElement("select", {
+    className: "select",
+    value: dt,
+    onChange: e => setDt(e.target.value)
+  }, ['Lab', 'Imaging', 'Hospital', 'Prescription', 'Cardiac', 'Consult', 'Procedure'].map(t => /*#__PURE__*/React.createElement("option", {
+    key: t
+  }, t))), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 11,
+      color: 'var(--text3)',
+      marginTop: 3
+    }
+  }, "\u2192 Box: ", patient.name, "/", folderName[dt])), /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginBottom: 12
+    }
+  }, /*#__PURE__*/React.createElement("label", {
+    className: "field-label"
+  }, "DOCTOR / FACILITY"), /*#__PURE__*/React.createElement("input", {
+    className: "input",
+    placeholder: "e.g. Dr. A.K. Purohit",
+    value: dr,
+    onChange: e => setDr(e.target.value)
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginBottom: 14
+    }
+  }, /*#__PURE__*/React.createElement("label", {
+    className: "field-label"
+  }, "TAGS (comma-separated)"), /*#__PURE__*/React.createElement("input", {
+    className: "input",
+    placeholder: "e.g. mri, spine, urgent",
+    value: tags,
+    onChange: e => setTags(e.target.value)
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginBottom: 14,
+      padding: '8px 12px',
+      background: 'var(--blue-light)',
+      borderRadius: 7,
+      fontSize: 11,
+      color: 'var(--blue)'
+    }
+  }, "\uD83D\uDCA1 To upload a ", /*#__PURE__*/React.createElement("strong", null, "patient photo"), ", click the avatar on the patient page (admin only) and select an image file."), err && /*#__PURE__*/React.createElement("p", {
+    style: {
+      color: 'var(--red)',
+      fontSize: 12,
+      marginBottom: 10
+    }
+  }, err), prog > 0 && /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginBottom: 12
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      fontSize: 11,
+      color: 'var(--text3)',
+      marginBottom: 4
+    }
+  }, /*#__PURE__*/React.createElement("span", null, "Uploading\u2026"), /*#__PURE__*/React.createElement("span", null, prog, "%")), /*#__PURE__*/React.createElement("div", {
+    className: "progress-bar"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "progress-fill",
+    style: {
+      width: prog + '%'
+    }
+  }))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 8,
+      justifyContent: 'flex-end'
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    className: "btn",
+    onClick: onClose
+  }, "Cancel"), /*#__PURE__*/React.createElement("button", {
+    className: "btn-primary",
+    onClick: submit,
+    disabled: prog > 0 && prog < 100,
+    style: {
+      fontSize: 12
+    }
+  }, prog > 0 && prog < 100 ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("span", {
+    className: "spinner"
+  }), "Uploading\u2026") : '↑ Upload to Box'))));
+}
+
+// ── EDIT PATIENT MODAL ────────────────────────────────────────────────────────
+function EditPatientModal({
+  patient,
+  onClose,
+  onSave
+}) {
+  const [form, setForm] = useState({
+    name: patient.name,
+    dob: patient.dob,
+    doctor: patient.doctor,
+    bg: patient.bg,
+    status: patient.status
+  });
+  const set = k => e => setForm(f => ({
+    ...f,
+    [k]: e.target.value
+  }));
+  return /*#__PURE__*/React.createElement("div", {
+    className: "modal-bg",
+    onClick: onClose
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "modal fade",
+    onClick: e => e.stopPropagation()
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginBottom: 18
+    }
+  }, /*#__PURE__*/React.createElement("h3", {
+    style: {
+      fontFamily: "'DM Serif Display',serif",
+      fontSize: 17,
+      color: 'var(--text)'
+    }
+  }, "Edit Patient"), /*#__PURE__*/React.createElement("button", {
+    className: "btn-ghost",
+    onClick: onClose
+  }, "\u2715")), [{
+    k: 'name',
+    l: 'FULL NAME'
+  }, {
+    k: 'dob',
+    l: 'DATE OF BIRTH'
+  }, {
+    k: 'bg',
+    l: 'BLOOD GROUP'
+  }, {
+    k: 'doctor',
+    l: 'PRIMARY DOCTOR'
+  }, {
+    k: 'status',
+    l: 'STATUS'
+  }].map(({
+    k,
+    l
+  }) => /*#__PURE__*/React.createElement("div", {
+    key: k,
+    style: {
+      marginBottom: 12
+    }
+  }, /*#__PURE__*/React.createElement("label", {
+    className: "field-label"
+  }, l), /*#__PURE__*/React.createElement("input", {
+    className: "input",
+    value: form[k] || '',
+    onChange: set(k)
+  }))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 8,
+      justifyContent: 'flex-end'
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    className: "btn",
+    onClick: onClose
+  }, "Cancel"), /*#__PURE__*/React.createElement("button", {
+    className: "btn-primary",
+    onClick: () => {
+      onSave(form);
+      onClose();
+    },
+    style: {
+      fontSize: 12
+    }
+  }, "Save Changes"))));
+}
+
+// ── ADD CONDITION MODAL ───────────────────────────────────────────────────────
+function ConditionModal({
+  cond,
+  onClose,
+  onSave
+}) {
+  const [form, setForm] = useState(cond || {
+    name: '',
+    sev: 'high',
+    organ: '',
+    organId: 'metabolic',
+    findings: '',
+    action: '',
+    reviewed: new Date().getFullYear().toString()
+  });
+  const set = k => e => setForm(f => ({
+    ...f,
+    [k]: e.target.value
+  }));
+  return /*#__PURE__*/React.createElement("div", {
+    className: "modal-bg",
+    onClick: onClose
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "modal fade",
+    onClick: e => e.stopPropagation()
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginBottom: 18
+    }
+  }, /*#__PURE__*/React.createElement("h3", {
+    style: {
+      fontFamily: "'DM Serif Display',serif",
+      fontSize: 17,
+      color: 'var(--text)'
+    }
+  }, cond ? 'Edit' : 'Add', " Condition"), /*#__PURE__*/React.createElement("button", {
+    className: "btn-ghost",
+    onClick: onClose
+  }, "\u2715")), [{
+    k: 'name',
+    l: 'CONDITION NAME',
+    p: 'e.g. Severe Dyslipidaemia'
+  }, {
+    k: 'organ',
+    l: 'ORGAN/SYSTEM',
+    p: 'e.g. Cardiovascular'
+  }].map(({
+    k,
+    l,
+    p
+  }) => /*#__PURE__*/React.createElement("div", {
+    key: k,
+    style: {
+      marginBottom: 12
+    }
+  }, /*#__PURE__*/React.createElement("label", {
+    className: "field-label"
+  }, l), /*#__PURE__*/React.createElement("input", {
+    className: "input",
+    placeholder: p,
+    value: form[k] || '',
+    onChange: set(k)
+  }))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginBottom: 12
+    }
+  }, /*#__PURE__*/React.createElement("label", {
+    className: "field-label"
+  }, "SEVERITY"), /*#__PURE__*/React.createElement("select", {
+    className: "select",
+    value: form.sev,
+    onChange: set('sev')
+  }, ['urgent', 'high', 'moderate', 'monitor', 'normal'].map(s => /*#__PURE__*/React.createElement("option", {
+    key: s,
+    value: s
+  }, s.charAt(0).toUpperCase() + s.slice(1))))), [{
+    k: 'findings',
+    l: 'LATEST FINDINGS',
+    p: 'Describe current findings…'
+  }, {
+    k: 'action',
+    l: 'RECOMMENDED ACTION',
+    p: 'Treatment or follow-up plan…'
+  }].map(({
+    k,
+    l,
+    p
+  }) => /*#__PURE__*/React.createElement("div", {
+    key: k,
+    style: {
+      marginBottom: 12
+    }
+  }, /*#__PURE__*/React.createElement("label", {
+    className: "field-label"
+  }, l), /*#__PURE__*/React.createElement("textarea", {
+    className: "input",
+    placeholder: p,
+    value: form[k] || '',
+    onChange: set(k)
+  }))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginBottom: 14
+    }
+  }, /*#__PURE__*/React.createElement("label", {
+    className: "field-label"
+  }, "LAST REVIEWED"), /*#__PURE__*/React.createElement("input", {
+    className: "input",
+    placeholder: "e.g. Jan 2026",
+    value: form.reviewed || '',
+    onChange: set('reviewed')
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 8,
+      justifyContent: 'flex-end'
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    className: "btn",
+    onClick: onClose
+  }, "Cancel"), /*#__PURE__*/React.createElement("button", {
+    className: "btn-primary",
+    onClick: () => {
+      if (form.name) {
+        onSave(form);
+        onClose();
+      } else alert('Name required');
+    },
+    style: {
+      fontSize: 12
+    }
+  }, cond ? 'Save Changes' : 'Add Condition'))));
+}
+
+// ── ADD NOTE MODAL ────────────────────────────────────────────────────────────
+function NoteModal({
+  condition,
+  onClose,
+  onSave
+}) {
+  const [note, setNote] = useState('');
+  return /*#__PURE__*/React.createElement("div", {
+    className: "modal-bg",
+    onClick: onClose
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "modal fade",
+    onClick: e => e.stopPropagation()
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginBottom: 18
+    }
+  }, /*#__PURE__*/React.createElement("h3", {
+    style: {
+      fontFamily: "'DM Serif Display',serif",
+      fontSize: 17,
+      color: 'var(--text)'
+    }
+  }, "Add Note"), /*#__PURE__*/React.createElement("button", {
+    className: "btn-ghost",
+    onClick: onClose
+  }, "\u2715")), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 12,
+      color: 'var(--text2)',
+      marginBottom: 14
+    }
+  }, condition?.name), /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginBottom: 14
+    }
+  }, /*#__PURE__*/React.createElement("label", {
+    className: "field-label"
+  }, "NOTE"), /*#__PURE__*/React.createElement("textarea", {
+    className: "input",
+    placeholder: "Enter clinical note, observation, or update\u2026",
+    value: note,
+    onChange: e => setNote(e.target.value),
+    style: {
+      minHeight: 100
+    }
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 8,
+      justifyContent: 'flex-end'
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    className: "btn",
+    onClick: onClose
+  }, "Cancel"), /*#__PURE__*/React.createElement("button", {
+    className: "btn-primary",
+    onClick: () => {
+      if (note.trim()) {
+        onSave(note);
+        onClose();
+      } else alert('Note required');
+    },
+    style: {
+      fontSize: 12
+    }
+  }, "Save Note"))));
+}
+
+// ── ADD SYMPTOM MODAL ─────────────────────────────────────────────────────────
+function SymptomModal({
+  onClose,
+  onSave
+}) {
+  const [form, setForm] = useState({
+    symptom: '',
+    date: '',
+    severity: 'mild',
+    status: 'ongoing',
+    note: ''
+  });
+  const set = k => e => setForm(f => ({
+    ...f,
+    [k]: e.target.value
+  }));
+  return /*#__PURE__*/React.createElement("div", {
+    className: "modal-bg",
+    onClick: onClose
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "modal fade",
+    onClick: e => e.stopPropagation()
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginBottom: 18
+    }
+  }, /*#__PURE__*/React.createElement("h3", {
+    style: {
+      fontFamily: "'DM Serif Display',serif",
+      fontSize: 17,
+      color: 'var(--text)'
+    }
+  }, "Record Symptom"), /*#__PURE__*/React.createElement("button", {
+    className: "btn-ghost",
+    onClick: onClose
+  }, "\u2715")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginBottom: 12
+    }
+  }, /*#__PURE__*/React.createElement("label", {
+    className: "field-label"
+  }, "SYMPTOM DESCRIPTION"), /*#__PURE__*/React.createElement("input", {
+    className: "input",
+    placeholder: "e.g. Severe lower back pain radiating to left leg",
+    value: form.symptom,
+    onChange: set('symptom')
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginBottom: 12
+    }
+  }, /*#__PURE__*/React.createElement("label", {
+    className: "field-label"
+  }, "DATE"), /*#__PURE__*/React.createElement("input", {
+    className: "input",
+    placeholder: "e.g. Mar 2026",
+    value: form.date,
+    onChange: set('date')
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'grid',
+      gridTemplateColumns: '1fr 1fr',
+      gap: 10,
+      marginBottom: 12
+    }
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    className: "field-label"
+  }, "SEVERITY"), /*#__PURE__*/React.createElement("select", {
+    className: "select",
+    value: form.severity,
+    onChange: set('severity')
+  }, ['mild', 'moderate', 'severe'].map(s => /*#__PURE__*/React.createElement("option", {
+    key: s
+  }, s)))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    className: "field-label"
+  }, "STATUS"), /*#__PURE__*/React.createElement("select", {
+    className: "select",
+    value: form.status,
+    onChange: set('status')
+  }, ['ongoing', 'managed', 'resolved'].map(s => /*#__PURE__*/React.createElement("option", {
+    key: s
+  }, s))))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginBottom: 14
+    }
+  }, /*#__PURE__*/React.createElement("label", {
+    className: "field-label"
+  }, "NOTES / CONTEXT"), /*#__PURE__*/React.createElement("input", {
+    className: "input",
+    placeholder: "e.g. Started after lifting, worsens at night",
+    value: form.note,
+    onChange: set('note')
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 8,
+      justifyContent: 'flex-end'
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    className: "btn",
+    onClick: onClose
+  }, "Cancel"), /*#__PURE__*/React.createElement("button", {
+    className: "btn-primary",
+    onClick: () => {
+      if (form.symptom && form.date) {
+        onSave(form);
+        onClose();
+      } else alert('Symptom and date required');
+    },
+    style: {
+      fontSize: 12
+    }
+  }, "Save"))));
+}
+
+// ── ADD PATIENT MODAL ─────────────────────────────────────────────────────────
+function AddPatientModal({
+  onClose,
+  onAdd
+}) {
+  const [form, setForm] = useState({
+    name: '',
+    dob: '',
+    gender: 'Female',
+    bg: '',
+    doctor: ''
+  });
+  const set = k => e => setForm(f => ({
+    ...f,
+    [k]: e.target.value
+  }));
+  return /*#__PURE__*/React.createElement("div", {
+    className: "modal-bg",
+    onClick: onClose
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "modal fade",
+    onClick: e => e.stopPropagation()
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginBottom: 18
+    }
+  }, /*#__PURE__*/React.createElement("h3", {
+    style: {
+      fontFamily: "'DM Serif Display',serif",
+      fontSize: 17,
+      color: 'var(--text)'
+    }
+  }, "Add New Patient"), /*#__PURE__*/React.createElement("button", {
+    className: "btn-ghost",
+    onClick: onClose
+  }, "\u2715")), [{
+    k: 'name',
+    l: 'FULL NAME',
+    p: 'Full name'
+  }, {
+    k: 'dob',
+    l: 'DATE OF BIRTH',
+    p: 'e.g. 31 Aug 1961'
+  }, {
+    k: 'bg',
+    l: 'BLOOD GROUP',
+    p: 'e.g. B+'
+  }, {
+    k: 'doctor',
+    l: 'PRIMARY DOCTOR',
+    p: 'e.g. Dr. A.K. Purohit'
+  }].map(({
+    k,
+    l,
+    p
+  }) => /*#__PURE__*/React.createElement("div", {
+    key: k,
+    style: {
+      marginBottom: 12
+    }
+  }, /*#__PURE__*/React.createElement("label", {
+    className: "field-label"
+  }, l), /*#__PURE__*/React.createElement("input", {
+    className: "input",
+    placeholder: p,
+    value: form[k],
+    onChange: set(k)
+  }))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginBottom: 14
+    }
+  }, /*#__PURE__*/React.createElement("label", {
+    className: "field-label"
+  }, "GENDER"), /*#__PURE__*/React.createElement("select", {
+    className: "select",
+    value: form.gender,
+    onChange: set('gender')
+  }, ['Female', 'Male', 'Other'].map(g => /*#__PURE__*/React.createElement("option", {
+    key: g
+  }, g)))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: '9px 12px',
+      background: 'var(--blue-light)',
+      borderRadius: 7,
+      border: '1px solid #BFDBFE',
+      marginBottom: 14,
+      fontSize: 11,
+      color: 'var(--blue)'
+    }
+  }, "\uD83D\uDCE6 On save, Box folders auto-created: Medical Records/", form.name || 'Patient Name', "/1 Lab Reports \xB7 /2 Imaging \xB7 /3 Prescriptions \xB7 /4 Hospital Visits"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 8,
+      justifyContent: 'flex-end'
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    className: "btn",
+    onClick: onClose
+  }, "Cancel"), /*#__PURE__*/React.createElement("button", {
+    className: "btn-primary",
+    onClick: () => {
+      if (form.name && form.dob) {
+        onAdd(form);
+        onClose();
+      } else alert('Name and DOB required');
+    },
+    style: {
+      fontSize: 12
+    }
+  }, "Create Patient"))));
+}
+
+function SettingsModal({onClose}) {
+  var _saved = sessionStorage.getItem('sbk_anthropic_key') || '';
+  var _st = React.useState(_saved);
+  var key = _st[0]; var setKey = _st[1];
+  var _mt = React.useState('');
+  var msg = _mt[0]; var setMsg = _mt[1];
+  var save = function() {
+    var trimmed = key.trim();
+    if (!trimmed) { setMsg('Please enter your API key.'); return; }
+    if (!trimmed.startsWith('sk-ant-')) { setMsg('Key should start with sk-ant- — check you copied the full key.'); return; }
+    sessionStorage.setItem('sbk_anthropic_key', trimmed);
+    setMsg('✅ Key saved for this browser session. It clears when you close the tab.');
+  };
+  var clear = function() { sessionStorage.removeItem('sbk_anthropic_key'); setKey(''); setMsg('Key cleared.'); };
+  return React.createElement('div', {className:'modal-bg', onClick:onClose},
+    React.createElement('div', {className:'modal fade', onClick:function(e){e.stopPropagation();}, style:{maxWidth:460}},
+      React.createElement('div', {style:{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:18}},
+        React.createElement('div', null,
+          React.createElement('h3', {style:{fontFamily:"'DM Serif Display',serif",fontSize:17,color:'var(--text)',marginBottom:2}}, '⚙ Settings'),
+          React.createElement('p', {style:{fontSize:11,color:'var(--text3)',margin:0}}, 'API keys are stored only in your browser session memory')
+        ),
+        React.createElement('button', {className:'btn-ghost', onClick:onClose}, '✕')
+      ),
+      React.createElement('div', {style:{background:'var(--blue-light)',border:'1px solid #BFDBFE',borderRadius:8,padding:'10px 14px',marginBottom:16}},
+        React.createElement('p', {style:{fontSize:12,color:'var(--blue)',margin:'0 0 4px',fontWeight:600}}, '🔒 How your key is stored securely'),
+        React.createElement('p', {style:{fontSize:11,color:'var(--text2)',margin:0,lineHeight:1.6}},
+          'Your Anthropic API key is stored in sessionStorage — it exists only in this browser tab, is never written to any file, never sent to any server other than api.anthropic.com, and disappears automatically when you close the tab or browser. It is never included in your GitHub repository.'
+        )
+      ),
+      React.createElement('div', {style:{marginBottom:12}},
+        React.createElement('label', {className:'field-label'}, 'ANTHROPIC API KEY'),
+        React.createElement('input', {
+          className:'input',
+          type:'password',
+          placeholder:'sk-ant-api03-...',
+          value:key,
+          onChange:function(e){setKey(e.target.value);setMsg('');},
+          style:{fontFamily:"'Fira Code',monospace",fontSize:12}
+        }),
+        React.createElement('p', {style:{fontSize:11,color:'var(--text3)',marginTop:4}},
+          'Get your key at: console.anthropic.com → API Keys → Create Key'
+        )
+      ),
+      msg && React.createElement('div', {
+        style:{
+          padding:'8px 12px',borderRadius:7,marginBottom:12,fontSize:12,
+          background: msg.startsWith('✅') ? 'var(--green-light)' : msg.startsWith('Key cleared') ? 'var(--bg3)' : 'var(--red-light)',
+          color: msg.startsWith('✅') ? 'var(--green)' : msg.startsWith('Key cleared') ? 'var(--text3)' : 'var(--red)',
+          border: '1px solid ' + (msg.startsWith('✅') ? '#BBF7D0' : msg.startsWith('Key cleared') ? 'var(--border)' : '#FECACA')
+        }
+      }, msg),
+      React.createElement('div', {style:{display:'flex',gap:8,justifyContent:'space-between'}},
+        React.createElement('button', {className:'btn', onClick:clear, style:{fontSize:12,color:'var(--red)'}}, 'Clear Key'),
+        React.createElement('div', {style:{display:'flex',gap:8}},
+          React.createElement('button', {className:'btn', onClick:onClose}, 'Cancel'),
+          React.createElement('button', {className:'btn-primary', onClick:save, style:{fontSize:12}}, 'Save Key')
+        )
+      )
+    )
+  );
+}
+
+function SettingsButton() {
+  var _st = React.useState(false);
+  var open = _st[0]; var setOpen = _st[1];
+  var _kt = React.useState(!!sessionStorage.getItem('sbk_anthropic_key'));
+  var hasKey = _kt[0]; var setHasKey = _kt[1];
+  var handleClose = function() {
+    setHasKey(!!sessionStorage.getItem('sbk_anthropic_key'));
+    setOpen(false);
+  };
+  return React.createElement(React.Fragment, null,
+    open && React.createElement(SettingsModal, {onClose:handleClose}),
+    React.createElement('div', {
+      className: 'api-indicator ' + (hasKey ? 'api-ok' : 'api-missing')
+    }, hasKey ? '🔑 API Key Set' : '⚠ No API Key'),
+    React.createElement('button', {
+      className:'settings-btn',
+      onClick:function(){setOpen(true);},
+      title:'Settings — Enter Anthropic API key'
+    }, '⚙')
+  );
+}
+
+// ── PATIENT PAGE ──────────────────────────────────────────────────────────────
+function PatientPage({
+  patient,
+  user,
+  onBack,
+  setPatients
+}) {
+  const [tab, setTab] = useState('overview');
+  const [showUpload, setShowUpload] = useState(false);
+  const [showEdit, setShowEdit] = useState(false);
+  const [condModal, setCondModal] = useState(null); // null | {mode:'add'} | {mode:'edit',cond:...}
+  const [noteModal, setNoteModal] = useState(null);
+  const [symptomModal, setSymptomModal] = useState(false);
+  const isAdmin = user.role === 'admin';
+  const photoRef = useRef(null);
+  const updatePatient = useCallback(upd => {
+    setPatients(prev => prev.map(p => p.id === patient.id ? {
+      ...p,
+      ...upd
+    } : p));
+  }, [patient.id, setPatients]);
+  const tabs = [{
+    id: 'overview',
+    l: 'Overview'
+  }, {
+    id: 'bodymap',
+    l: 'Body Map'
+  }, {
+    id: 'timeline',
+    l: 'Timeline'
+  }, {
+    id: 'labs',
+    l: 'Lab Trends'
+  }, {
+    id: 'symptoms',
+    l: 'Symptoms'
+  }, {
+    id: 'documents',
+    l: 'Documents'
+  }, {
+    id: 'issues',
+    l: 'Health Issues'
+  }, {
+    id: 'fitness',
+    l: 'Health Data'
+  }];
+  const handlePhotoChange = e => {
+    const f = e.target.files[0];
+    if (!f) return;
+    const reader = new FileReader();
+    reader.onload = ev => updatePatient({
+      photo: ev.target.result
+    });
+    reader.readAsDataURL(f);
+  };
+  return /*#__PURE__*/React.createElement("div", null, showUpload && /*#__PURE__*/React.createElement(UploadModal, {
+    patient: patient,
+    onClose: () => setShowUpload(false)
+  }), showEdit && /*#__PURE__*/React.createElement(EditPatientModal, {
+    patient: patient,
+    onClose: () => setShowEdit(false),
+    onSave: d => updatePatient({
+      name: d.name,
+      dob: d.dob,
+      doctor: d.doctor,
+      bg: d.bg,
+      status: d.status
+    })
+  }), condModal?.mode === 'add' && /*#__PURE__*/React.createElement(ConditionModal, {
+    onClose: () => setCondModal(null),
+    onSave: c => {
+      updatePatient({
+        conditions: [...patient.conditions, {
+          ...c,
+          id: 'c' + Date.now()
+        }]
+      });
+    }
+  }), condModal?.mode === 'edit' && /*#__PURE__*/React.createElement(ConditionModal, {
+    cond: condModal.cond,
+    onClose: () => setCondModal(null),
+    onSave: c => {
+      updatePatient({
+        conditions: patient.conditions.map(x => x.id === c.id ? {
+          ...x,
+          ...c
+        } : x)
+      });
+    }
+  }), noteModal && /*#__PURE__*/React.createElement(NoteModal, {
+    condition: noteModal,
+    onClose: () => setNoteModal(null),
+    onSave: note => {
+      const updated = {
+        ...noteModal,
+        findings: noteModal.findings + '\n📝 Note (' + new Date().toLocaleDateString() + '): ' + note
+      };
+      updatePatient({
+        conditions: patient.conditions.map(c => c.id === noteModal.id ? updated : c)
+      });
+    }
+  }), symptomModal && /*#__PURE__*/React.createElement(SymptomModal, {
+    onClose: () => setSymptomModal(false),
+    onSave: s => updatePatient({
+      symptoms: [s, ...(patient.symptoms || [])]
+    })
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "topbar"
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 10,
+      flex: 1,
+      minWidth: 0
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    className: "btn-ghost",
+    onClick: onBack,
+    style: {
+      flexShrink: 0,
+      fontSize: 12
+    }
+  }, "\u2190 Patients"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: 'relative',
+      flexShrink: 0
+    }
+  }, /*#__PURE__*/React.createElement(Avatar, {
+    initials: patient.initials,
+    size: 36,
+    photo: patient.photo
+  }), isAdmin && /*#__PURE__*/React.createElement("div", {
+    onClick: () => photoRef.current?.click(),
+    style: {
+      position: 'absolute',
+      inset: 0,
+      borderRadius: 36 * .28,
+      cursor: 'pointer',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      background: 'rgba(0,0,0,.3)',
+      opacity: 0,
+      transition: 'opacity .15s'
+    },
+    onMouseEnter: e => e.currentTarget.style.opacity = 1,
+    onMouseLeave: e => e.currentTarget.style.opacity = 0
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: '#fff',
+      fontSize: 12
+    }
+  }, "\uD83D\uDCF7")), /*#__PURE__*/React.createElement("input", {
+    ref: photoRef,
+    type: "file",
+    accept: "image/*",
+    style: {
+      display: 'none'
+    },
+    onChange: handlePhotoChange
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      minWidth: 0
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 8,
+      flexWrap: 'wrap'
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontFamily: "'DM Serif Display',serif",
+      fontSize: 15,
+      color: 'var(--text)'
+    }
+  }, patient.name), patient.urgentCount > 0 && /*#__PURE__*/React.createElement("span", {
+    style: {
+      background: 'var(--red-mid)',
+      color: 'var(--red)',
+      border: '1px solid #FECACA',
+      borderRadius: 20,
+      padding: '2px 8px',
+      fontSize: 10,
+      fontWeight: 600,
+      flexShrink: 0
+    }
+  }, "\u26A0 ", patient.urgentCount, " urgent")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11,
+      color: 'var(--text3)',
+      overflow: 'hidden',
+      textOverflow: 'ellipsis',
+      whiteSpace: 'nowrap'
+    }
+  }, patient.age, "y \xB7 ", patient.gender, " \xB7 ", patient.bg, " \xB7 ", patient.status))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 8,
+      alignItems: 'center',
+      flexShrink: 0
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 10,
+      color: isAdmin ? 'var(--blue)' : 'var(--green)',
+      background: isAdmin ? 'var(--blue-light)' : 'var(--green-light)',
+      border: `1px solid ${isAdmin ? '#BFDBFE' : '#BBF7D0'}`,
+      borderRadius: 20,
+      padding: '2px 8px'
+    }
+  }, isAdmin ? '👑 Admin' : '👁 Viewer'), isAdmin && /*#__PURE__*/React.createElement("button", {
+    className: "btn",
+    style: {
+      fontSize: 12
+    },
+    onClick: () => setShowEdit(true)
+  }, "\u270F\uFE0F Edit"))), /*#__PURE__*/React.createElement("div", {
+    className: "tab-bar"
+  }, tabs.map(t => /*#__PURE__*/React.createElement("button", {
+    key: t.id,
+    className: `tab${tab === t.id ? ' active' : ''}`,
+    onClick: () => setTab(t.id)
+  }, t.l))), /*#__PURE__*/React.createElement("div", {
+    className: "container"
+  }, tab === 'overview' && /*#__PURE__*/React.createElement(OverviewTab, {
+    patient: patient,
+    isAdmin: isAdmin
+  }), tab === 'bodymap' && /*#__PURE__*/React.createElement(BodyMap, {
+    patient: patient
+  }), tab === 'timeline' && /*#__PURE__*/React.createElement(TimelineTab, {
+    patient: patient
+  }), tab === 'labs' && /*#__PURE__*/React.createElement(LabTrendsTab, {
+    patient: patient
+  }), tab === 'symptoms' && /*#__PURE__*/React.createElement(SymptomsTab, {
+    patient: patient,
+    isAdmin: isAdmin,
+    onAddSymptom: () => setSymptomModal(true)
+  }), tab === 'documents' && /*#__PURE__*/React.createElement(DocumentsTab, {
+    patient: patient,
+    isAdmin: isAdmin,
+    onUpload: () => setShowUpload(true)
+  }), tab === 'issues' && /*#__PURE__*/React.createElement(HealthIssuesTab, {
+    patient: patient,
+    isAdmin: isAdmin,
+    onAddCondition: () => setCondModal({
+      mode: 'add'
+    }),
+    onEditCondition: c => setCondModal({
+      mode: 'edit',
+      cond: c
+    }),
+    onAddNote: c => setNoteModal(c)
+  }), tab === 'fitness' && /*#__PURE__*/React.createElement(HealthDataTab, {
+    patient: patient
+  })));
+}
+
+// ── ROOT APP ──────────────────────────────────────────────────────────────────
+function App() {
+  const [user, setUser] = useState(null);
+  const [selectedId, setSelectedId] = useState(null);
+  const [patients, setPatients] = useState(PATIENTS);
+  const [showAdd, setShowAdd] = useState(false);
+  const addPatient = p => {
+    const initials = p.name.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase();
+    const yr = parseInt(p.dob?.split(' ').pop() || new Date().getFullYear());
+    const age = new Date().getFullYear() - yr;
+    const np = {
+      ...p,
+      id: 'P' + Date.now(),
+      initials,
+      age,
+      urgentCount: 0,
+      conditions: [],
+      timeline: [],
+      documents: [],
+      symptoms: [],
+      labsKey: {},
+      labsFull: {},
+      summary: 'New patient — no data yet',
+      lastVisit: 'N/A',
+      photo: null,
+      boxFolders: {
+        lab: '0',
+        imaging: '0',
+        rx: '0',
+        hospital: '0'
+      }
+    };
+    setPatients(prev => [...prev, np]);
+    alert(`Patient "${p.name}" created.\n\nBox folders will be created via backend API:\nPOST /api/patients → BoxSDK auto-creates:\n  Medical Records/${p.name}/\n    1 Lab Reports/\n    2 Imaging/\n    3 Prescriptions/\n    4 Hospital Visits/`);
+  };
+  if (!user) return /*#__PURE__*/React.createElement(LoginPage, {
+    onLogin: setUser
+  });
+  const patient = selectedId ? patients.find(p => p.id === selectedId) : null;
+  if (patient) return /*#__PURE__*/React.createElement(PatientPage, {
+    patient: patient,
+    user: user,
+    onBack: () => setSelectedId(null),
+    setPatients: setPatients
+  });
+  return /*#__PURE__*/React.createElement("div", null,
+    /*#__PURE__*/React.createElement(SettingsButton, null),
+    showAdd && /*#__PURE__*/React.createElement(AddPatientModal, {
+    onClose: () => setShowAdd(false),
+    onAdd: p => {
+      addPatient(p);
+    }
+  }), /*#__PURE__*/React.createElement(HomePage, {
+    user: user,
+    patients: patients,
+    onSelect: p => setSelectedId(p.id),
+    onLogout: () => {
+      setUser(null);
+      setSelectedId(null);
+    },
+    onAdd: () => user.role === 'admin' && setShowAdd(true)
+  }));
+}
+ReactDOM.createRoot(document.getElementById('root')).render(/*#__PURE__*/React.createElement(App, null));
+</script></body></html>
