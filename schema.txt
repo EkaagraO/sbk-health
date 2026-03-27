@@ -1,0 +1,127 @@
+-- SBK Health v3 — PostgreSQL Schema
+-- Run: psql -U postgres -d sbkhealth -f schema.sql
+
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+CREATE TABLE users (
+  id            UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  username      VARCHAR(50) UNIQUE NOT NULL,
+  email         VARCHAR(100) UNIQUE NOT NULL,
+  password_hash VARCHAR(255) NOT NULL,
+  role          VARCHAR(20) NOT NULL CHECK (role IN ('admin','viewer')),
+  full_name     VARCHAR(100),
+  is_active     BOOLEAN DEFAULT TRUE,
+  created_at    TIMESTAMPTZ DEFAULT NOW(),
+  last_login    TIMESTAMPTZ
+);
+
+CREATE TABLE patients (
+  id                     UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  full_name              VARCHAR(150) NOT NULL,
+  dob                    VARCHAR(30),
+  gender                 VARCHAR(20),
+  blood_group            VARCHAR(5),
+  status                 VARCHAR(80),
+  primary_doctor         VARCHAR(100),
+  photo_url              VARCHAR(500),
+  box_folder_id          VARCHAR(50),
+  box_lab_folder_id      VARCHAR(50),
+  box_imaging_folder_id  VARCHAR(50),
+  box_rx_folder_id       VARCHAR(50),
+  box_hospital_folder_id VARCHAR(50),
+  ai_summary             JSONB,
+  ai_summary_updated_at  TIMESTAMPTZ,
+  created_at             TIMESTAMPTZ DEFAULT NOW(),
+  updated_at             TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE user_patient_access (
+  user_id    UUID REFERENCES users(id) ON DELETE CASCADE,
+  patient_id UUID REFERENCES patients(id) ON DELETE CASCADE,
+  granted_at TIMESTAMPTZ DEFAULT NOW(),
+  granted_by UUID REFERENCES users(id),
+  PRIMARY KEY (user_id, patient_id)
+);
+
+CREATE TABLE conditions (
+  id                  UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  patient_id          UUID NOT NULL REFERENCES patients(id) ON DELETE CASCADE,
+  name                VARCHAR(250) NOT NULL,
+  severity            VARCHAR(20) NOT NULL CHECK (severity IN ('urgent','high','moderate','monitor','normal','resolved')),
+  organ               VARCHAR(100),
+  organ_id            VARCHAR(50),
+  findings            TEXT,
+  recommended_action  TEXT,
+  notes               TEXT,
+  icd10_code          VARCHAR(20),
+  is_active           BOOLEAN DEFAULT TRUE,
+  last_reviewed       VARCHAR(30),
+  created_at          TIMESTAMPTZ DEFAULT NOW(),
+  updated_at          TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE symptoms (
+  id           UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  patient_id   UUID NOT NULL REFERENCES patients(id) ON DELETE CASCADE,
+  symptom      VARCHAR(250) NOT NULL,
+  symptom_date VARCHAR(30),
+  severity     VARCHAR(20) CHECK (severity IN ('mild','moderate','severe')),
+  status       VARCHAR(20) CHECK (status IN ('ongoing','managed','resolved')),
+  notes        TEXT,
+  created_at   TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE lab_results (
+  id          UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  patient_id  UUID NOT NULL REFERENCES patients(id) ON DELETE CASCADE,
+  test_date   VARCHAR(20) NOT NULL,
+  marker      VARCHAR(100) NOT NULL,
+  value       NUMERIC(12,4),
+  unit        VARCHAR(30),
+  ref_low     NUMERIC(12,4),
+  ref_high    NUMERIC(12,4),
+  is_abnormal BOOLEAN,
+  lab_name    VARCHAR(100),
+  notes       TEXT,
+  created_at  TIMESTAMPTZ DEFAULT NOW()
+);
+CREATE INDEX idx_lab_patient ON lab_results(patient_id, marker, test_date);
+
+CREATE TABLE documents (
+  id               UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  patient_id       UUID NOT NULL REFERENCES patients(id) ON DELETE CASCADE,
+  box_file_id      VARCHAR(60),
+  file_name        VARCHAR(255) NOT NULL,
+  report_date      VARCHAR(20),
+  doc_type         VARCHAR(50) NOT NULL,
+  doctor_name      VARCHAR(120),
+  tags             TEXT[],
+  extracted_text   TEXT,
+  box_link         VARCHAR(500),
+  created_at       TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE timeline_events (
+  id          UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  patient_id  UUID NOT NULL REFERENCES patients(id) ON DELETE CASCADE,
+  event_date  VARCHAR(20) NOT NULL,
+  event_type  VARCHAR(30) NOT NULL,
+  title       VARCHAR(220) NOT NULL,
+  detail      TEXT,
+  specialty   VARCHAR(100),
+  color_hex   VARCHAR(7) DEFAULT '#2563EB',
+  created_at  TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE audit_log (
+  id         BIGSERIAL PRIMARY KEY,
+  user_id    UUID REFERENCES users(id),
+  action     VARCHAR(50),
+  resource   VARCHAR(50),
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+INSERT INTO users (username,email,password_hash,role,full_name) VALUES
+('admin','admin@sbkhealth.local','$2b$12$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW','admin','Dr. Dinesh Kumar'),
+('viewer','viewer@sbkhealth.local','$2b$12$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW','viewer','Family Member')
+ON CONFLICT DO NOTHING;
