@@ -1,5 +1,15 @@
+# Secret files - NEVER commit these
 .env
 box_config.json
+
+# Python
 __pycache__/
 *.pyc
+*.pyo
+*.egg-info/
 venv/
+.venv/
+
+# OS
+.DS_Store
+Thumbs.db
