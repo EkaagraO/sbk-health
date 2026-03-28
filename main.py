@@ -503,35 +503,28 @@ async def add_symptom(pid: str, data: SymptomIn):
 
 @app.post("/api/upload/{pid}")
 async def public_upload_file(
-        pid: str,
-        file: UploadFile = File(...),
+        pid:      str,
+        file:     UploadFile = File(...),
         doc_type: str = Form("Lab"),
         doctor:   str = Form(""),
         tags:     str = Form(""),
-        bg: BackgroundTasks = BackgroundTasks()):
-    """Public file upload — called by the standalone HTML app.
-    Saves file to Box and records metadata in the database."""
+        bg:       BackgroundTasks = BackgroundTasks()):
+    """Public upload — no auth needed. Uploads to Box via OAuth and triggers AI extraction."""
 
-    ALLOWED = ["application/pdf", "image/jpeg", "image/png", "image/jpg",
-               "application/octet-stream"]  # some browsers send generic type
-    if file.content_type not in ALLOWED and not file.filename.endswith(('.pdf','.jpg','.jpeg','.png')):
+    if file.content_type and file.content_type not in [
+        "application/pdf", "image/jpeg", "image/png", "image/jpg", "application/octet-stream"
+    ] and not file.filename.lower().endswith(('.pdf', '.jpg', '.jpeg', '.png')):
         raise HTTPException(400, "Only PDF, JPG, PNG accepted")
 
-    content = await file.read()
+    content  = await file.read()
     if len(content) > 50 * 1024 * 1024:
         raise HTTPException(400, "File too large — max 50MB")
 
-    tag_list = [t.strip() for t in tags.split(",") if t.strip()]
-    box_file_id = None
-    box_link    = None
+    tag_list     = [t.strip() for t in tags.split(",") if t.strip()]
+    box_file_id  = None
+    box_link     = None
 
-    # Attempt Box upload if config exists
-    # Try OAuth upload first (works with personal Box accounts)
-    use_oauth = bool(BOX_CLIENT_ID and BOX_CLIENT_SECRET and DATABASE_URL)
-
-    if use_oauth:
-        try:
-            FOLDER_MAP = {
+    FOLDER_MAP   = {
             "P001": {
                 "Lab": "372768683500", "Imaging": "372769252193",
                 "Prescription": "372768863251", "Hospital": "372769787402",
@@ -545,61 +538,58 @@ async def public_upload_file(
                 "Procedure": "369526874258",
             },
         }
-        folder_id = FOLDER_MAP.get(pid, {}).get(doc_type)
 
-        if not folder_id and DATABASE_URL:
-            # Try looking up from database for dynamically created patients
-            try:
-                conn = await db()
-                folder_map_db = {
-                    "Lab": "box_lab_folder_id", "Imaging": "box_imaging_folder_id",
-                    "Prescription": "box_rx_folder_id", "Hospital": "box_hospital_folder_id",
-                }
-                field = folder_map_db.get(doc_type, "box_lab_folder_id")
-                p = await conn.fetchrow(f"SELECT {field} FROM patients WHERE id=$1", pid)
-                if p: folder_id = p[field]
-                await conn.close()
-            except Exception:
-                pass
+    # ── Try Box OAuth upload ───────────────────────────────────────────────────
+    if BOX_CLIENT_ID and BOX_CLIENT_SECRET and DATABASE_URL:
+        try:
+            folder_id = FOLDER_MAP.get(pid, {}).get(doc_type)
+            if not folder_id:
+                # Fallback: look up from DB for dynamic patients
+                try:
+                    conn2 = await db()
+                    fm    = {"Lab":"box_lab_folder_id","Imaging":"box_imaging_folder_id",
+                             "Prescription":"box_rx_folder_id","Hospital":"box_hospital_folder_id"}
+                    field = fm.get(doc_type, "box_lab_folder_id")
+                    row2  = await conn2.fetchrow(f"SELECT {field} FROM patients WHERE id=$1", pid)
+                    if row2: folder_id = row2[field]
+                    await conn2.close()
+                except Exception:
+                    pass
 
             if folder_id:
                 box_file_id = await box_upload_oauth(folder_id, file.filename, content)
-                box_link = f"https://app.box.com/file/{box_file_id}" if box_file_id else None
+                box_link    = f"https://app.box.com/file/{box_file_id}"
+                log.info(f"Uploaded {file.filename} to Box: {box_file_id}")
         except Exception as e:
-            log.warning(f"OAuth Box upload failed: {e}")
+            log.warning(f"Box OAuth upload failed: {e}")
 
-    elif os.path.exists(BOX_CONFIG):
-        # Fallback: legacy JWT (Enterprise accounts only)
-        FOLDER_MAP_JWT = {
-            "P001": {"Lab":"372768683500","Imaging":"372769252193","Prescription":"372768863251","Hospital":"372769787402","Cardiac":"372769252193","Consult":"372768863251","Procedure":"372769252193"},
-            "P002": {"Lab":"369528428881","Imaging":"369526874258","Prescription":"369526443865","Hospital":"369528640568","Cardiac":"369526874258","Consult":"369526443865","Procedure":"369526874258"},
-        }
-        folder_id = FOLDER_MAP_JWT.get(pid, {}).get(doc_type)
-        if folder_id:
-            box_file_id = await _box_upload(folder_id, file.filename, content)
-            box_link = f"https://app.box.com/file/{box_file_id}" if box_file_id else None
+    # ── Legacy JWT fallback (Enterprise accounts only) ─────────────────────────
+    elif os.path.exists(BOX_CONFIG) and not box_file_id:
+        try:
+            folder_id = FOLDER_MAP.get(pid, {}).get(doc_type)
+            if folder_id:
+                box_file_id = await _box_upload(folder_id, file.filename, content)
+                box_link    = f"https://app.box.com/file/{box_file_id}" if box_file_id else None
+        except Exception as e:
+            log.warning(f"JWT Box upload failed: {e}")
 
-    # Save to database if available
+    # ── Save metadata to database ──────────────────────────────────────────────
     doc_id = None
     if DATABASE_URL:
         try:
             conn = await db()
             doc_id = await conn.fetchval(
                 """INSERT INTO documents
-                   (patient_id, box_file_id, file_name, doc_type, doctor_name,
-                    tags, box_link, file_size_bytes)
-                   SELECT id, $2, $3, $4, $5, $6, $7, $8
-                   FROM patients WHERE id=$1
+                   (patient_id, box_file_id, file_name, doc_type, doctor_name, tags, box_link, file_size_bytes)
+                   SELECT p.id, $2, $3, $4, $5, $6, $7, $8
+                   FROM patients p WHERE p.id::text=$1 OR p.id::text=$1
                    RETURNING id""",
-                pid, box_file_id, file.filename, doc_type,
-                doctor, tag_list, box_link, len(content))
+                pid, box_file_id, file.filename, doc_type, doctor, tag_list, box_link, len(content))
             await conn.close()
-            if box_file_id:
-                bg.add_task(_box_extract, pid, str(doc_id), box_file_id)
         except Exception as e:
-            log.warning(f"DB save failed for upload: {e}")
+            log.warning(f"DB document save failed: {e}")
 
-    # Trigger AI extraction pipeline in background if file went to Box
+    # ── Queue AI extraction if file is in Box ─────────────────────────────────
     if box_file_id and ANTHROPIC_KEY:
         bg.add_task(extract_and_store, pid, box_file_id, file.filename, content)
 
@@ -612,7 +602,7 @@ async def public_upload_file(
         "message":      ("Uploaded to Box — AI analysis queued"
                          if box_file_id and ANTHROPIC_KEY
                          else "Uploaded to Box" if box_file_id
-                         else "Indexed locally — connect Box OAuth to enable cloud upload")
+                         else "Indexed locally — connect Box OAuth in Settings to enable cloud upload")
     }
 
 # ── File upload → Box ───────────────────────────────────────────────────────────
@@ -952,24 +942,23 @@ async def auto_regenerate_summary(patient_key: str, conn):
         if not rows:
             return
 
-        lab_text = "
-".join(
-            f"- {r['test_name']}: {r['value']} {r['unit'] or ''} "
-            f"(ref: {r['ref_low'] or '?'}-{r['ref_high'] or '?'}) on {r['test_date'] or 'unknown date'}"
+        lab_text = "\n".join(
+            "- {}: {} {} (ref: {}-{}) on {}".format(
+                r['test_name'], r['value'], r['unit'] or '',
+                r['ref_low'] or '?', r['ref_high'] or '?',
+                r['test_date'] or 'unknown date')
             for r in rows)
 
         import anthropic as _ant
         client = _ant.Anthropic(api_key=ANTHROPIC_KEY)
         resp = client.messages.create(
             model="claude-sonnet-4-20250514", max_tokens=800,
-            messages=[{"role": "user", "content":
-                f"Patient: {patient_key}. Recent extracted lab data:
-{lab_text}
-
-"
+            messages=[{"role": "user", "content": (
+                "Patient: " + patient_key + ". Recent lab data:\n" + lab_text + "\n\n"
                 'Return ONLY JSON: {"summary":"2-3 sentences","urgentConcerns":["max3"],'
                 '"followUps":["max3"],"riskFlags":["max2"],"positives":["max2"],'
-                '"overallRisk":"Low|Moderate|High|Critical"}'}])
+                '"overallRisk":"Low|Moderate|High|Critical"}'
+            )}])
 
         ai_data = json.loads(resp.content[0].text.replace("```json","").replace("```","").strip())
         ts      = datetime.utcnow().strftime("%d %b %Y, %I:%M %p")
