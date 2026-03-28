@@ -75,6 +75,7 @@ CREATE TABLE IF NOT EXISTS patients (
     box_imaging_folder_id   VARCHAR(50),
     box_rx_folder_id        VARCHAR(50),
     box_hospital_folder_id  VARCHAR(50),
+    photo                   TEXT,
     ai_summary              JSONB,
     ai_summary_updated_at   TIMESTAMPTZ,
     created_at              TIMESTAMPTZ DEFAULT NOW(),
@@ -188,6 +189,11 @@ async def startup():
     try:
         conn = await asyncpg.connect(DATABASE_URL)
         await conn.execute(SCHEMA)
+        # Add photo column if it doesn't exist (safe migration for existing DBs)
+        try:
+            await conn.execute("ALTER TABLE patients ADD COLUMN IF NOT EXISTS photo TEXT;")
+        except Exception:
+            pass  # Column may already exist
         await conn.close()
         log.info("✅ Database ready")
     except Exception as e:
@@ -555,6 +561,58 @@ async def ai_summary_public(data: AISummaryIn):
     return JSONResponse(
         content=json.loads(
             resp.content[0].text.replace("```json","").replace("```","").strip()))
+
+# ── Patient photo endpoints (public — no auth needed for family app) ─────────────
+# Photos stored as base64 data URLs directly in the patients table.
+# Accessed by patient ID (P001, P002 are hardcoded IDs in the frontend).
+
+class PhotoIn(BaseModel):
+    photo: str  # base64 data URL, e.g. "data:image/jpeg;base64,..."
+
+@app.put("/api/patients/{pid}/photo")
+async def save_photo(pid: str, data: PhotoIn):
+    """Save patient photo (cross-device sync). Public endpoint."""
+    if not data.photo or not data.photo.startswith("data:image"):
+        raise HTTPException(400, "Invalid photo format — must be a base64 data URL")
+    if len(data.photo) > 5_000_000:
+        raise HTTPException(400, "Photo too large — please use a smaller image (max ~3.5MB)")
+    if not DATABASE_URL:
+        return {"message": "No database configured — photo saved locally only"}
+    conn = await db()
+    try:
+        # Try by id column first, then by hardcoded patient IDs
+        result = await conn.execute(
+            "UPDATE patients SET photo=$1 WHERE id=$2::text OR id::text=$2",
+            data.photo, pid)
+        if result == "UPDATE 0":
+            # Patient may not exist in DB yet (standalone HTML mode)
+            # Store in a simple key-value approach
+            await conn.execute(
+                "INSERT INTO patients (id, full_name, photo) VALUES (gen_random_uuid(), $1, $2) "
+                "ON CONFLICT DO NOTHING", f"photo_{pid}", data.photo)
+        return {"message": "Photo saved"}
+    except Exception as e:
+        log.error(f"Photo save failed: {e}")
+        raise HTTPException(500, f"Database error: {e}")
+    finally:
+        await conn.close()
+
+@app.get("/api/patients/{pid}/photo")
+async def get_photo(pid: str):
+    """Get patient photo. Public endpoint."""
+    if not DATABASE_URL:
+        return JSONResponse({"photo": None})
+    conn = await db()
+    try:
+        row = await conn.fetchrow(
+            "SELECT photo FROM patients WHERE id=$1::text OR id::text=$1 LIMIT 1",
+            pid)
+        return JSONResponse({"photo": row["photo"] if row else None})
+    except Exception as e:
+        log.error(f"Photo fetch failed: {e}")
+        return JSONResponse({"photo": None})
+    finally:
+        await conn.close()
 
 # ── User management ─────────────────────────────────────────────────────────────
 @app.post("/api/users", dependencies=[Depends(admin_only)])
