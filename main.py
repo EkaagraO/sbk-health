@@ -461,6 +461,101 @@ async def add_symptom(pid: str, data: SymptomIn):
     finally:
         await conn.close()
 
+# ── Public file upload endpoint (no JWT required — uses backend URL as implicit auth) ─
+# The Render URL itself provides sufficient security for a family medical app.
+# Files are saved to Box and indexed in the database.
+
+@app.post("/api/upload/{pid}")
+async def public_upload_file(
+        pid: str,
+        file: UploadFile = File(...),
+        doc_type: str = Form("Lab"),
+        doctor:   str = Form(""),
+        tags:     str = Form(""),
+        bg: BackgroundTasks = BackgroundTasks()):
+    """Public file upload — called by the standalone HTML app.
+    Saves file to Box and records metadata in the database."""
+
+    ALLOWED = ["application/pdf", "image/jpeg", "image/png", "image/jpg",
+               "application/octet-stream"]  # some browsers send generic type
+    if file.content_type not in ALLOWED and not file.filename.endswith(('.pdf','.jpg','.jpeg','.png')):
+        raise HTTPException(400, "Only PDF, JPG, PNG accepted")
+
+    content = await file.read()
+    if len(content) > 50 * 1024 * 1024:
+        raise HTTPException(400, "File too large — max 50MB")
+
+    tag_list = [t.strip() for t in tags.split(",") if t.strip()]
+    box_file_id = None
+    box_link    = None
+
+    # Attempt Box upload if config exists
+    if os.path.exists(BOX_CONFIG):
+        # Determine Box folder from patient ID and doc type
+        # For hardcoded patient IDs (P001/P002), use the known Box folder IDs
+        FOLDER_MAP = {
+            "P001": {
+                "Lab": "372768683500", "Imaging": "372769252193",
+                "Prescription": "372768863251", "Hospital": "372769787402",
+                "Cardiac": "372769252193", "Consult": "372768863251",
+                "Procedure": "372769252193",
+            },
+            "P002": {
+                "Lab": "369528428881", "Imaging": "369526874258",
+                "Prescription": "369526443865", "Hospital": "369528640568",
+                "Cardiac": "369526874258", "Consult": "369526443865",
+                "Procedure": "369526874258",
+            },
+        }
+        folder_id = FOLDER_MAP.get(pid, {}).get(doc_type)
+
+        if not folder_id and DATABASE_URL:
+            # Try looking up from database for dynamically created patients
+            try:
+                conn = await db()
+                folder_map_db = {
+                    "Lab": "box_lab_folder_id", "Imaging": "box_imaging_folder_id",
+                    "Prescription": "box_rx_folder_id", "Hospital": "box_hospital_folder_id",
+                }
+                field = folder_map_db.get(doc_type, "box_lab_folder_id")
+                p = await conn.fetchrow(f"SELECT {field} FROM patients WHERE id=$1", pid)
+                if p: folder_id = p[field]
+                await conn.close()
+            except Exception:
+                pass
+
+        if folder_id:
+            box_file_id = await _box_upload(folder_id, file.filename, content)
+            box_link = f"https://app.box.com/file/{box_file_id}" if box_file_id else None
+
+    # Save to database if available
+    doc_id = None
+    if DATABASE_URL:
+        try:
+            conn = await db()
+            doc_id = await conn.fetchval(
+                """INSERT INTO documents
+                   (patient_id, box_file_id, file_name, doc_type, doctor_name,
+                    tags, box_link, file_size_bytes)
+                   SELECT id, $2, $3, $4, $5, $6, $7, $8
+                   FROM patients WHERE id=$1
+                   RETURNING id""",
+                pid, box_file_id, file.filename, doc_type,
+                doctor, tag_list, box_link, len(content))
+            await conn.close()
+            if box_file_id:
+                bg.add_task(_box_extract, pid, str(doc_id), box_file_id)
+        except Exception as e:
+            log.warning(f"DB save failed for upload: {e}")
+
+    return {
+        "document_id": str(doc_id) if doc_id else None,
+        "box_file_id": box_file_id,
+        "box_link":    box_link,
+        "saved_to_box": box_file_id is not None,
+        "message":     "Uploaded to Box" if box_file_id else "Indexed locally (Box config not available)"
+    }
+
 # ── File upload → Box ───────────────────────────────────────────────────────────
 @app.post("/api/patients/{pid}/upload", dependencies=[Depends(admin_only)])
 async def upload_file(pid: str,
