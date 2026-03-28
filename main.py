@@ -10,7 +10,7 @@ Render.com deployment:
   Start command: uvicorn main:app --host 0.0.0.0 --port $PORT
 """
 
-import os, io, json, logging
+import os, io, json, logging, base64
 from datetime import datetime, timedelta
 from typing import Optional
 
@@ -23,6 +23,7 @@ from jose import jwt, JWTError
 from passlib.context import CryptContext
 from pydantic import BaseModel
 import asyncpg
+import httpx
 
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger("sbkhealth")
@@ -40,7 +41,10 @@ app.add_middleware(CORSMiddleware,
 SECRET_KEY    = os.getenv("SECRET_KEY", "change-this-to-40-random-chars-minimum")
 DATABASE_URL  = os.getenv("DATABASE_URL", "")
 ANTHROPIC_KEY = os.getenv("ANTHROPIC_API_KEY", "")
-BOX_CONFIG    = "box_config.json"
+BOX_CONFIG        = "box_config.json"
+BOX_CLIENT_ID     = os.getenv("BOX_CLIENT_ID", "")
+BOX_CLIENT_SECRET = os.getenv("BOX_CLIENT_SECRET", "")
+BOX_REDIRECT_URI  = os.getenv("BOX_REDIRECT_URI", "https://sbkhealth-api.onrender.com/api/box/callback")
 
 pwd_ctx = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2  = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
@@ -169,14 +173,15 @@ CREATE TABLE IF NOT EXISTS audit_log (
     created_at  TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Stores AI summaries and narratives per patient (keyed by frontend patient ID like P001, P002)
--- This is the server-side persistent store - not localStorage
+-- Stores AI summaries, narratives, and photos per patient (keyed by frontend ID: P001, P002)
+-- Using patient_key (not UUID) because frontend uses hardcoded string IDs
 CREATE TABLE IF NOT EXISTS patient_ai_data (
     patient_key       VARCHAR(20)  PRIMARY KEY,
     ai_summary        JSONB,
     ai_summary_ts     TIMESTAMPTZ,
     narrative         JSONB,
     narrative_ts      TIMESTAMPTZ,
+    photo             TEXT,        -- base64 data URL for cross-device photo storage
     updated_at        TIMESTAMPTZ  DEFAULT NOW()
 );
 
@@ -190,6 +195,33 @@ INSERT INTO users (username, email, password_hash, role, full_name) VALUES
    '$2b$12$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW',
    'viewer', 'Family Member')
 ON CONFLICT (username) DO NOTHING;
+
+-- Box OAuth tokens (auto-refreshed, works with personal Box accounts)
+CREATE TABLE IF NOT EXISTS box_tokens (
+    id            SERIAL      PRIMARY KEY,
+    access_token  TEXT        NOT NULL,
+    refresh_token TEXT        NOT NULL,
+    expires_at    TIMESTAMPTZ NOT NULL,
+    updated_at    TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Lab values extracted by AI from uploaded documents
+CREATE TABLE IF NOT EXISTS extracted_lab_values (
+    id            BIGSERIAL    PRIMARY KEY,
+    patient_key   VARCHAR(20)  NOT NULL,
+    box_file_id   VARCHAR(50),
+    test_name     VARCHAR(100) NOT NULL,
+    test_key      VARCHAR(50),
+    value         NUMERIC(10,4) NOT NULL,
+    unit          VARCHAR(30),
+    ref_low       NUMERIC(10,4),
+    ref_high      NUMERIC(10,4),
+    test_date     DATE,
+    lab_name      VARCHAR(200),
+    raw_json      JSONB,
+    created_at    TIMESTAMPTZ DEFAULT NOW(),
+    UNIQUE (patient_key, box_file_id, test_key, test_date)
+);
 """
 
 @app.on_event("startup")
@@ -200,11 +232,15 @@ async def startup():
     try:
         conn = await asyncpg.connect(DATABASE_URL)
         await conn.execute(SCHEMA)
-        # Add photo column if it doesn't exist (safe migration for existing DBs)
-        try:
-            await conn.execute("ALTER TABLE patients ADD COLUMN IF NOT EXISTS photo TEXT;")
-        except Exception:
-            pass  # Column may already exist
+        # Safe migrations for existing Render DBs
+        for stmt in [
+            "ALTER TABLE patients ADD COLUMN IF NOT EXISTS photo TEXT;",
+            "ALTER TABLE patient_ai_data ADD COLUMN IF NOT EXISTS photo TEXT;",
+        ]:
+            try:
+                await conn.execute(stmt)
+            except Exception:
+                pass  # Column may already exist
         await conn.close()
         log.info("✅ Database ready")
     except Exception as e:
@@ -490,10 +526,12 @@ async def public_upload_file(
     box_link    = None
 
     # Attempt Box upload if config exists
-    if os.path.exists(BOX_CONFIG):
-        # Determine Box folder from patient ID and doc type
-        # For hardcoded patient IDs (P001/P002), use the known Box folder IDs
-        FOLDER_MAP = {
+    # Try OAuth upload first (works with personal Box accounts)
+    use_oauth = bool(BOX_CLIENT_ID and BOX_CLIENT_SECRET and DATABASE_URL)
+
+    if use_oauth:
+        try:
+            FOLDER_MAP = {
             "P001": {
                 "Lab": "372768683500", "Imaging": "372769252193",
                 "Prescription": "372768863251", "Hospital": "372769787402",
@@ -524,6 +562,19 @@ async def public_upload_file(
             except Exception:
                 pass
 
+            if folder_id:
+                box_file_id = await box_upload_oauth(folder_id, file.filename, content)
+                box_link = f"https://app.box.com/file/{box_file_id}" if box_file_id else None
+        except Exception as e:
+            log.warning(f"OAuth Box upload failed: {e}")
+
+    elif os.path.exists(BOX_CONFIG):
+        # Fallback: legacy JWT (Enterprise accounts only)
+        FOLDER_MAP_JWT = {
+            "P001": {"Lab":"372768683500","Imaging":"372769252193","Prescription":"372768863251","Hospital":"372769787402","Cardiac":"372769252193","Consult":"372768863251","Procedure":"372769252193"},
+            "P002": {"Lab":"369528428881","Imaging":"369526874258","Prescription":"369526443865","Hospital":"369528640568","Cardiac":"369526874258","Consult":"369526443865","Procedure":"369526874258"},
+        }
+        folder_id = FOLDER_MAP_JWT.get(pid, {}).get(doc_type)
         if folder_id:
             box_file_id = await _box_upload(folder_id, file.filename, content)
             box_link = f"https://app.box.com/file/{box_file_id}" if box_file_id else None
@@ -548,12 +599,20 @@ async def public_upload_file(
         except Exception as e:
             log.warning(f"DB save failed for upload: {e}")
 
+    # Trigger AI extraction pipeline in background if file went to Box
+    if box_file_id and ANTHROPIC_KEY:
+        bg.add_task(extract_and_store, pid, box_file_id, file.filename, content)
+
     return {
-        "document_id": str(doc_id) if doc_id else None,
-        "box_file_id": box_file_id,
-        "box_link":    box_link,
+        "document_id":  str(doc_id) if doc_id else None,
+        "box_file_id":  box_file_id,
+        "box_link":     box_link,
         "saved_to_box": box_file_id is not None,
-        "message":     "Uploaded to Box" if box_file_id else "Indexed locally (Box config not available)"
+        "ai_analysis":  "queued" if (box_file_id and ANTHROPIC_KEY) else "not_available",
+        "message":      ("Uploaded to Box — AI analysis queued"
+                         if box_file_id and ANTHROPIC_KEY
+                         else "Uploaded to Box" if box_file_id
+                         else "Indexed locally — connect Box OAuth to enable cloud upload")
     }
 
 # ── File upload → Box ───────────────────────────────────────────────────────────
@@ -627,6 +686,321 @@ async def ai_refresh(pid: str):
     finally:
         await conn.close()
 
+# ── Box OAuth 2.0 token management ──────────────────────────────────────────
+# Works with personal Box accounts — no Enterprise plan needed.
+
+async def box_get_token() -> str:
+    """Return a valid Box access token, auto-refreshing via stored refresh token."""
+    if not BOX_CLIENT_ID or not BOX_CLIENT_SECRET:
+        raise HTTPException(503,
+            "Box not configured. Add BOX_CLIENT_ID and BOX_CLIENT_SECRET to Render env vars, "
+            "then visit /api/box/auth to authorise.")
+    if not DATABASE_URL:
+        raise HTTPException(503, "Database required for Box token storage")
+
+    conn = await db()
+    try:
+        row = await conn.fetchrow(
+            "SELECT id, access_token, refresh_token, expires_at "
+            "FROM box_tokens ORDER BY updated_at DESC LIMIT 1")
+        if not row:
+            raise HTTPException(503,
+                "Box not yet authorised. Visit /api/box/auth in your browser to connect.")
+
+        # Use existing access token if still valid (5 min buffer)
+        buf = datetime.utcnow() + timedelta(minutes=5)
+        if row["expires_at"].replace(tzinfo=None) > buf:
+            return row["access_token"]
+
+        # Refresh
+        async with httpx.AsyncClient(timeout=30) as client:
+            r = await client.post("https://api.box.com/oauth2/token", data={
+                "grant_type":    "refresh_token",
+                "refresh_token": row["refresh_token"],
+                "client_id":     BOX_CLIENT_ID,
+                "client_secret": BOX_CLIENT_SECRET,
+            })
+        if r.status_code != 200:
+            raise HTTPException(503, f"Box token refresh failed: {r.text[:200]}")
+
+        tokens     = r.json()
+        expires_at = datetime.utcnow() + timedelta(seconds=tokens["expires_in"])
+        await conn.execute(
+            "INSERT INTO box_tokens (access_token, refresh_token, expires_at) VALUES ($1,$2,$3)",
+            tokens["access_token"], tokens["refresh_token"], expires_at)
+        # Keep only last 3 rows
+        await conn.execute(
+            "DELETE FROM box_tokens WHERE id NOT IN "
+            "(SELECT id FROM box_tokens ORDER BY updated_at DESC LIMIT 3)")
+        return tokens["access_token"]
+    finally:
+        await conn.close()
+
+
+async def box_upload_oauth(folder_id: str, filename: str, content: bytes) -> str:
+    """Upload file to Box via OAuth, return file_id. Handles name conflicts."""
+    token = await box_get_token()
+    attrs = json.dumps({"name": filename, "parent": {"id": folder_id}})
+    async with httpx.AsyncClient(timeout=120) as client:
+        r = await client.post(
+            "https://upload.box.com/api/2.0/files/content",
+            headers={"Authorization": f"Bearer {token}"},
+            files={"file": (filename, content, "application/octet-stream")},
+            data={"attributes": attrs})
+        if r.status_code == 409:
+            # Name conflict — add timestamp suffix
+            ts     = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
+            base, ext = os.path.splitext(filename)
+            new_name  = f"{base}_{ts}{ext}"
+            attrs2 = json.dumps({"name": new_name, "parent": {"id": folder_id}})
+            r = await client.post(
+                "https://upload.box.com/api/2.0/files/content",
+                headers={"Authorization": f"Bearer {token}"},
+                files={"file": (new_name, content, "application/octet-stream")},
+                data={"attributes": attrs2})
+        if r.status_code not in (200, 201):
+            raise HTTPException(500, f"Box upload failed {r.status_code}: {r.text[:300]}")
+    return r.json()["entries"][0]["id"]
+
+
+async def box_download(file_id: str) -> bytes:
+    """Download file bytes from Box for AI analysis."""
+    token = await box_get_token()
+    async with httpx.AsyncClient(timeout=60, follow_redirects=True) as client:
+        r = await client.get(
+            f"https://api.box.com/2.0/files/{file_id}/content",
+            headers={"Authorization": f"Bearer {token}"})
+    if r.status_code != 200:
+        raise Exception(f"Box download failed: {r.status_code}")
+    return r.content
+
+
+# ── Box OAuth flow (one-time setup) ──────────────────────────────────────────
+
+@app.get("/api/box/auth")
+async def box_auth_redirect():
+    """Redirect browser to Box authorization page. Visit this URL once to connect Box."""
+    if not BOX_CLIENT_ID:
+        return HTMLResponse("<h2>BOX_CLIENT_ID not set in Render environment variables</h2>"
+                            "<p>Add it in Render Dashboard → your service → Environment</p>")
+    from fastapi.responses import RedirectResponse
+    url = (f"https://account.box.com/api/oauth2/authorize"
+           f"?client_id={BOX_CLIENT_ID}"
+           f"&redirect_uri={BOX_REDIRECT_URI}"
+           f"&response_type=code&state=sbkhealth")
+    return RedirectResponse(url)
+
+
+@app.get("/api/box/callback")
+async def box_oauth_callback(code: str = None, error: str = None):
+    """Handle Box OAuth callback — exchanges auth code for tokens and stores them."""
+    if error:
+        return HTMLResponse(f"<h2>Box error: {error}</h2>")
+    if not code:
+        return HTMLResponse("<h2>No code received from Box</h2>")
+
+    async with httpx.AsyncClient(timeout=30) as client:
+        r = await client.post("https://api.box.com/oauth2/token", data={
+            "grant_type":    "authorization_code",
+            "code":          code,
+            "client_id":     BOX_CLIENT_ID,
+            "client_secret": BOX_CLIENT_SECRET,
+            "redirect_uri":  BOX_REDIRECT_URI,
+        })
+    if r.status_code != 200:
+        return HTMLResponse(f"<h2>Token exchange failed: {r.text}</h2>")
+
+    tokens     = r.json()
+    expires_at = datetime.utcnow() + timedelta(seconds=tokens["expires_in"])
+    if DATABASE_URL:
+        conn = await db()
+        try:
+            await conn.execute(
+                "INSERT INTO box_tokens (access_token, refresh_token, expires_at) VALUES ($1,$2,$3)",
+                tokens["access_token"], tokens["refresh_token"], expires_at)
+        finally:
+            await conn.close()
+
+    return HTMLResponse("""<html><body style="font-family:sans-serif;max-width:500px;margin:60px auto;text-align:center">
+<h2 style="color:#16A34A">✅ Box Connected!</h2>
+<p>SBK Health can now upload files directly to your Box account.</p>
+<p>You can close this tab and return to the app.<br>
+All future uploads will go straight to Box and be analysed by AI automatically.</p>
+</body></html>""")
+
+
+@app.get("/api/box/status")
+async def box_status():
+    """Check if Box OAuth is connected. Called by the frontend on startup."""
+    if not BOX_CLIENT_ID:
+        return JSONResponse({"connected": False, "reason": "BOX_CLIENT_ID not configured in Render"})
+    if not DATABASE_URL:
+        return JSONResponse({"connected": False, "reason": "No database"})
+    conn = await db()
+    try:
+        row = await conn.fetchrow(
+            "SELECT updated_at FROM box_tokens ORDER BY updated_at DESC LIMIT 1")
+        if row:
+            return JSONResponse({"connected": True,
+                                 "auth_time": str(row["updated_at"])[:16]})
+        return JSONResponse({"connected": False,
+                             "reason": "Not yet authorised",
+                             "auth_url": "/api/box/auth"})
+    finally:
+        await conn.close()
+
+
+# ── AI document extraction pipeline ──────────────────────────────────────────
+
+async def extract_and_store(patient_key: str, box_file_id: str,
+                             filename: str, content: bytes):
+    """Background task: send uploaded file to Claude, extract lab values, store in DB."""
+    if not ANTHROPIC_KEY:
+        log.warning("ANTHROPIC_API_KEY not set — skipping AI extraction")
+        return
+
+    log.info(f"AI extraction starting for {filename} (patient {patient_key})")
+    try:
+        import anthropic as _ant
+        client = _ant.Anthropic(api_key=ANTHROPIC_KEY)
+
+        # Send PDF to Claude for structured extraction
+        b64 = base64.standard_b64encode(content).decode()
+        media = "application/pdf" if filename.lower().endswith(".pdf") else "image/jpeg"
+
+        prompt = """You are a medical data extraction engine. Extract all lab test results from this document.
+Return ONLY valid JSON — no markdown, no explanation:
+{
+  "is_lab_report": true,
+  "report_date": "YYYY-MM-DD or null",
+  "lab_name": "lab or hospital name",
+  "tests": [
+    {
+      "name": "exact test name as printed",
+      "key": "snake_case_normalised_key e.g. hba1c, tsh, ldl, psa, haemoglobin",
+      "value": 6.4,
+      "unit": "% or mg/dL etc",
+      "ref_low": null,
+      "ref_high": 5.7,
+      "status": "high|low|normal"
+    }
+  ]
+}
+If not a lab report (e.g. prescription, discharge summary, imaging report) set is_lab_report=false and tests=[].
+Extract EVERY numeric test result visible in the document."""
+
+        resp = client.messages.create(
+            model="claude-sonnet-4-20250514", max_tokens=1500,
+            messages=[{"role": "user", "content": [
+                {"type": "document",
+                 "source": {"type": "base64", "media_type": media, "data": b64}},
+                {"type": "text", "text": prompt}
+            ]}])
+
+        raw = resp.content[0].text.strip()
+        raw = raw.replace("```json", "").replace("```", "").strip()
+        extracted = json.loads(raw)
+
+        if not extracted.get("is_lab_report") or not extracted.get("tests"):
+            log.info(f"Not a lab report or no tests found in {filename}")
+            return
+
+        tests = extracted["tests"]
+        report_date = extracted.get("report_date")
+        lab_name    = extracted.get("lab_name", "")
+
+        conn = await db()
+        try:
+            for t in tests:
+                if t.get("value") is None:
+                    continue
+                await conn.execute(
+                    """INSERT INTO extracted_lab_values
+                       (patient_key, box_file_id, test_name, test_key, value,
+                        unit, ref_low, ref_high, test_date, lab_name, raw_json)
+                       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9::date,$10,$11::jsonb)
+                       ON CONFLICT DO NOTHING""",
+                    patient_key, box_file_id,
+                    t.get("name", ""), t.get("key", ""), float(t["value"]),
+                    t.get("unit"), t.get("ref_low"), t.get("ref_high"),
+                    report_date, lab_name, json.dumps(t))
+            log.info(f"Stored {len(tests)} lab values from {filename}")
+
+            # Trigger summary regeneration
+            if ANTHROPIC_KEY:
+                await auto_regenerate_summary(patient_key, conn)
+        finally:
+            await conn.close()
+
+    except json.JSONDecodeError as e:
+        log.error(f"AI extraction JSON parse error for {filename}: {e}")
+    except Exception as e:
+        log.error(f"AI extraction failed for {filename}: {e}")
+
+
+async def auto_regenerate_summary(patient_key: str, conn):
+    """After new lab data extracted, regenerate and persist AI summary."""
+    try:
+        rows = await conn.fetch(
+            """SELECT test_name, test_key, value, unit, ref_high, ref_low,
+                      test_date, lab_name
+               FROM extracted_lab_values
+               WHERE patient_key=$1
+               ORDER BY test_date DESC, created_at DESC
+               LIMIT 40""", patient_key)
+
+        if not rows:
+            return
+
+        lab_text = "
+".join(
+            f"- {r['test_name']}: {r['value']} {r['unit'] or ''} "
+            f"(ref: {r['ref_low'] or '?'}-{r['ref_high'] or '?'}) on {r['test_date'] or 'unknown date'}"
+            for r in rows)
+
+        import anthropic as _ant
+        client = _ant.Anthropic(api_key=ANTHROPIC_KEY)
+        resp = client.messages.create(
+            model="claude-sonnet-4-20250514", max_tokens=800,
+            messages=[{"role": "user", "content":
+                f"Patient: {patient_key}. Recent extracted lab data:
+{lab_text}
+
+"
+                'Return ONLY JSON: {"summary":"2-3 sentences","urgentConcerns":["max3"],'
+                '"followUps":["max3"],"riskFlags":["max2"],"positives":["max2"],'
+                '"overallRisk":"Low|Moderate|High|Critical"}'}])
+
+        ai_data = json.loads(resp.content[0].text.replace("```json","").replace("```","").strip())
+        ts      = datetime.utcnow().strftime("%d %b %Y, %I:%M %p")
+        await conn.execute(
+            """INSERT INTO patient_ai_data (patient_key, ai_summary, ai_summary_ts, updated_at)
+               VALUES ($1,$2::jsonb,NOW(),NOW())
+               ON CONFLICT (patient_key) DO UPDATE
+               SET ai_summary=$2::jsonb, ai_summary_ts=NOW(), updated_at=NOW()""",
+            patient_key, json.dumps(ai_data))
+        log.info(f"Auto-regenerated summary for {patient_key}")
+    except Exception as e:
+        log.error(f"Auto summary regen failed: {e}")
+
+
+@app.get("/api/patients/{pid}/extracted-labs")
+async def get_extracted_labs(pid: str):
+    """Return all AI-extracted lab values for a patient — merged with hardcoded data by frontend."""
+    if not DATABASE_URL:
+        return JSONResponse({"labs": []})
+    conn = await db()
+    try:
+        rows = await conn.fetch(
+            """SELECT test_key, test_name, value, unit, ref_low, ref_high,
+                      test_date, lab_name, box_file_id
+               FROM extracted_lab_values
+               WHERE patient_key=$1
+               ORDER BY test_key, test_date""", pid)
+        return JSONResponse({"labs": [dict(r) for r in rows]})
+    finally:
+        await conn.close()
+
 # ── Public AI summary endpoint (called by frontend, no auth needed) ────────────
 # The frontend sends patient context; server calls Claude with its own API key.
 # This avoids CORS issues and keeps the Anthropic key server-side and secure.
@@ -680,26 +1054,22 @@ class PhotoIn(BaseModel):
 
 @app.put("/api/patients/{pid}/photo")
 async def save_photo(pid: str, data: PhotoIn):
-    """Save patient photo (cross-device sync). Public endpoint."""
+    """Save patient photo to patient_ai_data table (keyed by P001/P002). Public endpoint."""
     if not data.photo or not data.photo.startswith("data:image"):
-        raise HTTPException(400, "Invalid photo format — must be a base64 data URL")
+        raise HTTPException(400, "Invalid photo — must be a base64 data URL starting with data:image")
     if len(data.photo) > 5_000_000:
-        raise HTTPException(400, "Photo too large — please use a smaller image (max ~3.5MB)")
+        raise HTTPException(400, "Photo too large — please resize to under 3MB")
     if not DATABASE_URL:
-        return {"message": "No database configured — photo saved locally only"}
+        return JSONResponse({"message": "No database — photo saved locally only"})
     conn = await db()
     try:
-        # Try by id column first, then by hardcoded patient IDs
-        result = await conn.execute(
-            "UPDATE patients SET photo=$1 WHERE id=$2::text OR id::text=$2",
-            data.photo, pid)
-        if result == "UPDATE 0":
-            # Patient may not exist in DB yet (standalone HTML mode)
-            # Store in a simple key-value approach
-            await conn.execute(
-                "INSERT INTO patients (id, full_name, photo) VALUES (gen_random_uuid(), $1, $2) "
-                "ON CONFLICT DO NOTHING", f"photo_{pid}", data.photo)
-        return {"message": "Photo saved"}
+        await conn.execute(
+            """INSERT INTO patient_ai_data (patient_key, photo, updated_at)
+               VALUES ($1, $2, NOW())
+               ON CONFLICT (patient_key) DO UPDATE
+               SET photo=$2, updated_at=NOW()""",
+            pid, data.photo)
+        return JSONResponse({"message": "Photo saved"})
     except Exception as e:
         log.error(f"Photo save failed: {e}")
         raise HTTPException(500, f"Database error: {e}")
@@ -708,15 +1078,14 @@ async def save_photo(pid: str, data: PhotoIn):
 
 @app.get("/api/patients/{pid}/photo")
 async def get_photo(pid: str):
-    """Get patient photo. Public endpoint."""
+    """Get patient photo from patient_ai_data table. Public endpoint."""
     if not DATABASE_URL:
         return JSONResponse({"photo": None})
     conn = await db()
     try:
         row = await conn.fetchrow(
-            "SELECT photo FROM patients WHERE id=$1::text OR id::text=$1 LIMIT 1",
-            pid)
-        return JSONResponse({"photo": row["photo"] if row else None})
+            "SELECT photo FROM patient_ai_data WHERE patient_key=$1", pid)
+        return JSONResponse({"photo": row["photo"] if row and row["photo"] else None})
     except Exception as e:
         log.error(f"Photo fetch failed: {e}")
         return JSONResponse({"photo": None})
