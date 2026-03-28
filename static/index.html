@@ -99,15 +99,18 @@ textarea.input{resize:vertical;min-height:70px}
 .metric-pill:hover{border-color:var(--blue);background:var(--blue-light)}
 .metric-pill.active{border-color:var(--blue);background:var(--blue-light)}
 
-.settings-btn{position:fixed;bottom:18px;right:18px;width:42px;height:42px;border-radius:50%;background:var(--blue);color:#fff;border:none;font-size:20px;cursor:pointer;box-shadow:0 4px 14px rgba(22,72,160,.4);z-index:200;display:flex;align-items:center;justify-content:center;transition:transform .15s}
+.settings-btn{position:fixed;bottom:18px;right:18px;width:44px;height:44px;border-radius:50%;background:var(--blue);color:#fff;border:none;font-size:20px;cursor:pointer;box-shadow:0 4px 14px rgba(22,72,160,.4);z-index:200;display:flex;align-items:center;justify-content:center;transition:transform .15s}
 .settings-btn:hover{transform:scale(1.12)}
-.api-indicator{position:fixed;bottom:68px;right:10px;font-size:10px;padding:3px 9px;border-radius:10px;z-index:200;font-family:'Inter',sans-serif;font-weight:600;letter-spacing:.3px;cursor:default;pointer-events:none}
+.api-indicator{position:fixed;bottom:70px;right:10px;font-size:10px;padding:3px 10px;border-radius:10px;z-index:200;font-family:'Inter',sans-serif;font-weight:600;letter-spacing:.3px;white-space:nowrap}
 .api-ok{background:#DCFCE7;color:#16A34A;border:1px solid #BBF7D0}
 .api-missing{background:#FEE2E2;color:#DC2626;border:1px solid #FECACA}
+
 </style>
 </head>
-<body><div id="root"><div style="display:flex;align-items:center;justify-content:center;height:100vh;background:#F8FAFC;color:#94A3B8;font-family:Inter,sans-serif;gap:10px"><div style="width:16px;height:16px;border:2px solid #E2E8F0;border-top-color:#1648A0;border-radius:50%;animation:spin .7s linear infinite"></div>Loading SBK Health…</div></div>
+<body>
+<div id="root"><div style="display:flex;align-items:center;justify-content:center;height:100vh;background:#F8FAFC;color:#94A3B8;font-family:Inter,sans-serif;gap:10px"><div style="width:16px;height:16px;border:2px solid #E2E8F0;border-top-color:#1648A0;border-radius:50%;animation:spin .7s linear infinite"></div>Loading SBK Health…</div></div>
 <script>
+// ─── ALL DATA (unchanged from previous sessions) ──────────────────────────────
 const USERS = {
   admin: {
     id: 'u1',
@@ -126,11 +129,332 @@ const USERS = {
     initials: 'FM'
   }
 };
-
-// ── MOM DOCUMENTS (complete from Box — 80 files across 4 folders) ────────────
-const MOM_DOCS = [
-// Lab Reports (42 files)
-{
+const MOM_CONDITIONS = [{
+  id: 'dys',
+  name: 'Severe Dyslipidaemia',
+  sev: 'urgent',
+  organ: 'Cardiovascular',
+  organId: 'heart',
+  findings: 'LDL 181↑↑ + HDL 37↓↓ + TG 207↑↑ + CRP 6.7↑ (Feb 2026). WORST EVER: LDL 207 (Jan 2015). 11+ year chronic history. Statin NEVER started.',
+  action: 'Start Rosuvastatin/Atorvastatin TODAY. Target LDL <130. Recheck 6-8 weeks.',
+  reviewed: 'Feb 2026'
+}, {
+  id: 'thy',
+  name: "Hashimoto's Thyroiditis",
+  sev: 'urgent',
+  organ: 'Thyroid',
+  organId: 'thyroid',
+  findings: 'Anti-TPO 92.22↑↑ (ref <60, Jul 2019). TSH peaked 24.41↑↑ (overt, Jul 2019), 7.45↑↑ (Nov 2025). Currently 3.89✓ (Jan 2026). Levothyroxine ongoing.',
+  action: 'Recheck TSH in 3 months. Target 0.5–3.0 μIU/mL.',
+  reviewed: 'Jan 2026'
+}, {
+  id: 'spi',
+  name: 'L5-S1 Bilateral Nerve Root Compression',
+  sev: 'urgent',
+  organ: 'Lumbar Spine',
+  organId: 'spine',
+  findings: 'Sep 2024 MRI WORSENED — diffuse disc bulge, bilateral traversing nerve root indentation. Hospitalised + epidural Sep 2024.',
+  action: 'Physiotherapy ongoing. Neurosurgery review if new neurological signs.',
+  reviewed: 'Sep 2024'
+}, {
+  id: 'cer',
+  name: 'Severe Cervical Spondylosis C3-C7',
+  sev: 'high',
+  organ: 'Cervical Spine',
+  organId: 'spine',
+  findings: 'Prenuvo Jan 2024: Severe C3-C7, moderate canal stenosis, severe C5-C6 foraminal narrowing. Myelopathy risk.',
+  action: 'Monitor for upper limb weakness. Neurosurgery if progressive.',
+  reviewed: 'Jan 2024'
+}, {
+  id: 'gerd',
+  name: 'GERD + Erosive Gastritis Grade A + Grade II Hiatus Hernia',
+  sev: 'high',
+  organ: 'Liver/GI',
+  organId: 'liver',
+  findings: 'Grade II Sliding Hiatus Hernia + Erosive Gastritis Grade A — endoscopy May 2023. Daily heartburn.',
+  action: 'Continue PPI (Nexpro RD 40mg). Elevate head of bed. Avoid NSAIDs.',
+  reviewed: 'May 2023'
+}, {
+  id: 'ost',
+  name: 'Osteoporosis — Femur Neck Left (T-score −2.9)',
+  sev: 'high',
+  organ: 'Bone Density',
+  organId: 'bones',
+  findings: 'DEXA Nov 2022: Femur Neck Left T-score −2.9 (osteoporosis). TSH 1.94✓ on DEXA day — NOT thyroid-driven. Vit D 26.2↓. DEXA overdue.',
+  action: 'Alendronate 70mg weekly + Calcium + Vit D3. Repeat DEXA immediately.',
+  reviewed: 'Nov 2022'
+}, {
+  id: 'vitd',
+  name: 'Vitamin D Insufficiency',
+  sev: 'moderate',
+  organ: 'Metabolic',
+  organId: 'metabolic',
+  findings: '26.2 ng/mL (Nov 2025). Declining from best 51.19 (Jul 2023). Target 40-60 ng/mL.',
+  action: 'Increase Vit D3 supplement. Recheck in 3 months.',
+  reviewed: 'Nov 2025'
+}, {
+  id: 'svd',
+  name: 'Mild Cerebral Small Vessel Ischaemia',
+  sev: 'moderate',
+  organ: 'Brain',
+  organId: 'brain',
+  findings: 'Prenuvo Jan 2024: scattered deep white matter lesions. Related to chronic dyslipidaemia.',
+  action: 'Lipid control is primary treatment. Follow-up MRI overdue (due Jan 2026).',
+  reviewed: 'Jan 2024'
+}, {
+  id: 'fib',
+  name: 'Uterine Fibroids (2 subserosal, 2.6 cm)',
+  sev: 'monitor',
+  organ: 'Gynaecology',
+  organId: 'uterus',
+  findings: 'Largest 2.6 cm (Prenuvo Jan 2024). Post-menopausal. Endometrium 4 mm normal. Benign.',
+  action: 'Annual USG surveillance.',
+  reviewed: 'Jan 2024'
+}, {
+  id: 'mag',
+  name: 'Hypomagnesaemia',
+  sev: 'monitor',
+  organ: 'Metabolic',
+  organId: 'metabolic',
+  findings: '1.72 mg/dL (Aug 2024, ref 1.90-3.10). Not rechecked. Causes muscle cramps, poor sleep.',
+  action: 'Start magnesium glycinate. Include in next panel.',
+  reviewed: 'Aug 2024'
+}, {
+  id: 'eye',
+  name: 'Red Scleral Line / Eye Concern',
+  sev: 'monitor',
+  organ: 'Eyes',
+  organId: 'eyes',
+  findings: 'Red line on sclera noted at Maxivision Feb 2026. Possible episcleritis.',
+  action: 'Ophthalmology review if persisting >2 weeks.',
+  reviewed: 'Feb 2026'
+}, {
+  id: 'ana',
+  name: 'Recurring Mild Anaemia',
+  sev: 'monitor',
+  organ: 'Haematology',
+  organId: 'metabolic',
+  findings: 'Hb low multiple times — worst 11.2 (May 2023). Iron deficiency Jul 2022 (Fe 39.3↓). Normalised Nov 2025.',
+  action: 'Monitor Hb annually. Iron-rich diet. Recheck if Hb <12.',
+  reviewed: 'Nov 2025'
+}];
+const DAD_CONDITIONS = [{
+  id: 'psa',
+  name: 'Prostate Cancer — Active Surveillance (Gleason 3+3=6)',
+  sev: 'urgent',
+  organ: 'Prostate',
+  organId: 'prostate',
+  findings: 'First elevated PSA Mar 2019 (5.0). PSA 4.8 (Jan 2025). Biopsy Gleason 3+3=6. DRE: slight asymmetric enlargement.',
+  action: 'Repeat PSA + MRI prostate every 6 months. Annual biopsy discussion with urology.',
+  reviewed: 'Jan 2025'
+}, {
+  id: 'lipid2',
+  name: 'Dyslipidaemia — On Statin',
+  sev: 'high',
+  organ: 'Cardiovascular',
+  organId: 'heart',
+  findings: 'LDL elevated historically. On Rosuvastatin. Last lipid panel Feb 2026.',
+  action: 'Continue statin. Monitor LDL annually. Target <100 mg/dL.',
+  reviewed: 'Feb 2026'
+}, {
+  id: 'bone2',
+  name: 'Osteoporosis / Low Bone Density',
+  sev: 'high',
+  organ: 'Bone Density',
+  organId: 'bones',
+  findings: 'DEXA Nov 2022: Multiple sites with T-score ≤ -2.5. Documented in 3 separate DEXA reports.',
+  action: 'Bisphosphonate + Calcium + Vit D3. Repeat DEXA.',
+  reviewed: 'Nov 2022'
+}, {
+  id: 'tsh2',
+  name: 'Hypothyroidism',
+  sev: 'moderate',
+  organ: 'Thyroid',
+  organId: 'thyroid',
+  findings: 'TSH elevated on multiple readings. On levothyroxine. TSH Jan 2026 monitored.',
+  action: 'Continue levothyroxine. Recheck TSH in 3 months.',
+  reviewed: 'Jan 2026'
+}, {
+  id: 'renal2',
+  name: 'Urinary / Renal Monitoring',
+  sev: 'monitor',
+  organ: 'Kidneys',
+  organId: 'kidneys',
+  findings: 'Urine analysis Sep 2025. Creatinine monitored. Uric acid history (gout risk).',
+  action: 'Annual renal panel. Stay well hydrated.',
+  reviewed: 'Sep 2025'
+}];
+const MOM_TIMELINE = [{
+  date: 'Feb 2026',
+  year: 2026,
+  type: 'lab',
+  color: '#DC2626',
+  title: 'Lipid Profile + CRP — CRITICAL',
+  detail: 'LDL 181↑↑, HDL 37↓↓, CRP 6.7↑. Urgent statin indication.',
+  specialty: 'Cardiology'
+}, {
+  date: 'Jan 2026',
+  year: 2026,
+  type: 'lab',
+  color: '#16A34A',
+  title: 'TSH 3.89✓ — Improved',
+  detail: 'TSH 3.89 after Nov 2025 relapse. Dose adjustment effective.',
+  specialty: 'Endocrinology'
+}, {
+  date: 'Nov 2025',
+  year: 2025,
+  type: 'lab',
+  color: '#DC2626',
+  title: 'TSH Relapse 7.45↑↑ + LDL 174↑↑',
+  detail: 'TSH 7.45↑↑, LDL 174↑↑, TG 295↑↑, Vit D 26.2↓.',
+  specialty: 'Endocrinology'
+}, {
+  date: 'Sep 2024',
+  year: 2024,
+  type: 'hospital',
+  color: '#7C3AED',
+  title: 'Admitted — Aster Prime Hospital (5 days)',
+  detail: 'L5-S1 PIVD. Epidural: Depomedrol 80mg + Bupivacaine. Dr. A.K. Purohit.',
+  specialty: 'Neurosurgery'
+}, {
+  date: 'Sep 2024',
+  year: 2024,
+  type: 'imaging',
+  color: '#DC2626',
+  title: 'MRI LS Spine — WORSENED',
+  detail: 'L5-S1 worsened: diffuse disc bulge, bilateral traversing nerve root indentation.',
+  specialty: 'Radiology'
+}, {
+  date: 'Jan 2024',
+  year: 2024,
+  type: 'imaging',
+  color: '#2563EB',
+  title: 'Prenuvo Whole Body MRI',
+  detail: 'Severe cervical C3-C7, severe L5-S1, brain small vessel ischaemia, 2 fibroids 2.6 cm.',
+  specialty: 'Radiology'
+}, {
+  date: 'Jun 2023',
+  year: 2023,
+  type: 'imaging',
+  color: '#16A34A',
+  title: 'CT Coronary Angio — Calcium Score 0 ✓',
+  detail: 'Calcium Score: 0 (EXCELLENT). EF 64%. No PAH.',
+  specialty: 'Cardiology'
+}, {
+  date: 'May 2023',
+  year: 2023,
+  type: 'procedure',
+  color: '#D97706',
+  title: 'Upper GI Endoscopy',
+  detail: 'Grade II Sliding Hiatus Hernia + Erosive Gastritis Grade A confirmed.',
+  specialty: 'Gastroenterology'
+}, {
+  date: 'Nov 2022',
+  year: 2022,
+  type: 'lab',
+  color: '#DC2626',
+  title: 'DEXA — Osteoporosis Confirmed',
+  detail: 'Femur Neck Left T-score −2.9. TSH 1.94✓ on same day — not thyroid-driven.',
+  specialty: 'Endocrinology'
+}, {
+  date: 'Nov 2022',
+  year: 2022,
+  type: 'imaging',
+  color: '#16A34A',
+  title: 'Exercise Stress Test — NEGATIVE ✓',
+  detail: 'NEGATIVE for ischaemia. Max METs 7.20, HR 146 bpm (91% predicted).',
+  specialty: 'Cardiology'
+}, {
+  date: 'Feb 2020',
+  year: 2020,
+  type: 'surgery',
+  color: '#6366F1',
+  title: 'Bilateral Cataract Surgery — Success',
+  detail: 'RE: IOL +25.0D, LE: IOL +25.5D. Tanvi Eye Centre.',
+  specialty: 'Ophthalmology'
+}, {
+  date: 'Jul 2019',
+  year: 2019,
+  type: 'diagnosis',
+  color: '#DC2626',
+  title: "Overt Hypothyroidism — Hashimoto's Diagnosed",
+  detail: "TSH 24.41↑↑. Anti-TPO 92.22↑↑. Levothyroxine commenced.",
+  specialty: 'Endocrinology'
+}, {
+  date: 'Jan 2015',
+  year: 2015,
+  type: 'lab',
+  color: '#DC2626',
+  title: 'WORST EVER Lipid Panel',
+  detail: 'LDL 207↑↑, TC 309↑↑, TG 328↑↑, HDL 36↓↓. Statin not started.',
+  specialty: 'Cardiology'
+}];
+const DAD_TIMELINE = [{
+  date: 'Feb 2026',
+  year: 2026,
+  type: 'lab',
+  color: '#D97706',
+  title: 'Lipid Profile',
+  detail: 'Latest lipid panel. On Rosuvastatin.',
+  specialty: 'Cardiology'
+}, {
+  date: 'Jan 2026',
+  year: 2026,
+  type: 'lab',
+  color: '#D97706',
+  title: 'TSH Check',
+  detail: 'TSH monitored — on levothyroxine.',
+  specialty: 'Endocrinology'
+}, {
+  date: 'Jan 2025',
+  year: 2025,
+  type: 'lab',
+  color: '#DC2626',
+  title: 'PSA 4.8↑ — Active Surveillance',
+  detail: 'PSA 4.8 ng/mL. DRE slight asymmetry.',
+  specialty: 'Urology'
+}, {
+  date: 'Jun 2023',
+  year: 2023,
+  type: 'imaging',
+  color: '#16A34A',
+  title: 'CT Coronary Angio',
+  detail: 'Coronary arteries assessed. Cardiac findings documented.',
+  specialty: 'Cardiology'
+}, {
+  date: 'Jun 2023',
+  year: 2023,
+  type: 'hospital',
+  color: '#7C3AED',
+  title: 'Discharge — Coronary Angiogram',
+  detail: 'Post-angiogram discharge. Multiple specialist prescriptions.',
+  specialty: 'Cardiology'
+}, {
+  date: 'Nov 2022',
+  year: 2022,
+  type: 'lab',
+  color: '#2563EB',
+  title: 'DEXA Bone Density',
+  detail: 'Multiple sites below threshold. Osteoporosis confirmed.',
+  specialty: 'Endocrinology'
+}, {
+  date: 'Mar 2019',
+  year: 2019,
+  type: 'diagnosis',
+  color: '#DC2626',
+  title: 'First Elevated PSA',
+  detail: 'PSA elevated first time at CC Shroff. Urology referral.',
+  specialty: 'Urology'
+}, {
+  date: 'Jun 2019',
+  year: 2019,
+  type: 'imaging',
+  color: '#8B5CF6',
+  title: 'PET CT Scan — Prostate Staging',
+  detail: 'Full prostate cancer workup. Multiple specialist consultations.',
+  specialty: 'Oncology'
+}];
+const MOM_DOCS = [{
   id: 1,
   name: 'Lipid Profile + CRP',
   date: 'Feb 2026',
@@ -187,7 +511,7 @@ const MOM_DOCS = [
   folder: '1 Lab Reports'
 }, {
   id: 6,
-  name: 'Blood Tests Mom (Sep 2024)',
+  name: 'Blood Tests (Sep 2024)',
   date: 'Sep 2024',
   year: 2024,
   type: 'Lab',
@@ -429,7 +753,7 @@ const MOM_DOCS = [
   folder: '1 Lab Reports'
 }, {
   id: 28,
-  name: 'Medical Reports Jul 2019',
+  name: 'Medical Reports (Jul 2019)',
   date: 'Jul 2019',
   year: 2019,
   type: 'Lab',
@@ -570,9 +894,7 @@ const MOM_DOCS = [
   tags: ['annual'],
   boxId: '2175285563730',
   folder: '1 Lab Reports'
-},
-// Imaging (28 files)
-{
+}, {
   id: 41,
   name: 'MRI Lumbo-Sacral Spine (Sep 2024)',
   date: 'Sep 2024',
@@ -585,47 +907,47 @@ const MOM_DOCS = [
   folder: '2 Imaging'
 }, {
   id: 42,
-  name: 'MRI Scan P1 (Sep 2024)',
-  date: 'Sep 2024',
-  year: 2024,
-  type: 'Imaging',
-  doctor: 'Aarthi Scans',
-  condition: 'Lumbar Spine',
-  tags: ['mri', 'spine'],
-  boxId: '2175281925341',
-  folder: '2 Imaging'
-}, {
-  id: 43,
-  name: 'MRI Scan P2 (Sep 2024)',
-  date: 'Sep 2024',
-  year: 2024,
-  type: 'Imaging',
-  doctor: 'Aarthi Scans',
-  condition: 'Lumbar Spine',
-  tags: ['mri', 'spine'],
-  boxId: '2175284435492',
-  folder: '2 Imaging'
-}, {
-  id: 44,
-  name: 'MRI Sacral Spine (Sep 2024)',
-  date: 'Sep 2024',
-  year: 2024,
-  type: 'Imaging',
-  doctor: 'Aarthi Scans',
-  condition: 'Lumbar Spine',
-  tags: ['mri', 'spine'],
-  boxId: '2175286196796',
-  folder: '2 Imaging'
-}, {
-  id: 45,
   name: 'Prenuvo Whole Body MRI (Jan 2024)',
   date: 'Jan 2024',
   year: 2024,
   type: 'Imaging',
-  doctor: 'Dr. Marissa Casey (Prenuvo)',
-  condition: 'Multi-system — Brain/Spine/Fibroids',
-  tags: ['mri', 'spine', 'brain', 'fibroids', 'cervical'],
+  doctor: 'Dr. Marissa Casey',
+  condition: 'Multi-system',
+  tags: ['mri', 'spine', 'brain', 'fibroids'],
   boxId: '2175282330389',
+  folder: '2 Imaging'
+}, {
+  id: 43,
+  name: 'CT Coronary Angio + 2D Echo (Jun 2023)',
+  date: 'Jun 2023',
+  year: 2023,
+  type: 'Cardiac',
+  doctor: 'Dr. Sravan (MedPlus)',
+  condition: 'Cardiology — Calcium Score 0',
+  tags: ['ca-score-0', 'echo', 'ef-64'],
+  boxId: '2175286003036',
+  folder: '2 Imaging'
+}, {
+  id: 44,
+  name: 'MRI Lumbo-Sacral Spine (May 2023)',
+  date: 'May 2023',
+  year: 2023,
+  type: 'Imaging',
+  doctor: 'MedPlus',
+  condition: 'L5-S1 Moderate',
+  tags: ['mri', 'spine', 'l5-s1'],
+  boxId: '2175288862963',
+  folder: '2 Imaging'
+}, {
+  id: 45,
+  name: 'Endoscopy Report (May 2023)',
+  date: 'May 2023',
+  year: 2023,
+  type: 'Procedure',
+  doctor: 'Dr. Milind K.',
+  condition: 'Hiatus Hernia + Gastritis Grade A',
+  tags: ['endoscopy', 'gerd', 'gastritis'],
+  boxId: '2175282649934',
   folder: '2 Imaging'
 }, {
   id: 46,
@@ -634,7 +956,7 @@ const MOM_DOCS = [
   year: 2023,
   type: 'Imaging',
   doctor: 'Aarthi Scans',
-  condition: 'Uterus / Fibroids (PAP/Mammo included)',
+  condition: 'Uterus / Fibroids',
   tags: ['usg', 'pelvis', 'pap', 'nilm'],
   boxId: '2175286167781',
   folder: '2 Imaging'
@@ -651,127 +973,6 @@ const MOM_DOCS = [
   folder: '2 Imaging'
 }, {
   id: 48,
-  name: 'Ultrasound Aarthi (Jul 2023)',
-  date: 'Jul 2023',
-  year: 2023,
-  type: 'Imaging',
-  doctor: 'Aarthi Scans',
-  condition: 'Abdomen Normal',
-  tags: ['usg', 'abdomen'],
-  boxId: '2175281959110',
-  folder: '2 Imaging'
-}, {
-  id: 49,
-  name: 'USG Report (Jul 2023)',
-  date: 'Jul 2023',
-  year: 2023,
-  type: 'Imaging',
-  doctor: 'Aarthi Scans',
-  condition: 'Abdomen',
-  tags: ['usg'],
-  boxId: '2175289227802',
-  folder: '2 Imaging'
-}, {
-  id: 50,
-  name: 'Chest X-Ray Aarthi (Jul 2023)',
-  date: 'Jul 2023',
-  year: 2023,
-  type: 'Imaging',
-  doctor: 'Aarthi Scans',
-  condition: 'Chest — Normal',
-  tags: ['xray', 'chest', 'normal'],
-  boxId: '2175284639490',
-  folder: '2 Imaging'
-}, {
-  id: 51,
-  name: 'ECG Aarthi (Jul 2023)',
-  date: 'Jul 2023',
-  year: 2023,
-  type: 'Imaging',
-  doctor: 'Aarthi Scans',
-  condition: 'Cardiac — Normal',
-  tags: ['ecg', 'normal'],
-  boxId: '2175282526922',
-  folder: '2 Imaging'
-}, {
-  id: 52,
-  name: 'CT Coronary Angio + 2D Echo (Jun 2023)',
-  date: 'Jun 2023',
-  year: 2023,
-  type: 'Cardiac',
-  doctor: 'Dr. Sravan (MedPlus)',
-  condition: 'Cardiology — Calcium Score 0',
-  tags: ['ct-angio', 'ca-score-0', 'echo', 'ef-64'],
-  boxId: '2175286003036',
-  folder: '2 Imaging'
-}, {
-  id: 53,
-  name: '2D Echo (Jun 2023)',
-  date: 'Jun 2023',
-  year: 2023,
-  type: 'Cardiac',
-  doctor: 'MedPlus',
-  condition: 'EF 64% / No PAH',
-  tags: ['2d-echo', 'ef-64', 'no-pah'],
-  boxId: '2175290826824',
-  folder: '2 Imaging'
-}, {
-  id: 54,
-  name: '2D Echo Full Report (Jun 2023)',
-  date: 'Jun 2023',
-  year: 2023,
-  type: 'Cardiac',
-  doctor: 'Lab',
-  condition: 'Cardiac',
-  tags: ['2d-echo'],
-  boxId: '2175285220057',
-  folder: '2 Imaging'
-}, {
-  id: 55,
-  name: 'MRI Lumbo-Sacral Spine (May 2023)',
-  date: 'May 2023',
-  year: 2023,
-  type: 'Imaging',
-  doctor: 'MedPlus',
-  condition: 'L5-S1 Moderate',
-  tags: ['mri', 'spine', 'l5-s1'],
-  boxId: '2175288862963',
-  folder: '2 Imaging'
-}, {
-  id: 56,
-  name: 'Endoscopy Report (May 2023)',
-  date: 'May 2023',
-  year: 2023,
-  type: 'Procedure',
-  doctor: 'Dr. Milind K. (Arya Gastro)',
-  condition: 'Hiatus Hernia + Gastritis Grade A',
-  tags: ['endoscopy', 'gerd', 'gastritis', 'hiatus-hernia'],
-  boxId: '2175282649934',
-  folder: '2 Imaging'
-}, {
-  id: 57,
-  name: 'MedPlus CT Scan (May 2023)',
-  date: 'May 2023',
-  year: 2023,
-  type: 'Imaging',
-  doctor: 'MedPlus',
-  condition: 'Multi-system',
-  tags: ['ct-scan'],
-  boxId: '2175288860563',
-  folder: '2 Imaging'
-}, {
-  id: 58,
-  name: 'USG Abdomen Pelvis + 2D Echo (Nov 2022)',
-  date: 'Nov 2022',
-  year: 2022,
-  type: 'Imaging',
-  doctor: 'Aster',
-  condition: 'Abdomen + Cardiac',
-  tags: ['usg', '2d-echo'],
-  boxId: '2175288930329',
-  folder: '2 Imaging'
-}, {
-  id: 59,
   name: 'Exercise Stress Test — NEGATIVE (Nov 2022)',
   date: 'Nov 2022',
   year: 2022,
@@ -782,119 +983,73 @@ const MOM_DOCS = [
   boxId: '2175285553610',
   folder: '2 Imaging'
 }, {
-  id: 60,
-  name: 'Abdomen & Chest X-Ray (Sep 2021)',
-  date: 'Sep 2021',
-  year: 2021,
+  id: 49,
+  name: 'USG Abdomen + 2D Echo (Nov 2022)',
+  date: 'Nov 2022',
+  year: 2022,
   type: 'Imaging',
-  doctor: 'Multiple',
+  doctor: 'Aster',
+  condition: 'Abdomen + Cardiac',
+  tags: ['usg', '2d-echo'],
+  boxId: '2175288930329',
+  folder: '2 Imaging'
+}, {
+  id: 50,
+  name: 'MRI Scan P1 (Sep 2024)',
+  date: 'Sep 2024',
+  year: 2024,
+  type: 'Imaging',
+  doctor: 'Aarthi Scans',
+  condition: 'Lumbar Spine',
+  tags: ['mri', 'spine'],
+  boxId: '2175281925341',
+  folder: '2 Imaging'
+}, {
+  id: 51,
+  name: 'MRI Sacral Spine (Sep 2024)',
+  date: 'Sep 2024',
+  year: 2024,
+  type: 'Imaging',
+  doctor: 'Aarthi Scans',
+  condition: 'Lumbar Spine',
+  tags: ['mri', 'spine'],
+  boxId: '2175286196796',
+  folder: '2 Imaging'
+}, {
+  id: 52,
+  name: 'Chest X-Ray Aarthi (Jul 2023)',
+  date: 'Jul 2023',
+  year: 2023,
+  type: 'Imaging',
+  doctor: 'Aarthi Scans',
   condition: 'Chest — Normal',
   tags: ['xray', 'chest', 'normal'],
-  boxId: '2175285656939',
+  boxId: '2175284639490',
   folder: '2 Imaging'
 }, {
-  id: 61,
-  name: 'Chest X-Ray CC Shroff (Sep 2021)',
-  date: 'Sep 2021',
-  year: 2021,
+  id: 53,
+  name: 'ECG Aarthi (Jul 2023)',
+  date: 'Jul 2023',
+  year: 2023,
   type: 'Imaging',
-  doctor: 'CC Shroff',
-  condition: 'Chest — Normal',
-  tags: ['xray', 'chest'],
-  boxId: '2175282011165',
+  doctor: 'Aarthi Scans',
+  condition: 'Cardiac — Normal',
+  tags: ['ecg', 'normal'],
+  boxId: '2175282526922',
   folder: '2 Imaging'
 }, {
-  id: 62,
-  name: 'Chest X-Ray PA (Sep 2021)',
-  date: 'Sep 2021',
-  year: 2021,
-  type: 'Imaging',
-  doctor: 'Multiple',
-  condition: 'Chest Normal',
-  tags: ['xray', 'chest'],
-  boxId: '2175284636747',
-  folder: '2 Imaging'
-}, {
-  id: 63,
-  name: 'Ultrasound Tapadia (Aug 2019)',
-  date: 'Aug 2019',
-  year: 2019,
-  type: 'Imaging',
-  doctor: 'Tapadia Diagnostics',
-  condition: 'Abdomen',
-  tags: ['usg', 'abdomen'],
-  boxId: '2175285486204',
-  folder: '2 Imaging'
-}, {
-  id: 64,
-  name: 'Cervical Spine X-Ray (Nov 2018)',
-  date: 'Nov 2018',
-  year: 2018,
-  type: 'Imaging',
-  doctor: 'CC Shroff',
-  condition: 'Cervical Spine',
-  tags: ['xray', 'cervical'],
-  boxId: '2175285019114',
-  folder: '2 Imaging'
-}, {
-  id: 65,
-  name: 'Cervical Spine X-Ray (Oct 2015)',
-  date: 'Oct 2015',
-  year: 2015,
-  type: 'Imaging',
-  doctor: 'CC Shroff',
-  condition: 'Cervical Spine',
-  tags: ['xray', 'cervical'],
-  boxId: '2175286126986',
-  folder: '2 Imaging'
-}, {
-  id: 66,
-  name: 'Knee X-Ray (Sep 2015)',
-  date: 'Sep 2015',
-  year: 2015,
-  type: 'Imaging',
-  doctor: 'CC Shroff',
-  condition: 'Knee',
-  tags: ['xray', 'knee'],
-  boxId: '2175286285793',
-  folder: '2 Imaging'
-}, {
-  id: 67,
-  name: 'Hand X-Ray (Apr 2013)',
-  date: 'Apr 2013',
-  year: 2013,
-  type: 'Imaging',
-  doctor: 'CC Shroff',
-  condition: 'Hand',
-  tags: ['xray', 'hand'],
-  boxId: '2175586259669',
-  folder: '2 Imaging'
-},
-// Prescriptions (8 files)
-{
-  id: 68,
+  id: 54,
   name: 'Eye Checkup Maxivision (Feb 2026)',
   date: 'Feb 2026',
   year: 2026,
   type: 'Consult',
   doctor: 'Maxivision',
-  condition: 'Red Scleral Line / Eye',
+  condition: 'Red Scleral Line',
   tags: ['eye', 'sclera'],
   boxId: '2175281560115',
   folder: '3 Prescriptions'
 }, {
-  id: 69,
-  name: 'Eye Checkup Baswaraj (2026)',
-  date: '2026',
-  year: 2026,
-  type: 'Consult',
-  doctor: 'Baswaraj Eye',
-  condition: 'Eye',
-  tags: ['eye'],
-  boxId: '2175277071711',
-  folder: '3 Prescriptions'
-}, {
-  id: 70,
+  id: 55,
   name: 'Arya Gastro Prescription (May 2023)',
   date: 'May 2023',
   year: 2023,
@@ -905,7 +1060,7 @@ const MOM_DOCS = [
   boxId: '2175282001775',
   folder: '3 Prescriptions'
 }, {
-  id: 71,
+  id: 56,
   name: 'Ortho Consultation (Feb 2023)',
   date: 'Feb 2023',
   year: 2023,
@@ -916,18 +1071,7 @@ const MOM_DOCS = [
   boxId: '2175282578315',
   folder: '3 Prescriptions'
 }, {
-  id: 72,
-  name: 'Cataract Bills & Prescriptions (Feb 2020)',
-  date: 'Feb 2020',
-  year: 2020,
-  type: 'Prescription',
-  doctor: 'Tanvi Eye Centre',
-  condition: 'Cataract Surgery',
-  tags: ['cataract', 'eye'],
-  boxId: '2175276531882',
-  folder: '3 Prescriptions'
-}, {
-  id: 73,
+  id: 57,
   name: 'Cardio Consultation Medicover (Feb 2020)',
   date: 'Feb 2020',
   year: 2020,
@@ -938,478 +1082,637 @@ const MOM_DOCS = [
   boxId: '2175281435615',
   folder: '3 Prescriptions'
 }, {
-  id: 74,
+  id: 58,
   name: 'Gleneagles Consultation (Jul 2019)',
   date: 'Jul 2019',
   year: 2019,
   type: 'Consult',
   doctor: 'Gleneagles Hospital',
   condition: 'Thyroid Consultation',
-  tags: ['thyroid', 'consultation'],
+  tags: ['thyroid'],
   boxId: '2175278214568',
   folder: '3 Prescriptions'
 }, {
-  id: 75,
-  name: 'Medical Prescription CC Shroff (Mar 2013)',
-  date: 'Mar 2013',
-  year: 2013,
+  id: 59,
+  name: 'Cataract Bills & Prescriptions (Feb 2020)',
+  date: 'Feb 2020',
+  year: 2020,
   type: 'Prescription',
-  doctor: 'CC Shroff',
-  condition: 'General',
-  tags: ['general'],
-  boxId: '2175284966366',
+  doctor: 'Tanvi Eye Centre',
+  condition: 'Cataract Surgery',
+  tags: ['cataract', 'eye'],
+  boxId: '2175276531882',
   folder: '3 Prescriptions'
-},
-// Hospital Visits (2 files)
-{
-  id: 76,
+}, {
+  id: 60,
   name: 'Discharge Summary Aster Prime (Sep 2024)',
   date: 'Sep 2024',
   year: 2024,
   type: 'Hospital',
   doctor: 'Dr. A.K. Purohit',
-  condition: 'L5-S1 PIVD — Epidural Treatment',
+  condition: 'L5-S1 PIVD — Epidural',
   tags: ['admission', 'epidural', 'l5-s1'],
   boxId: '2175289391684',
   folder: '4 Hospital Visits'
 }, {
-  id: 77,
-  name: 'Cataract Surgery — Tanvi Eye Centre (Feb 2020)',
+  id: 61,
+  name: 'Cataract Surgery — Tanvi (Feb 2020)',
   date: 'Feb 2020',
   year: 2020,
   type: 'Hospital',
   doctor: 'Tanvi Eye Centre',
   condition: 'Bilateral Cataract Surgery',
-  tags: ['surgery', 'cataract', 'iol'],
+  tags: ['surgery', 'cataract'],
   boxId: '2175283660551',
   folder: '4 Hospital Visits'
-},
-// Eye checkup 2023 (prescription)
-{
-  id: 78,
-  name: 'Eye Checkup Maxivision (Feb 2023)',
-  date: 'Feb 2023',
-  year: 2023,
-  type: 'Consult',
-  doctor: 'Maxivision',
-  condition: 'Eye Check',
-  tags: ['eye'],
-  boxId: '2175290289117',
-  folder: '1 Lab Reports'
 }];
-
-// ── DAD (Bhagwandas Gandhi) DOCUMENTS ─────────────────────────────────────────
-const DAD_DOCS = [
-  // 1 Lab Tests (54 meaningful files)
-  {id:1,name:'Lipid Profile (Feb 2026)',date:'Feb 2026',year:2026,type:'Lab',doctor:'Lab',condition:'Lipids',tags:['lipids'],boxId:'2161689467391',folder:'1 Lab Tests'},
-  {id:2,name:'TSH (Jan 2026)',date:'Jan 2026',year:2026,type:'Lab',doctor:'Lab',condition:'Thyroid',tags:['tsh'],boxId:'2161697642376',folder:'1 Lab Tests'},
-  {id:3,name:'Urine Analysis (Sep 2025)',date:'Sep 2025',year:2025,type:'Lab',doctor:'Lab',condition:'Urinalysis',tags:['urine'],boxId:'2161684645208',folder:'1 Lab Tests'},
-  {id:4,name:'Full Body Checkup (Nov 2025)',date:'Nov 2025',year:2025,type:'Lab',doctor:'Multiple',condition:'Annual Review',tags:['annual'],boxId:'2155657530240',folder:'1 Lab Tests'},
-  {id:5,name:'Full Body Checkup (Jan 2025)',date:'Jan 2025',year:2025,type:'Lab',doctor:'Multiple',condition:'Annual Review',tags:['annual'],boxId:'2161693369408',folder:'1 Lab Tests'},
-  {id:6,name:'HbA1c & Liver Function (Apr 2025)',date:'Apr 2025',year:2025,type:'Lab',doctor:'Lab',condition:'Glycaemia/Liver',tags:['hba1c','lft'],boxId:'2161695373696',folder:'1 Lab Tests'},
-  {id:7,name:'CBP & IGE (Nov 2024)',date:'Nov 2024',year:2024,type:'Lab',doctor:'Lab',condition:'CBC/Allergy',tags:['cbc','ige'],boxId:'2161693609395',folder:'1 Lab Tests'},
-  {id:8,name:'Blood Tests (Sep 2024)',date:'Sep 2024',year:2024,type:'Lab',doctor:'Lab',condition:'Comprehensive',tags:['comprehensive'],boxId:'2155657600653',folder:'1 Lab Tests'},
-  {id:9,name:'CBP (Jul 2024)',date:'Jul 2024',year:2024,type:'Lab',doctor:'Lab',condition:'CBC',tags:['cbc'],boxId:'2161696443661',folder:'1 Lab Tests'},
-  {id:10,name:'Magnesium (Aug 2024)',date:'Aug 2024',year:2024,type:'Lab',doctor:'Lab',condition:'Electrolytes',tags:['magnesium'],boxId:'2155668609362',folder:'1 Lab Tests'},
-  {id:11,name:'Adobe Scan (Mar 2026)',date:'Mar 2026',year:2026,type:'Lab',doctor:'Lab',condition:'Recent Reports',tags:['recent'],boxId:'2161695791307',folder:'1 Lab Tests'},
-  {id:12,name:'PSA (Jul 2023)',date:'Jul 2023',year:2023,type:'Lab',doctor:'Lab',condition:'Prostate — Surveillance',tags:['psa','surveillance'],boxId:'2161690562007',folder:'1 Lab Tests'},
-  {id:13,name:'PSA (Apr 2023)',date:'Apr 2023',year:2023,type:'Lab',doctor:'Lab',condition:'Prostate',tags:['psa'],boxId:'2161694466595',folder:'1 Lab Tests'},
-  {id:14,name:'Creatinine & Uric Acid (May 2023)',date:'May 2023',year:2023,type:'Lab',doctor:'Lab',condition:'Renal',tags:['creatinine','uric-acid'],boxId:'2161691678387',folder:'1 Lab Tests'},
-  {id:15,name:'Lipid & Serum C (Feb 2023)',date:'Feb 2023',year:2023,type:'Lab',doctor:'Lab',condition:'Lipids',tags:['lipids','cholesterol'],boxId:'2155654926159',folder:'1 Lab Tests'},
-  {id:16,name:'PSA + Serum (Jul 2023)',date:'Jul 2023',year:2023,type:'Lab',doctor:'Lab',condition:'Prostate/Metabolic',tags:['psa','serum'],boxId:'2155665532547',folder:'1 Lab Tests'},
-  {id:17,name:'PSA (Oct 2022)',date:'Oct 2022',year:2022,type:'Lab',doctor:'Lab',condition:'Prostate',tags:['psa'],boxId:'2161685893646',folder:'1 Lab Tests'},
-  {id:18,name:'PSA (Apr 2022)',date:'Apr 2022',year:2022,type:'Lab',doctor:'Lab',condition:'Prostate',tags:['psa'],boxId:'2161693401513',folder:'1 Lab Tests'},
-  {id:19,name:'PSA (Jan 2022)',date:'Jan 2022',year:2022,type:'Lab',doctor:'Lab',condition:'Prostate',tags:['psa'],boxId:'2155668863607',folder:'1 Lab Tests'},
-  {id:20,name:'HbA1c (Jan 2022)',date:'Jan 2022',year:2022,type:'Lab',doctor:'Lab',condition:'Glycaemia',tags:['hba1c'],boxId:'2155663012641',folder:'1 Lab Tests'},
-  {id:21,name:'Complete Checkup (Nov 2022)',date:'Nov 2022',year:2022,type:'Lab',doctor:'Multiple',condition:'Annual Review',tags:['annual'],boxId:'2161693972317',folder:'1 Lab Tests'},
-  {id:22,name:'Complete Checkup (Apr 2022)',date:'Apr 2022',year:2022,type:'Lab',doctor:'Multiple',condition:'Annual Review',tags:['annual'],boxId:'2161688358566',folder:'1 Lab Tests'},
-  {id:23,name:'Bone Density DEXA (Nov 2022)',date:'Nov 2022',year:2022,type:'Lab',doctor:'Lab',condition:'Osteoporosis',tags:['dexa','bone-density'],boxId:'2161696621506',folder:'1 Lab Tests'},
-  {id:24,name:'HbA1c (Jul 2022)',date:'Jul 2022',year:2022,type:'Lab',doctor:'Lab',condition:'Glycaemia',tags:['hba1c'],boxId:'2161694949093',folder:'1 Lab Tests'},
-  {id:25,name:'Full Body (Oct 2021)',date:'Oct 2021',year:2021,type:'Lab',doctor:'Multiple',condition:'Annual Review',tags:['annual'],boxId:'2155658807923',folder:'1 Lab Tests'},
-  {id:26,name:'Full Body (Sep 2024)',date:'Sep 2024',year:2024,type:'Lab',doctor:'Multiple',condition:'Annual',tags:['annual'],boxId:'2155657530240',folder:'1 Lab Tests'},
-  {id:27,name:'Medical Reports (Feb 2020)',date:'Feb 2020',year:2020,type:'Lab',doctor:'Lab',condition:'Annual Review',tags:['annual'],boxId:'2155658519009',folder:'1 Lab Tests'},
-  {id:28,name:'HbA1c Medicover (Feb 2020)',date:'Feb 2020',year:2020,type:'Lab',doctor:'Medicover',condition:'Glycaemia',tags:['hba1c'],boxId:'2155657967741',folder:'1 Lab Tests'},
-  {id:29,name:'Urine Test (Feb 2020)',date:'Feb 2020',year:2020,type:'Lab',doctor:'Lab',condition:'Urinalysis',tags:['urine'],boxId:'2155666515982',folder:'1 Lab Tests'},
-  {id:30,name:'Medical Test (Jan 2016)',date:'Jan 2016',year:2016,type:'Lab',doctor:'Lab',condition:'Annual Review',tags:['annual'],boxId:'2155666628911',folder:'1 Lab Tests'},
-  {id:31,name:'Medical Test (Nov 2015)',date:'Nov 2015',year:2015,type:'Lab',doctor:'Lab',condition:'Annual',tags:['annual'],boxId:'2155662686208',folder:'1 Lab Tests'},
-  {id:32,name:'Medical Test (May 2015)',date:'May 2015',year:2015,type:'Lab',doctor:'Lab',condition:'Annual',tags:['annual'],boxId:'2155661359162',folder:'1 Lab Tests'},
-  {id:33,name:'Medical Test (Mar 2015)',date:'Mar 2015',year:2015,type:'Lab',doctor:'Lab',condition:'Annual',tags:['annual'],boxId:'2155665535102',folder:'1 Lab Tests'},
-  {id:34,name:'Medical Test (Jan 2015)',date:'Jan 2015',year:2015,type:'Lab',doctor:'Lab',condition:'Annual',tags:['annual'],boxId:'2155656135764',folder:'1 Lab Tests'},
-  {id:35,name:'Medical Test (Jan 2015 v2)',date:'Jan 2015',year:2015,type:'Lab',doctor:'Lab',condition:'Annual',tags:['annual'],boxId:'2155667253117',folder:'1 Lab Tests'},
-  {id:36,name:'Medical Test (Nov 2013)',date:'Nov 2013',year:2013,type:'Lab',doctor:'Lab',condition:'Annual',tags:['annual'],boxId:'2155659020878',folder:'1 Lab Tests'},
-  {id:37,name:'Medical Test (Jan 2016 v2)',date:'Jan 2016',year:2016,type:'Lab',doctor:'Lab',condition:'Annual',tags:['annual'],boxId:'2155666453404',folder:'1 Lab Tests'},
-  {id:38,name:'PSA CC Shroff (Mar 2019)',date:'Mar 2019',year:2019,type:'Lab',doctor:'CC Shroff',condition:'Prostate — First Elevated PSA',tags:['psa','elevated','first'],boxId:'2155666527856',folder:'1 Lab Tests'},
-  {id:39,name:'Urine CC Shroff (Mar 2019)',date:'Mar 2019',year:2019,type:'Lab',doctor:'CC Shroff',condition:'Urinalysis',tags:['urine'],boxId:'2155666981318',folder:'1 Lab Tests'},
-  {id:40,name:'Sai Lab Lipid Profile (Jun 2019)',date:'Jun 2019',year:2019,type:'Lab',doctor:'Sai Lab',condition:'Lipids',tags:['lipids'],boxId:'2155661900784',folder:'1 Lab Tests'},
-  {id:41,name:'Sai Lab Sugar (Jun 2019)',date:'Jun 2019',year:2019,type:'Lab',doctor:'Sai Lab',condition:'Glycaemia',tags:['sugar','hba1c'],boxId:'2155667130444',folder:'1 Lab Tests'},
-  {id:42,name:'Sai Lab Urine (Jun 2019)',date:'Jun 2019',year:2019,type:'Lab',doctor:'Sai Lab',condition:'Urinalysis',tags:['urine'],boxId:'2155658235988',folder:'1 Lab Tests'},
-  {id:43,name:'CBC',date:'2019',year:2019,type:'Lab',doctor:'Lab',condition:'CBC',tags:['cbc'],boxId:'2155661409067',folder:'1 Lab Tests'},
-  {id:44,name:'PSA (standalone)',date:'2019',year:2019,type:'Lab',doctor:'Lab',condition:'Prostate',tags:['psa'],boxId:'2155662976236',folder:'1 Lab Tests'},
-  {id:45,name:'Vitamin D3',date:'2019',year:2019,type:'Lab',doctor:'Lab',condition:'Vitamin D',tags:['vitd'],boxId:'2155667893938',folder:'1 Lab Tests'},
-  {id:46,name:'Hba1c (Jan 2022)',date:'Jan 2022',year:2022,type:'Lab',doctor:'Lab',condition:'Glycaemia',tags:['hba1c'],boxId:'2155663012641',folder:'1 Lab Tests'},
-  {id:47,name:'Bone Density (standalone)',date:'2022',year:2022,type:'Lab',doctor:'Lab',condition:'Bone Density',tags:['dexa'],boxId:'2155666499048',folder:'1 Lab Tests'},
-  {id:48,name:'Bone Density Spinal Cord',date:'2022',year:2022,type:'Lab',doctor:'Lab',condition:'Bone Density/Spine',tags:['dexa','spine'],boxId:'2155658559825',folder:'1 Lab Tests'},
-  {id:49,name:'Medical Test (Jan 2015 combined)',date:'Jan 2015',year:2015,type:'Lab',doctor:'Lab',condition:'Annual',tags:['annual'],boxId:'2155656549074',folder:'1 Lab Tests'},
-  // 2 Imaging (7 files)
-  {id:50,name:'CT Coronary Angiogram (Jun 2023)',date:'Jun 2023',year:2023,type:'Cardiac',doctor:'Cardiologist',condition:'CAD Assessment',tags:['ct-angio','cad'],boxId:'2155662320751',folder:'2 Imaging'},
-  {id:51,name:'2D Echo Doppler (Jun 2023)',date:'Jun 2023',year:2023,type:'Cardiac',doctor:'Lab',condition:'EF Assessment',tags:['2d-echo'],boxId:'2155657336358',folder:'2 Imaging'},
-  {id:52,name:'ECG (Dec 2022)',date:'Dec 2022',year:2022,type:'Cardiac',doctor:'Lab',condition:'Cardiac',tags:['ecg'],boxId:'2155668075914',folder:'2 Imaging'},
-  {id:53,name:'Ultrasound Abdomen CC Shroff (Mar 2019)',date:'Mar 2019',year:2019,type:'Imaging',doctor:'CC Shroff',condition:'Abdomen',tags:['usg','abdomen'],boxId:'2155662340154',folder:'2 Imaging'},
-  {id:54,name:'Leg X-Ray (Feb 2023)',date:'Feb 2023',year:2023,type:'Imaging',doctor:'Lab',condition:'Leg/Bone',tags:['xray','leg'],boxId:'2155661272708',folder:'2 Imaging'},
-  {id:55,name:'MRI Dorsal Spine',date:'2022',year:2022,type:'Imaging',doctor:'Lab',condition:'Spine',tags:['mri','spine','dorsal'],boxId:'2155656445230',folder:'2 Imaging'},
-  {id:56,name:'MRI Pelvis',date:'2019',year:2019,type:'Imaging',doctor:'Lab',condition:'Pelvis/Prostate',tags:['mri','pelvis','prostate'],boxId:'2155660557596',folder:'2 Imaging'},
-  // 3 Prescriptions (5 files)
-  {id:57,name:'Dental Notes — Area Dental',date:'2019',year:2019,type:'Prescription',doctor:'Area Dental',condition:'Dental',tags:['dental'],boxId:'2155659227926',folder:'3 Prescriptions'},
-  {id:58,name:'Dental Prescription',date:'2019',year:2019,type:'Prescription',doctor:'Dentist',condition:'Dental',tags:['dental'],boxId:'2155665774736',folder:'3 Prescriptions'},
-  {id:59,name:'Dr. Vyas Narayan Rao — Prescription',date:'2019',year:2019,type:'Prescription',doctor:'Dr. Vyas Narayan Rao',condition:'General',tags:['prescription'],boxId:'2155659138183',folder:'3 Prescriptions'},
-  {id:60,name:'Dr. Sanjai Adla — Prescription',date:'2019',year:2019,type:'Prescription',doctor:'Dr. Sanjai Adla',condition:'General',tags:['prescription'],boxId:'2155661238719',folder:'3 Prescriptions'},
-  {id:61,name:'Indo American Book — First 3 Pages',date:'2019',year:2019,type:'Consult',doctor:'Indo American Hospital',condition:'General Consultation',tags:['consultation'],boxId:'2155657420095',folder:'3 Prescriptions'},
-  // 4 Hospital Visits (1 file)
-  {id:62,name:'Discharge Summary — Coronary Angiogram (Jun 2023)',date:'Jun 2023',year:2023,type:'Hospital',doctor:'Hospital',condition:'CAD — Coronary Angiogram',tags:['discharge','angiogram','cad'],boxId:'2155660502182',folder:'4 Hospital Visits'},
-  // 5 Prostate subfolder (26 files)
-  {id:63,name:'PET Scan (Jun 2019)',date:'Jun 2019',year:2019,type:'Imaging',doctor:'Nuclear Medicine',condition:'Prostate Cancer — Staging',tags:['pet-scan','prostate','staging'],boxId:'2155663597221',folder:'5 Prostate'},
-  {id:64,name:'PSA (Jan 2022)',date:'Jan 2022',year:2022,type:'Lab',doctor:'Lab',condition:'Prostate Surveillance',tags:['psa'],boxId:'2155666808911',folder:'5 Prostate'},
-  {id:65,name:'HbA1c (Jan 2022)',date:'Jan 2022',year:2022,type:'Lab',doctor:'Lab',condition:'Glycaemia',tags:['hba1c'],boxId:'2155657315190',folder:'5 Prostate'},
-  {id:66,name:'Lipid and Serum C (Feb 2023)',date:'Feb 2023',year:2023,type:'Lab',doctor:'Lab',condition:'Lipids',tags:['lipids'],boxId:'2155661322630',folder:'5 Prostate'},
-  {id:67,name:'CT Coronary Angio (Jun 2023)',date:'Jun 2023',year:2023,type:'Cardiac',doctor:'Cardiologist',condition:'Cardiac — Pre-Angio',tags:['ct-angio'],boxId:'2155663305380',folder:'5 Prostate'},
-  {id:68,name:'2D Echo (Jun 2023)',date:'Jun 2023',year:2023,type:'Cardiac',doctor:'Lab',condition:'Cardiac',tags:['2d-echo'],boxId:'2155659618620',folder:'5 Prostate'},
-  {id:69,name:'Dr. Sravan Prescription (Jun 2023)',date:'Jun 2023',year:2023,type:'Prescription',doctor:'Dr. Sravan',condition:'Post-Angiogram Care',tags:['prescription','post-angio'],boxId:'2155659932429',folder:'5 Prostate'},
-  {id:70,name:'Dr. Sumeet Sinha Prescription (Jun 2023)',date:'Jun 2023',year:2023,type:'Prescription',doctor:'Dr. Sumeet Sinha',condition:'Post-Angiogram',tags:['prescription','cardiology'],boxId:'2155662100142',folder:'5 Prostate'},
-  {id:71,name:'Angio Screening — HIV/HBsAg/HCV (Jun 2023)',date:'Jun 2023',year:2023,type:'Lab',doctor:'Lab',condition:'Pre-Procedure Screening',tags:['screening','hiv','hbsag'],boxId:'2155658151811',folder:'5 Prostate'},
-  {id:72,name:'HbA1c + Lipid Profile (Jun 2023)',date:'Jun 2023',year:2023,type:'Lab',doctor:'Lab',condition:'Pre-Angio Labs',tags:['hba1c','lipids'],boxId:'2155657364834',folder:'5 Prostate'},
-  {id:73,name:'Cardio Angiogram Report (Jun 2023)',date:'Jun 2023',year:2023,type:'Hospital',doctor:'Interventional Cardiologist',condition:'CAD — Angiogram',tags:['angiogram','cad','cardiac'],boxId:'2155663122130',folder:'5 Prostate'},
-  {id:74,name:'Discharge Summary (Jun 2023)',date:'Jun 2023',year:2023,type:'Hospital',doctor:'Hospital',condition:'CAD Discharge',tags:['discharge','cad'],boxId:'2155660719712',folder:'5 Prostate'},
-  {id:75,name:'Dr. Sanjai Review (Jun 2019)',date:'Jun 2019',year:2019,type:'Consult',doctor:'Dr. Sanjai',condition:'Prostate Cancer Review',tags:['prostate','consultation'],boxId:'2155668183925',folder:'5 Prostate'},
-  {id:76,name:'Dr. Senthil Prescription (Jun 2019)',date:'Jun 2019',year:2019,type:'Prescription',doctor:'Dr. Senthil',condition:'Prostate Cancer Treatment',tags:['prostate','prescription'],boxId:'2155661516992',folder:'5 Prostate'},
-  {id:77,name:'Dr. Vyas Narayana (Jun 2019)',date:'Jun 2019',year:2019,type:'Prescription',doctor:'Dr. Vyas Narayana',condition:'Prostate Cancer',tags:['prostate'],boxId:'2155659664765',folder:'5 Prostate'},
-  {id:78,name:'Histopathology Report',date:'2019',year:2019,type:'Lab',doctor:'Pathologist',condition:'Prostate Biopsy — Gleason Score',tags:['biopsy','histopathology','gleason','prostate'],boxId:'2155658607889',folder:'5 Prostate'},
-  {id:79,name:'Medical Reports June 2019 (Combined)',date:'Jun 2019',year:2019,type:'Hospital',doctor:'Multiple',condition:'Prostate Cancer — Full Workup',tags:['prostate','combined','workup'],boxId:'2155657852550',folder:'5 Prostate'},
-  {id:80,name:'Vijaya PET CT Report 1 (2019)',date:'2019',year:2019,type:'Imaging',doctor:'Nuclear Medicine',condition:'PET CT — Prostate',tags:['pet-ct','prostate'],boxId:'2155669010210',folder:'5 Prostate'},
-  {id:81,name:'Vijaya PET CT Report 2 (2019)',date:'2019',year:2019,type:'Imaging',doctor:'Nuclear Medicine',condition:'PET CT — Prostate',tags:['pet-ct','prostate'],boxId:'2155658471798',folder:'5 Prostate'},
-  {id:82,name:'PSA (2019)',date:'2019',year:2019,type:'Lab',doctor:'Lab',condition:'Prostate',tags:['psa'],boxId:'2155658181439',folder:'5 Prostate'},
-  {id:83,name:'Kaushik Bhattacharya Prescription (Jun 2019)',date:'Jun 2019',year:2019,type:'Prescription',doctor:'Dr. Kaushik Bhattacharya',condition:'Prostate Cancer',tags:['prostate','prescription'],boxId:'2155661682638',folder:'5 Prostate'},
-  {id:84,name:'Indo-American Prescription (2019)',date:'2019',year:2019,type:'Prescription',doctor:'Indo American Hospital',condition:'Prostate',tags:['prostate'],boxId:'2155663763755',folder:'5 Prostate'},
-  {id:85,name:'Img050 (Prostate Workup)',date:'2019',year:2019,type:'Imaging',doctor:'Lab',condition:'Prostate Imaging',tags:['prostate','imaging'],boxId:'2155660897457',folder:'5 Prostate'},
-  {id:86,name:'Img055 (Prostate Workup)',date:'2019',year:2019,type:'Imaging',doctor:'Lab',condition:'Prostate Imaging',tags:['prostate','imaging'],boxId:'2155662475064',folder:'5 Prostate'},
-  // Exercise stress test
-  {id:87,name:'Exercise Stress Test',date:'2022',year:2022,type:'Cardiac',doctor:'Cardiologist',condition:'Cardiac Stress Test',tags:['stress-test'],boxId:'2161697409010',folder:'1 Lab Tests'},
-  {id:88,name:'2D Echo Doppler (Nov 2022)',date:'Nov 2022',year:2022,type:'Cardiac',doctor:'Lab',condition:'EF 52%',tags:['2d-echo','ef-52'],boxId:'2161687168164',folder:'1 Lab Tests'},
-];
-
-const MOM_CONDITIONS = [{
-  id: 'dys',
-  name: 'Severe Dyslipidaemia',
-  sev: 'urgent',
-  organ: 'Cardiovascular',
-  organId: 'heart',
-  findings: 'LDL 181↑↑, HDL 37↓↓, TG 207↑↑, CRP 6.7↑ (Feb 2026). WORST EVER: LDL 207 (Jan 2015). 11+ year chronic history. Statin NEVER started.',
-  action: 'Start Rosuvastatin/Atorvastatin TODAY. Target LDL <130. Recheck in 6–8 weeks.',
-  reviewed: 'Feb 2026'
-}, {
-  id: 'thy',
-  name: "Hashimoto's Thyroiditis",
-  sev: 'urgent',
-  organ: 'Thyroid',
-  organId: 'thyroid',
-  findings: 'Anti-TPO 92.22↑↑ (ref <60, Jul 2019). TSH peaked 24.41↑↑ (overt, Jul 2019), 7.45↑↑ (Nov 2025). Currently 3.89✓ (Jan 2026). Levothyroxine ongoing.',
-  action: 'Recheck TSH in 3 months. Target 0.5–3.0 μIU/mL. Poor thyroid control worsens LDL/TG.',
-  reviewed: 'Jan 2026'
-}, {
-  id: 'spi',
-  name: 'L5-S1 Bilateral Nerve Root Compression',
-  sev: 'urgent',
-  organ: 'Lumbar Spine',
-  organId: 'spine',
-  findings: 'Sep 2024 MRI WORSENED — diffuse disc bulge, bilateral traversing nerve root indentation. Hospitalised + epidural Sep 2024 (Depomedrol 80mg + Bupivacaine).',
-  action: 'Physiotherapy ongoing. Neurosurgery review if new neurological signs (numbness, weakness, bladder).',
-  reviewed: 'Sep 2024'
-}, {
-  id: 'cer',
-  name: 'Severe Cervical Spondylosis C3–C7',
-  sev: 'high',
-  organ: 'Cervical Spine',
-  organId: 'spine',
-  findings: 'Prenuvo Jan 2024: Severe C3–C7, moderate canal stenosis, severe C5–C6 foraminal narrowing. Myelopathy risk.',
-  action: 'Monitor for upper limb weakness/gait changes. Neurosurgery if progressive. Avoid heavy lifting.',
-  reviewed: 'Jan 2024'
-}, {
-  id: 'gerd',
-  name: 'GERD + Erosive Gastritis Grade A + Grade II Hiatus Hernia',
-  sev: 'high',
-  organ: 'Liver / GI',
-  organId: 'liver',
-  findings: 'Grade II Sliding Hiatus Hernia + Erosive Gastritis Grade A — endoscopy May 2023. Daily heartburn, frequent burping.',
-  action: 'Continue PPI (Nexpro RD 40mg). Elevate head of bed. Small meals. Avoid NSAIDs.',
-  reviewed: 'May 2023'
-}, {
-  id: 'ost',
-  name: 'Osteoporosis — Femur Neck Left (T-score −2.9)',
-  sev: 'high',
-  organ: 'Bone Density',
-  organId: 'bones',
-  findings: 'DEXA Nov 2022: Femur Neck Left T-score −2.9 (osteoporosis confirmed). TSH 1.94✓ on DEXA day — NOT thyroid-driven. Vit D 26.2↓. DEXA overdue Nov 2024.',
-  action: 'Alendronate 70mg weekly + Calcium 500mg BD + Vit D3. Repeat DEXA immediately (overdue).',
-  reviewed: 'Nov 2022'
-}, {
-  id: 'vitd',
-  name: 'Vitamin D Insufficiency',
-  sev: 'moderate',
-  organ: 'Metabolic',
-  organId: 'metabolic',
-  findings: '26.2 ng/mL (Nov 2025). Declining from best 51.19 (Jul 2023). Target 40–60 ng/mL.',
-  action: 'Increase Vit D3 supplement. Recheck in 3 months.',
-  reviewed: 'Nov 2025'
-}, {
-  id: 'svd',
-  name: 'Mild Cerebral Small Vessel Ischaemia',
-  sev: 'moderate',
-  organ: 'Brain',
-  organId: 'brain',
-  findings: 'Prenuvo Jan 2024: scattered deep white matter lesions. Related to chronic dyslipidaemia. Follow-up MRI overdue.',
-  action: 'Lipid control is primary treatment. Follow-up MRI overdue (due Jan 2026).',
-  reviewed: 'Jan 2024'
-}, {
-  id: 'fib',
-  name: 'Uterine Fibroids (2 subserosal, 2.6 cm)',
-  sev: 'monitor',
-  organ: 'Gynaecology',
-  organId: 'uterus',
-  findings: 'Largest 2.6 cm (Prenuvo Jan 2024). Post-menopausal. Endometrium 4 mm (normal). Benign.',
-  action: 'Annual USG surveillance.',
-  reviewed: 'Jan 2024'
-}, {
-  id: 'mag',
-  name: 'Hypomagnesaemia',
-  sev: 'monitor',
-  organ: 'Metabolic',
-  organId: 'metabolic',
-  findings: '1.72 mg/dL (Aug 2024, ref 1.90–3.10). Not rechecked since. Causes muscle cramps, poor sleep.',
-  action: 'Start magnesium glycinate. Include in next panel.',
-  reviewed: 'Aug 2024'
-}, {
-  id: 'eye',
-  name: 'Red Scleral Line / Eye Concern',
-  sev: 'monitor',
-  organ: 'Eyes',
-  organId: 'eyes',
-  findings: 'Red line on sclera noted by Maxivision Feb 2026. No formal diagnosis. Possible episcleritis.',
-  action: 'Ophthalmology review if persisting >2 weeks.',
-  reviewed: 'Feb 2026'
-}, {
-  id: 'ana',
-  name: 'Recurring Mild Anaemia',
-  sev: 'monitor',
-  organ: 'Haematology',
-  organId: 'metabolic',
-  findings: 'Haemoglobin low multiple times — worst 11.2 (May 2023). Iron deficiency Jul 2022 (Fe 39.3↓, sat 15.17%). Normalised Nov 2025 (Fe 82).',
-  action: 'Monitor Hb annually. Iron-rich diet. Recheck if Hb <12.',
-  reviewed: 'Nov 2025'
-}];
-const DAD_CONDITIONS = [{
-  id: 'psa',
-  name: 'Prostate Cancer — Active Surveillance (Gleason 3+3=6)',
-  sev: 'urgent',
-  organ: 'Prostate',
-  organId: 'prostate',
-  findings: 'First elevated PSA Mar 2019 (5.0). PSA 4.8 (Jan 2025). Biopsy Gleason 3+3=6. Active surveillance. DRE: slight asymmetric enlargement.',
-  action: 'Repeat PSA + MRI prostate every 6 months. Annual biopsy discussion with urology.',
-  reviewed: 'Jan 2025'
-}, {
-  id: 'lipid',
-  name: 'Dyslipidaemia — On Statin',
-  sev: 'high',
-  organ: 'Cardiovascular',
-  organId: 'heart',
-  findings: 'LDL elevated historically. On Rosuvastatin. Last lipid panel Feb 2026.',
-  action: 'Continue statin. Monitor LDL annually. Target <100 mg/dL.',
-  reviewed: 'Feb 2026'
-}, {
-  id: 'bone',
-  name: 'Osteoporosis / Low Bone Density',
-  sev: 'high',
-  organ: 'Bone Density',
-  organId: 'bones',
-  findings: 'DEXA Nov 2022: Multiple sites with T-score ≤ −2.5. Documented in 3 separate DEXA reports.',
-  action: 'Bisphosphonate + Calcium + Vit D3. Repeat DEXA.',
-  reviewed: 'Nov 2022'
-}, {
-  id: 'tsh2',
-  name: 'Hypothyroidism',
-  sev: 'moderate',
-  organ: 'Thyroid',
-  organId: 'thyroid',
-  findings: 'TSH elevated on multiple readings. TSH Jan 2026 noted in file.',
-  action: 'Continue levothyroxine. Recheck TSH in 3 months.',
-  reviewed: 'Jan 2026'
-}, {
-  id: 'urine2',
-  name: 'Urinary / Renal Monitoring',
-  sev: 'monitor',
-  organ: 'Kidneys',
-  organId: 'kidneys',
-  findings: 'Urine analysis Sep 2025. Creatinine monitored. Uric acid history (gout risk).',
-  action: 'Annual renal panel. Stay well hydrated.',
-  reviewed: 'Sep 2025'
-}];
-const MOM_TIMELINE = [{
+const DAD_DOCS = [{
+  id: 1,
+  name: 'Lipid Profile (Feb 2026)',
   date: 'Feb 2026',
   year: 2026,
-  type: 'lab',
-  color: '#DC2626',
-  title: 'Lipid Profile + CRP — CRITICAL',
-  detail: 'LDL 181↑↑, HDL 37↓↓, CRP 6.7↑. Urgent statin indication confirmed.',
-  specialty: 'Cardiology'
+  type: 'Lab',
+  doctor: 'Lab',
+  condition: 'Lipids',
+  tags: ['lipids'],
+  boxId: '2161689467391',
+  folder: '1 Lab Tests'
 }, {
+  id: 2,
+  name: 'TSH (Jan 2026)',
   date: 'Jan 2026',
   year: 2026,
-  type: 'lab',
-  color: '#16A34A',
-  title: 'TSH 3.89✓ — Improved',
-  detail: 'TSH 3.89 after Nov 2025 relapse. Levothyroxine dose adjustment effective.',
-  specialty: 'Endocrinology'
+  type: 'Lab',
+  doctor: 'Lab',
+  condition: 'Thyroid',
+  tags: ['tsh'],
+  boxId: '2161697642376',
+  folder: '1 Lab Tests'
 }, {
+  id: 3,
+  name: 'Urine Analysis (Sep 2025)',
+  date: 'Sep 2025',
+  year: 2025,
+  type: 'Lab',
+  doctor: 'Lab',
+  condition: 'Urinalysis',
+  tags: ['urine'],
+  boxId: '2161684645208',
+  folder: '1 Lab Tests'
+}, {
+  id: 4,
+  name: 'Full Body Checkup (Nov 2025)',
   date: 'Nov 2025',
   year: 2025,
-  type: 'lab',
-  color: '#DC2626',
-  title: 'TSH Relapse 7.45↑↑ + LDL 174↑↑',
-  detail: 'TSH 7.45↑↑, LDL 174↑↑, TG 295↑↑, Vit D 26.2↓. Worst thyroid reading since 2019.',
-  specialty: 'Endocrinology'
+  type: 'Lab',
+  doctor: 'Multiple',
+  condition: 'Annual Review',
+  tags: ['annual'],
+  boxId: '2155657530240',
+  folder: '1 Lab Tests'
 }, {
-  date: 'Sep 2024',
-  year: 2024,
-  type: 'hospital',
-  color: '#7C3AED',
-  title: 'Admitted — Aster Prime Hospital (5 days)',
-  detail: 'L5-S1 PIVD. Epidural: Depomedrol 80mg + Bupivacaine. Dr. A.K. Purohit. Discharge: Lioresal SR + Gabantin.',
-  specialty: 'Neurosurgery'
-}, {
-  date: 'Sep 2024',
-  year: 2024,
-  type: 'imaging',
-  color: '#DC2626',
-  title: 'MRI LS Spine — WORSENED vs May 2023',
-  detail: 'L5-S1 worsened: diffuse disc bulge, bilateral traversing nerve root indentation. SI joint degeneration.',
-  specialty: 'Radiology'
-}, {
-  date: 'Jan 2024',
-  year: 2024,
-  type: 'imaging',
-  color: '#2563EB',
-  title: 'Prenuvo Whole Body MRI',
-  detail: 'Severe cervical C3–C7, severe L5-S1, brain small vessel ischaemia, 2 fibroids 2.6 cm.',
-  specialty: 'Radiology'
-}, {
-  date: 'Jun 2023',
-  year: 2023,
-  type: 'imaging',
-  color: '#16A34A',
-  title: 'CT Coronary Angio — Calcium Score 0 ✓',
-  detail: 'Calcium Score: 0 (EXCELLENT). EF 64%. No PAH. LAD/LCX/RCA 10–20% soft plaque only.',
-  specialty: 'Cardiology'
-}, {
-  date: 'May 2023',
-  year: 2023,
-  type: 'procedure',
-  color: '#D97706',
-  title: 'Upper GI Endoscopy',
-  detail: 'Grade II Sliding Hiatus Hernia + Erosive Gastritis Grade A confirmed.',
-  specialty: 'Gastroenterology'
-}, {
-  date: 'Nov 2022',
-  year: 2022,
-  type: 'lab',
-  color: '#DC2626',
-  title: 'DEXA — Osteoporosis Confirmed',
-  detail: 'Femur Neck Left T-score −2.9. TSH 1.94✓ on same day — osteoporosis NOT thyroid-driven.',
-  specialty: 'Endocrinology'
-}, {
-  date: 'Nov 2022',
-  year: 2022,
-  type: 'imaging',
-  color: '#16A34A',
-  title: 'Exercise Stress Test — NEGATIVE ✓',
-  detail: 'NEGATIVE for ischaemia. Max METs 7.20, HR 146 bpm (91% predicted). No ST changes.',
-  specialty: 'Cardiology'
-}, {
-  date: 'Jul 2019',
-  year: 2019,
-  type: 'diagnosis',
-  color: '#DC2626',
-  title: "Overt Hypothyroidism — Hashimoto's Diagnosed",
-  detail: "TSH 24.41↑↑. Anti-TPO 92.22↑↑ confirms Hashimoto's autoimmune thyroiditis. Levothyroxine commenced.",
-  specialty: 'Endocrinology'
-}, {
-  date: 'Feb 2020',
-  year: 2020,
-  type: 'surgery',
-  color: '#6366F1',
-  title: 'Bilateral Cataract Surgery — Success',
-  detail: 'RE: IOL +25.0D, LE: IOL +25.5D. Tanvi Eye Centre. Both eyes successfully treated.',
-  specialty: 'Ophthalmology'
-}, {
-  date: 'Jan 2015',
-  year: 2015,
-  type: 'lab',
-  color: '#DC2626',
-  title: 'WORST EVER Lipid Panel',
-  detail: 'LDL 207↑↑, TC 309↑↑, TG 328↑↑, HDL 36↓↓. Statin not started. TSH 3.53 (normal — lipid-driven, not thyroid).',
-  specialty: 'Cardiology'
-}];
-const DAD_TIMELINE = [{
-  date: 'Feb 2026',
-  year: 2026,
-  type: 'lab',
-  color: '#D97706',
-  title: 'Lipid Profile',
-  detail: 'Latest lipid panel. On Rosuvastatin.',
-  specialty: 'Cardiology'
-}, {
-  date: 'Jan 2026',
-  year: 2026,
-  type: 'lab',
-  color: '#D97706',
-  title: 'TSH Check',
-  detail: 'TSH monitored — on levothyroxine.',
-  specialty: 'Endocrinology'
-}, {
+  id: 5,
+  name: 'Full Body Checkup (Jan 2025)',
   date: 'Jan 2025',
   year: 2025,
-  type: 'lab',
-  color: '#DC2626',
-  title: 'PSA 4.8↑ — Active Surveillance',
-  detail: 'PSA 4.8 ng/mL. DRE slight asymmetry. Active surveillance continues.',
-  specialty: 'Urology'
+  type: 'Lab',
+  doctor: 'Multiple',
+  condition: 'Annual Review',
+  tags: ['annual'],
+  boxId: '2161693369408',
+  folder: '1 Lab Tests'
 }, {
-  date: 'Jun 2023',
+  id: 6,
+  name: 'HbA1c & Liver Function (Apr 2025)',
+  date: 'Apr 2025',
+  year: 2025,
+  type: 'Lab',
+  doctor: 'Lab',
+  condition: 'Glycaemia/Liver',
+  tags: ['hba1c', 'lft'],
+  boxId: '2161695373696',
+  folder: '1 Lab Tests'
+}, {
+  id: 7,
+  name: 'Adobe Scan (Mar 2026)',
+  date: 'Mar 2026',
+  year: 2026,
+  type: 'Lab',
+  doctor: 'Lab',
+  condition: 'Recent Reports',
+  tags: ['recent'],
+  boxId: '2161695791307',
+  folder: '1 Lab Tests'
+}, {
+  id: 8,
+  name: 'CBP & IGE (Nov 2024)',
+  date: 'Nov 2024',
+  year: 2024,
+  type: 'Lab',
+  doctor: 'Lab',
+  condition: 'CBC/Allergy',
+  tags: ['cbc', 'ige'],
+  boxId: '2161693609395',
+  folder: '1 Lab Tests'
+}, {
+  id: 9,
+  name: 'Blood Tests (Sep 2024)',
+  date: 'Sep 2024',
+  year: 2024,
+  type: 'Lab',
+  doctor: 'Lab',
+  condition: 'Comprehensive',
+  tags: ['comprehensive'],
+  boxId: '2155657600653',
+  folder: '1 Lab Tests'
+}, {
+  id: 10,
+  name: 'CBP (Jul 2024)',
+  date: 'Jul 2024',
+  year: 2024,
+  type: 'Lab',
+  doctor: 'Lab',
+  condition: 'CBC',
+  tags: ['cbc'],
+  boxId: '2161696443661',
+  folder: '1 Lab Tests'
+}, {
+  id: 11,
+  name: 'Magnesium (Aug 2024)',
+  date: 'Aug 2024',
+  year: 2024,
+  type: 'Lab',
+  doctor: 'Lab',
+  condition: 'Electrolytes',
+  tags: ['magnesium'],
+  boxId: '2155668609362',
+  folder: '1 Lab Tests'
+}, {
+  id: 12,
+  name: 'PSA (Jul 2023)',
+  date: 'Jul 2023',
   year: 2023,
-  type: 'imaging',
-  color: '#16A34A',
-  title: 'CT Coronary Angio',
-  detail: 'Coronary arteries assessed. Documented CAD findings.',
-  specialty: 'Cardiology'
+  type: 'Lab',
+  doctor: 'Lab',
+  condition: 'Prostate Surveillance',
+  tags: ['psa', 'surveillance'],
+  boxId: '2161690562007',
+  folder: '1 Lab Tests'
 }, {
-  date: 'Mar 2019',
-  year: 2019,
-  type: 'diagnosis',
-  color: '#DC2626',
-  title: 'First Elevated PSA',
-  detail: 'PSA elevated first time at CC Shroff. Urology referral.',
-  specialty: 'Urology'
+  id: 13,
+  name: 'PSA (Apr 2023)',
+  date: 'Apr 2023',
+  year: 2023,
+  type: 'Lab',
+  doctor: 'Lab',
+  condition: 'Prostate',
+  tags: ['psa'],
+  boxId: '2161694466595',
+  folder: '1 Lab Tests'
 }, {
+  id: 14,
+  name: 'Creatinine & Uric Acid (May 2023)',
+  date: 'May 2023',
+  year: 2023,
+  type: 'Lab',
+  doctor: 'Lab',
+  condition: 'Renal',
+  tags: ['creatinine', 'uric-acid'],
+  boxId: '2161691678387',
+  folder: '1 Lab Tests'
+}, {
+  id: 15,
+  name: 'Lipid & Serum (Feb 2023)',
+  date: 'Feb 2023',
+  year: 2023,
+  type: 'Lab',
+  doctor: 'Lab',
+  condition: 'Lipids',
+  tags: ['lipids'],
+  boxId: '2155654926159',
+  folder: '1 Lab Tests'
+}, {
+  id: 16,
+  name: 'PSA + Serum (Jul 2023)',
+  date: 'Jul 2023',
+  year: 2023,
+  type: 'Lab',
+  doctor: 'Lab',
+  condition: 'Prostate/Metabolic',
+  tags: ['psa', 'serum'],
+  boxId: '2155665532547',
+  folder: '1 Lab Tests'
+}, {
+  id: 17,
+  name: 'PSA (Oct 2022)',
+  date: 'Oct 2022',
+  year: 2022,
+  type: 'Lab',
+  doctor: 'Lab',
+  condition: 'Prostate',
+  tags: ['psa'],
+  boxId: '2161685893646',
+  folder: '1 Lab Tests'
+}, {
+  id: 18,
+  name: 'PSA (Apr 2022)',
+  date: 'Apr 2022',
+  year: 2022,
+  type: 'Lab',
+  doctor: 'Lab',
+  condition: 'Prostate',
+  tags: ['psa'],
+  boxId: '2161693401513',
+  folder: '1 Lab Tests'
+}, {
+  id: 19,
+  name: 'PSA (Jan 2022)',
+  date: 'Jan 2022',
+  year: 2022,
+  type: 'Lab',
+  doctor: 'Lab',
+  condition: 'Prostate',
+  tags: ['psa'],
+  boxId: '2155668863607',
+  folder: '1 Lab Tests'
+}, {
+  id: 20,
+  name: 'HbA1c (Jan 2022)',
+  date: 'Jan 2022',
+  year: 2022,
+  type: 'Lab',
+  doctor: 'Lab',
+  condition: 'Glycaemia',
+  tags: ['hba1c'],
+  boxId: '2155663012641',
+  folder: '1 Lab Tests'
+}, {
+  id: 21,
+  name: 'Complete Checkup (Nov 2022)',
   date: 'Nov 2022',
   year: 2022,
-  type: 'lab',
-  color: '#2563EB',
-  title: 'DEXA Bone Density',
-  detail: 'Multiple sites below threshold. Osteoporosis confirmed.',
-  specialty: 'Endocrinology'
+  type: 'Lab',
+  doctor: 'Multiple',
+  condition: 'Annual Review',
+  tags: ['annual'],
+  boxId: '2161693972317',
+  folder: '1 Lab Tests'
+}, {
+  id: 22,
+  name: 'Complete Checkup (Apr 2022)',
+  date: 'Apr 2022',
+  year: 2022,
+  type: 'Lab',
+  doctor: 'Multiple',
+  condition: 'Annual Review',
+  tags: ['annual'],
+  boxId: '2161688358566',
+  folder: '1 Lab Tests'
+}, {
+  id: 23,
+  name: 'Bone Density DEXA (Nov 2022)',
+  date: 'Nov 2022',
+  year: 2022,
+  type: 'Lab',
+  doctor: 'Lab',
+  condition: 'Osteoporosis',
+  tags: ['dexa', 'bone-density'],
+  boxId: '2161696621506',
+  folder: '1 Lab Tests'
+}, {
+  id: 24,
+  name: 'HbA1c (Jul 2022)',
+  date: 'Jul 2022',
+  year: 2022,
+  type: 'Lab',
+  doctor: 'Lab',
+  condition: 'Glycaemia',
+  tags: ['hba1c'],
+  boxId: '2161694949093',
+  folder: '1 Lab Tests'
+}, {
+  id: 25,
+  name: 'Full Body (Oct 2021)',
+  date: 'Oct 2021',
+  year: 2021,
+  type: 'Lab',
+  doctor: 'Multiple',
+  condition: 'Annual Review',
+  tags: ['annual'],
+  boxId: '2155658807923',
+  folder: '1 Lab Tests'
+}, {
+  id: 26,
+  name: 'Medical Reports (Feb 2020)',
+  date: 'Feb 2020',
+  year: 2020,
+  type: 'Lab',
+  doctor: 'Lab',
+  condition: 'Annual Review',
+  tags: ['annual'],
+  boxId: '2155658519009',
+  folder: '1 Lab Tests'
+}, {
+  id: 27,
+  name: 'HbA1c Medicover (Feb 2020)',
+  date: 'Feb 2020',
+  year: 2020,
+  type: 'Lab',
+  doctor: 'Medicover',
+  condition: 'Glycaemia',
+  tags: ['hba1c'],
+  boxId: '2155657967741',
+  folder: '1 Lab Tests'
+}, {
+  id: 28,
+  name: 'PSA CC Shroff (Mar 2019)',
+  date: 'Mar 2019',
+  year: 2019,
+  type: 'Lab',
+  doctor: 'CC Shroff',
+  condition: 'Prostate — First Elevated PSA',
+  tags: ['psa', 'elevated', 'first'],
+  boxId: '2155666527856',
+  folder: '1 Lab Tests'
+}, {
+  id: 29,
+  name: 'Sai Lab Lipid Profile (Jun 2019)',
+  date: 'Jun 2019',
+  year: 2019,
+  type: 'Lab',
+  doctor: 'Sai Lab',
+  condition: 'Lipids',
+  tags: ['lipids'],
+  boxId: '2155661900784',
+  folder: '1 Lab Tests'
+}, {
+  id: 30,
+  name: 'Medical Test (Jan 2016)',
+  date: 'Jan 2016',
+  year: 2016,
+  type: 'Lab',
+  doctor: 'Lab',
+  condition: 'Annual Review',
+  tags: ['annual'],
+  boxId: '2155666628911',
+  folder: '1 Lab Tests'
+}, {
+  id: 31,
+  name: 'Medical Test (Nov 2013)',
+  date: 'Nov 2013',
+  year: 2013,
+  type: 'Lab',
+  doctor: 'Lab',
+  condition: 'Annual',
+  tags: ['annual'],
+  boxId: '2155659020878',
+  folder: '1 Lab Tests'
+}, {
+  id: 32,
+  name: 'Exercise Stress Test',
+  date: '2022',
+  year: 2022,
+  type: 'Cardiac',
+  doctor: 'Cardiologist',
+  condition: 'Cardiac Stress Test',
+  tags: ['stress-test'],
+  boxId: '2161697409010',
+  folder: '1 Lab Tests'
+}, {
+  id: 33,
+  name: '2D Echo Doppler (Nov 2022)',
+  date: 'Nov 2022',
+  year: 2022,
+  type: 'Cardiac',
+  doctor: 'Lab',
+  condition: 'EF 52%',
+  tags: ['2d-echo', 'ef-52'],
+  boxId: '2161687168164',
+  folder: '1 Lab Tests'
+}, {
+  id: 34,
+  name: 'CT Coronary Angiogram (Jun 2023)',
+  date: 'Jun 2023',
+  year: 2023,
+  type: 'Cardiac',
+  doctor: 'Cardiologist',
+  condition: 'CAD Assessment',
+  tags: ['ct-angio', 'cad'],
+  boxId: '2155662320751',
+  folder: '2 Imaging'
+}, {
+  id: 35,
+  name: '2D Echo (Jun 2023)',
+  date: 'Jun 2023',
+  year: 2023,
+  type: 'Cardiac',
+  doctor: 'Lab',
+  condition: 'EF Assessment',
+  tags: ['2d-echo'],
+  boxId: '2155657336358',
+  folder: '2 Imaging'
+}, {
+  id: 36,
+  name: 'ECG (Dec 2022)',
+  date: 'Dec 2022',
+  year: 2022,
+  type: 'Cardiac',
+  doctor: 'Lab',
+  condition: 'Cardiac',
+  tags: ['ecg'],
+  boxId: '2155668075914',
+  folder: '2 Imaging'
+}, {
+  id: 37,
+  name: 'Ultrasound Abdomen CC Shroff (Mar 2019)',
+  date: 'Mar 2019',
+  year: 2019,
+  type: 'Imaging',
+  doctor: 'CC Shroff',
+  condition: 'Abdomen',
+  tags: ['usg', 'abdomen'],
+  boxId: '2155662340154',
+  folder: '2 Imaging'
+}, {
+  id: 38,
+  name: 'Leg X-Ray (Feb 2023)',
+  date: 'Feb 2023',
+  year: 2023,
+  type: 'Imaging',
+  doctor: 'Lab',
+  condition: 'Leg/Bone',
+  tags: ['xray', 'leg'],
+  boxId: '2155661272708',
+  folder: '2 Imaging'
+}, {
+  id: 39,
+  name: 'MRI Dorsal Spine',
+  date: '2022',
+  year: 2022,
+  type: 'Imaging',
+  doctor: 'Lab',
+  condition: 'Spine',
+  tags: ['mri', 'spine', 'dorsal'],
+  boxId: '2155656445230',
+  folder: '2 Imaging'
+}, {
+  id: 40,
+  name: 'MRI Pelvis (2019)',
+  date: '2019',
+  year: 2019,
+  type: 'Imaging',
+  doctor: 'Lab',
+  condition: 'Pelvis/Prostate',
+  tags: ['mri', 'pelvis', 'prostate'],
+  boxId: '2155660557596',
+  folder: '2 Imaging'
+}, {
+  id: 41,
+  name: 'PET Scan (Jun 2019)',
+  date: 'Jun 2019',
+  year: 2019,
+  type: 'Imaging',
+  doctor: 'Nuclear Medicine',
+  condition: 'Prostate Cancer — Staging',
+  tags: ['pet-scan', 'prostate', 'staging'],
+  boxId: '2155663597221',
+  folder: '5 Prostate'
+}, {
+  id: 42,
+  name: 'Histopathology (Biopsy)',
+  date: '2019',
+  year: 2019,
+  type: 'Lab',
+  doctor: 'Pathologist',
+  condition: 'Prostate Biopsy — Gleason Score',
+  tags: ['biopsy', 'histopathology', 'gleason'],
+  boxId: '2155658607889',
+  folder: '5 Prostate'
+}, {
+  id: 43,
+  name: 'Medical Reports June 2019 (Combined)',
+  date: 'Jun 2019',
+  year: 2019,
+  type: 'Hospital',
+  doctor: 'Multiple',
+  condition: 'Prostate Cancer — Full Workup',
+  tags: ['prostate', 'combined'],
+  boxId: '2155657852550',
+  folder: '5 Prostate'
+}, {
+  id: 44,
+  name: 'Cardio Angiogram Report (Jun 2023)',
+  date: 'Jun 2023',
+  year: 2023,
+  type: 'Hospital',
+  doctor: 'Cardiologist',
+  condition: 'CAD — Angiogram',
+  tags: ['angiogram', 'cad'],
+  boxId: '2155663122130',
+  folder: '5 Prostate'
+}, {
+  id: 45,
+  name: 'Discharge Summary (Jun 2023)',
+  date: 'Jun 2023',
+  year: 2023,
+  type: 'Hospital',
+  doctor: 'Hospital',
+  condition: 'CAD Discharge',
+  tags: ['discharge', 'cad'],
+  boxId: '2155660719712',
+  folder: '5 Prostate'
+}, {
+  id: 46,
+  name: 'Dr. Sravan Prescription (Jun 2023)',
+  date: 'Jun 2023',
+  year: 2023,
+  type: 'Prescription',
+  doctor: 'Dr. Sravan',
+  condition: 'Post-Angiogram Care',
+  tags: ['prescription', 'post-angio'],
+  boxId: '2155659932429',
+  folder: '5 Prostate'
+}, {
+  id: 47,
+  name: 'Dr. Sumeet Sinha Prescription (Jun 2023)',
+  date: 'Jun 2023',
+  year: 2023,
+  type: 'Prescription',
+  doctor: 'Dr. Sumeet Sinha',
+  condition: 'Post-Angiogram',
+  tags: ['prescription', 'cardiology'],
+  boxId: '2155662100142',
+  folder: '5 Prostate'
+}, {
+  id: 48,
+  name: 'Vijaya PET CT Report 1',
+  date: '2019',
+  year: 2019,
+  type: 'Imaging',
+  doctor: 'Nuclear Medicine',
+  condition: 'PET CT — Prostate',
+  tags: ['pet-ct', 'prostate'],
+  boxId: '2155669010210',
+  folder: '5 Prostate'
+}, {
+  id: 49,
+  name: 'Vijaya PET CT Report 2',
+  date: '2019',
+  year: 2019,
+  type: 'Imaging',
+  doctor: 'Nuclear Medicine',
+  condition: 'PET CT — Prostate',
+  tags: ['pet-ct', 'prostate'],
+  boxId: '2155658471798',
+  folder: '5 Prostate'
+}, {
+  id: 50,
+  name: 'HbA1c + Lipid Profile pre-Angio (Jun 2023)',
+  date: 'Jun 2023',
+  year: 2023,
+  type: 'Lab',
+  doctor: 'Lab',
+  condition: 'Pre-Angio Labs',
+  tags: ['hba1c', 'lipids', 'pre-angio'],
+  boxId: '2155657364834',
+  folder: '5 Prostate'
+}, {
+  id: 51,
+  name: 'Discharge Summary — Angiogram (Jun 2023)',
+  date: 'Jun 2023',
+  year: 2023,
+  type: 'Hospital',
+  doctor: 'Hospital',
+  condition: 'CAD — Angiogram',
+  tags: ['discharge', 'angiogram'],
+  boxId: '2155660502182',
+  folder: '4 Hospital Visits'
+}, {
+  id: 52,
+  name: 'Dental Notes — Area Dental',
+  date: '2019',
+  year: 2019,
+  type: 'Prescription',
+  doctor: 'Area Dental',
+  condition: 'Dental',
+  tags: ['dental'],
+  boxId: '2155659227926',
+  folder: '3 Prescriptions'
+}, {
+  id: 53,
+  name: 'Dr. Vyas Narayan Rao Prescription',
+  date: '2019',
+  year: 2019,
+  type: 'Prescription',
+  doctor: 'Dr. Vyas Narayan Rao',
+  condition: 'General',
+  tags: ['prescription'],
+  boxId: '2155659138183',
+  folder: '3 Prescriptions'
 }];
-
-// Key + Full lab data for Mom
 const MOM_LABS_KEY = {
   tsh: {
-    label: 'TSH',
+    label: 'TSH (Thyroid)',
     unit: 'μIU/mL',
     refLow: 0.27,
     refHigh: 5.35,
@@ -1457,7 +1760,7 @@ const MOM_LABS_KEY = {
       d: "Jan'26",
       v: 3.89
     }],
-    note: 'Hashimoto\'s — overt Jul 2019 (24.41↑↑). TSH 1.94✓ on DEXA day. Latest: 3.89✓'
+    note: "Hashimoto's — overt Jul 2019 (24.41↑↑). TSH 1.94✓ on DEXA day. Latest: 3.89✓"
   },
   ldl: {
     label: 'LDL Cholesterol',
@@ -1562,7 +1865,7 @@ const MOM_LABS_KEY = {
       d: "Nov'25",
       v: 26.2
     }],
-    note: 'BEST: 51.19 (Jul 2023). Current: 26.2↓ (Nov 2025 — insufficient). Target ≥40 ng/mL.'
+    note: 'BEST: 51.19 (Jul 2023). Current: 26.2↓ (Nov 2025 — insufficient). Target ≥40.'
   },
   hb: {
     label: 'Haemoglobin',
@@ -1606,7 +1909,7 @@ const MOM_LABS_KEY = {
       d: "Nov'25",
       v: 13.1
     }],
-    note: 'Recurring mild anaemia. Iron deficiency Jul 2022 (Fe 39.3↓). Normalised Nov 2025 (Fe 82).'
+    note: 'Recurring mild anaemia. Iron deficiency Jul 2022. Normalised Nov 2025.'
   },
   creatinine: {
     label: 'Creatinine',
@@ -1647,7 +1950,7 @@ const MOM_LABS_KEY = {
       d: "Nov'25",
       v: 0.62
     }],
-    note: 'Excellent kidney function. eGFR 100 mL/min (Nov 2025). No concern throughout 11 years.'
+    note: 'Excellent kidney function. eGFR 100 mL/min (Nov 2025). No concern.'
   }
 };
 const MOM_LABS_FULL = {
@@ -1698,9 +2001,6 @@ const MOM_LABS_FULL = {
       d: "May'23",
       v: 54.7
     }, {
-      d: "Jul'23",
-      v: 52
-    }, {
       d: "Nov'25",
       v: 51
     }, {
@@ -1736,7 +2036,7 @@ const MOM_LABS_FULL = {
       d: "Feb'26",
       v: 207
     }],
-    note: 'WORST: 328↑↑ (Jan 2015). Current: 207↑↑ (Feb 2026). TG <150 is target.'
+    note: 'WORST: 328↑↑ (Jan 2015). Current: 207↑↑. Target <150.'
   },
   crp: {
     label: 'CRP (Inflammation)',
@@ -1759,7 +2059,7 @@ const MOM_LABS_FULL = {
     note: 'Current: 6.7↑ (Feb 2026) — active inflammation. Correlates with untreated dyslipidaemia.'
   },
   tpo: {
-    label: 'Anti-TPO (Thyroid Antibody)',
+    label: 'Anti-TPO',
     unit: 'IU/mL',
     refHigh: 60,
     color: '#7C3AED',
@@ -1770,18 +2070,7 @@ const MOM_LABS_FULL = {
       d: "Feb'23",
       v: 42
     }],
-    note: 'Confirmed Hashimoto\'s (Jul 2019). Declining with treatment (Feb 2023: 42).'
-  },
-  ca125: {
-    label: 'CA-125 (Ovarian)',
-    unit: 'U/mL',
-    refHigh: 35,
-    color: '#8B5CF6',
-    data: [{
-      d: "Nov'25",
-      v: 15.4
-    }],
-    note: 'CA-125 15.4✓ (Nov 2025). Normal — no ovarian cancer concern.'
+    note: "Confirmed Hashimoto's (Jul 2019: 92.22↑↑). Declining with treatment."
   },
   b12: {
     label: 'Vitamin B12',
@@ -1804,7 +2093,7 @@ const MOM_LABS_FULL = {
       d: "Nov'25",
       v: 715
     }],
-    note: 'Feb 2023 spike 1595↑ (likely dietary/supplement). Currently 715✓.'
+    note: 'Feb 2023 spike 1595↑ (likely supplement). Currently 715✓.'
   },
   mg: {
     label: 'Magnesium',
@@ -1815,9 +2104,53 @@ const MOM_LABS_FULL = {
       d: "Aug'24",
       v: 1.72
     }],
-    note: '1.72↓ (Aug 2024, ref 1.90–3.10). Not rechecked. Supplement needed.'
+    note: '1.72↓ (Aug 2024). Below normal range 1.90-3.10. Supplement needed.'
   }
 };
+const MOM_SYMPTOMS = [{
+  date: 'Feb 2026',
+  symptom: 'Red line on sclera (right eye)',
+  severity: 'mild',
+  status: 'ongoing',
+  note: 'Noted at Maxivision — possible episcleritis'
+}, {
+  date: 'Nov 2025',
+  symptom: 'Fatigue, cold intolerance, constipation',
+  severity: 'moderate',
+  status: 'resolved',
+  note: 'Thyroid relapse — TSH 7.45'
+}, {
+  date: 'Sep 2024',
+  symptom: 'Severe lower back pain radiating to left leg',
+  severity: 'severe',
+  status: 'managed',
+  note: 'L5-S1 epidural treatment — Aster Prime'
+}, {
+  date: 'May 2023',
+  symptom: 'Daily heartburn, frequent burping',
+  severity: 'moderate',
+  status: 'managed',
+  note: 'PPI started after endoscopy'
+}, {
+  date: 'Jul 2022',
+  symptom: 'Fatigue, hair thinning, pallor',
+  severity: 'moderate',
+  status: 'resolved',
+  note: 'Iron deficiency anaemia — Fe 39.3↓'
+}];
+const DAD_SYMPTOMS = [{
+  date: 'Jan 2025',
+  symptom: 'Urinary frequency (mild)',
+  severity: 'mild',
+  status: 'ongoing',
+  note: 'PSA 4.8 — prostate surveillance'
+}, {
+  date: 'Nov 2022',
+  symptom: 'Bone pain / joint stiffness',
+  severity: 'moderate',
+  status: 'managed',
+  note: 'Osteoporosis confirmed on DEXA'
+}];
 const PATIENTS = [{
   id: 'P001',
   name: 'Asha Devi Vijaywargiay',
@@ -1832,6 +2165,7 @@ const PATIENTS = [{
   conditions: MOM_CONDITIONS,
   timeline: MOM_TIMELINE,
   documents: MOM_DOCS,
+  symptoms: MOM_SYMPTOMS,
   labsKey: MOM_LABS_KEY,
   labsFull: MOM_LABS_FULL,
   summary: 'TSH 3.89 | LDL 181↑↑ | HbA1c 5.2% | Vit D 26.2↓ | CRP 6.7↑',
@@ -1842,37 +2176,7 @@ const PATIENTS = [{
     imaging: '372769252193',
     rx: '372768863251',
     hospital: '372769787402'
-  },
-  symptoms: [{
-    date: 'Feb 2026',
-    symptom: 'Red line on sclera (right eye)',
-    severity: 'mild',
-    status: 'ongoing'
-  }, {
-    date: 'Nov 2025',
-    symptom: 'Fatigue, cold intolerance, constipation',
-    severity: 'moderate',
-    status: 'resolved',
-    note: 'Thyroid relapse — TSH 7.45'
-  }, {
-    date: 'Sep 2024',
-    symptom: 'Severe lower back pain radiating to left leg',
-    severity: 'severe',
-    status: 'managed',
-    note: 'L5-S1 epidural treatment'
-  }, {
-    date: 'May 2023',
-    symptom: 'Daily heartburn, frequent burping',
-    severity: 'moderate',
-    status: 'managed',
-    note: 'PPI started after endoscopy'
-  }, {
-    date: 'Jul 2022',
-    symptom: 'Fatigue, hair thinning',
-    severity: 'moderate',
-    status: 'resolved',
-    note: 'Iron deficiency anaemia'
-  }]
+  }
 }, {
   id: 'P002',
   name: 'Bhagwandas Gandhi',
@@ -1887,6 +2191,7 @@ const PATIENTS = [{
   conditions: DAD_CONDITIONS,
   timeline: DAD_TIMELINE,
   documents: DAD_DOCS,
+  symptoms: DAD_SYMPTOMS,
   labsKey: {
     psa: {
       label: 'PSA (Prostate)',
@@ -1915,7 +2220,7 @@ const PATIENTS = [{
         d: "Jan'25",
         v: 4.8
       }],
-      note: 'First elevated Mar 2019 (5.0). Active surveillance. Latest 4.8 (Jan 2025).'
+      note: 'First elevated Mar 2019. Active surveillance. Latest 4.8 (Jan 2025).'
     },
     hba1c: {
       label: 'HbA1c',
@@ -1923,11 +2228,11 @@ const PATIENTS = [{
       refHigh: 7.0,
       color: '#D97706',
       data: [{
-        d: "Jul'22",
-        v: 6.8
-      }, {
         d: "Feb'20",
         v: 6.5
+      }, {
+        d: "Jul'22",
+        v: 6.8
       }, {
         d: "Apr'25",
         v: 6.9
@@ -1944,18 +2249,7 @@ const PATIENTS = [{
     imaging: '369526874258',
     rx: '369526443865',
     hospital: '369528640568'
-  },
-  symptoms: [{
-    date: 'Jan 2025',
-    symptom: 'Urinary frequency (mild)',
-    severity: 'mild',
-    status: 'ongoing'
-  }, {
-    date: 'Nov 2022',
-    symptom: 'Bone pain / joint stiffness',
-    severity: 'moderate',
-    status: 'managed'
-  }]
+  }
 }];
 const SEV_COLORS = {
   urgent: '#DC2626',
@@ -1988,13 +2282,15 @@ const DOC_COLORS = {
 };
 const DOC_ICONS = {
   Lab: '🧪',
-  Imaging: '🔬',
+  Imaging: '📷',
   Cardiac: '❤️',
   Hospital: '🏥',
   Procedure: '⚕',
   Consult: '👨‍⚕️',
   Prescription: '💊'
 };
+
+// ─── UTILITIES ────────────────────────────────────────────────────────────────
 const {
   useState,
   useEffect,
@@ -2049,36 +2345,8 @@ function Badge({
     className: cls
   }, SEV_LABELS[sev] || sev);
 }
-function FieldRow({
-  label,
-  val,
-  color
-}) {
-  return /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: 'flex',
-      justifyContent: 'space-between',
-      padding: '4px 0',
-      borderBottom: '1px solid var(--border)',
-      gap: 8
-    }
-  }, /*#__PURE__*/React.createElement("span", {
-    style: {
-      color: 'var(--text3)',
-      fontSize: 11,
-      flexShrink: 0
-    }
-  }, label), /*#__PURE__*/React.createElement("span", {
-    className: "mono",
-    style: {
-      fontSize: 12,
-      color: color || 'var(--text)',
-      textAlign: 'right'
-    }
-  }, val));
-}
 
-// ── MINI CHART via Canvas ──────────────────────────────────────────────────────
+// ─── MINI CHART ────────────────────────────────────────────────────────────────
 function MiniChart({
   data,
   label,
@@ -2093,11 +2361,7 @@ function MiniChart({
     if (!ref.current || !data?.length) return;
     if (ch.current) ch.current.destroy();
     const vals = data.map(d => d.v);
-    const ptColors = vals.map(v => {
-      if (refHigh && v > refHigh) return '#EF4444';
-      if (refLow && v < refLow) return '#F59E0B';
-      return '#16A34A';
-    });
+    const ptColors = vals.map(v => refHigh && v > refHigh ? '#EF4444' : refLow && v < refLow ? '#F59E0B' : '#16A34A');
     ch.current = new Chart(ref.current.getContext('2d'), {
       type: 'line',
       data: {
@@ -2181,7 +2445,7 @@ function MiniChart({
   }));
 }
 
-// ── LOGIN ──────────────────────────────────────────────────────────────────────
+// ─── LOGIN ─────────────────────────────────────────────────────────────────────
 function LoginPage({
   onLogin
 }) {
@@ -2232,8 +2496,8 @@ function LoginPage({
       boxShadow: '0 4px 12px rgba(22,72,160,.3)'
     }
   }, "\u2695"), /*#__PURE__*/React.createElement("h1", {
+    className: "serif",
     style: {
-      fontFamily: "'DM Serif Display',serif",
       fontSize: 26,
       color: 'var(--text)',
       marginBottom: 4
@@ -2300,10 +2564,10 @@ function LoginPage({
       color: 'var(--text3)',
       marginTop: 14
     }
-  }, "Secured by JWT \xB7 Role-based access control")));
+  }, "Secured \xB7 Role-based access control")));
 }
 
-// ── HOME ───────────────────────────────────────────────────────────────────────
+// ─── HOME ──────────────────────────────────────────────────────────────────────
 function HomePage({
   user,
   patients,
@@ -2333,11 +2597,10 @@ function HomePage({
       fontSize: 16
     }
   }, "\u2695"), /*#__PURE__*/React.createElement("span", {
+    className: "serif",
     style: {
-      fontFamily: "'DM Serif Display',serif",
       fontSize: 17,
-      color: 'var(--text)',
-      fontWeight: 400
+      color: 'var(--text)'
     }
   }, "SBK Health"), /*#__PURE__*/React.createElement("span", {
     style: {
@@ -2348,7 +2611,7 @@ function HomePage({
       borderRadius: 4,
       padding: '2px 7px'
     }
-  }, "v3.0")), /*#__PURE__*/React.createElement("div", {
+  }, "v4.0")), /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'flex',
       alignItems: 'center',
@@ -2358,22 +2621,7 @@ function HomePage({
     initials: user.initials,
     size: 28,
     color: isAdmin ? '#1648A0' : '#16A34A'
-  }), /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: 'none'
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 12,
-      color: 'var(--text)',
-      fontWeight: 500
-    }
-  }, user.name), /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 10,
-      color: isAdmin ? 'var(--blue)' : 'var(--green)'
-    }
-  }, isAdmin ? 'Admin' : 'Viewer')), /*#__PURE__*/React.createElement("span", {
+  }), /*#__PURE__*/React.createElement("span", {
     style: {
       fontSize: 11,
       color: isAdmin ? 'var(--blue)' : 'var(--green)',
@@ -2395,8 +2643,8 @@ function HomePage({
       marginBottom: 18
     }
   }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h2", {
+    className: "serif",
     style: {
-      fontFamily: "'DM Serif Display',serif",
       fontSize: 22,
       color: 'var(--text)',
       marginBottom: 2
@@ -2406,7 +2654,7 @@ function HomePage({
       color: 'var(--text3)',
       fontSize: 12
     }
-  }, patients.length, " patients \xB7 Box cloud storage \xB7 Claude AI")), isAdmin && /*#__PURE__*/React.createElement("button", {
+  }, patients.length, " patients \xB7 Box cloud \xB7 Claude AI")), isAdmin && /*#__PURE__*/React.createElement("button", {
     className: "btn-primary",
     onClick: onAdd,
     style: {
@@ -2444,8 +2692,8 @@ function HomePage({
     size: 42,
     photo: p.photo
   }), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    className: "serif",
     style: {
-      fontFamily: "'DM Serif Display',serif",
       fontSize: 15,
       color: 'var(--text)',
       marginBottom: 1
@@ -2471,7 +2719,7 @@ function HomePage({
       fontWeight: 600,
       flexShrink: 0
     }
-  }, "\u26A0 ", p.urgentCount, " urgent")), /*#__PURE__*/React.createElement("div", {
+  }, "\u26A0 ", p.urgentCount)), /*#__PURE__*/React.createElement("div", {
     style: {
       background: 'var(--bg3)',
       borderRadius: 6,
@@ -2514,7 +2762,7 @@ function HomePage({
   }, "View records \u2192")))))));
 }
 
-// ── BODY MAP ───────────────────────────────────────────────────────────────────
+// ─── BODY MAP ──────────────────────────────────────────────────────────────────
 function BodyMap({
   patient
 }) {
@@ -2593,14 +2841,13 @@ function BodyMap({
     emoji: '👁'
   }];
   const getS = id => {
-    const hasU = patient.conditions.some(c => c.organId === id && c.sev === 'urgent');
-    if (hasU) return 'red';
-    const hasH = patient.conditions.some(c => c.organId === id && (c.sev === 'high' || c.sev === 'moderate'));
-    if (hasH) return 'amber';
-    const has = patient.conditions.some(c => c.organId === id);
-    return has ? 'amber' : 'green';
+    if (patient.conditions.some(c => c.organId === id && c.sev === 'urgent')) return 'red';
+    if (patient.conditions.some(c => c.organId === id && (c.sev === 'high' || c.sev === 'moderate'))) return 'amber';
+    if (patient.conditions.some(c => c.organId === id)) return 'amber';
+    return 'green';
   };
   const selConds = patient.conditions.filter(c => sel && c.organId === sel.id);
+  const activeOrgans = organs.filter(o => patient.conditions.some(c => c.organId === o.id));
   return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("p", {
     style: {
       fontSize: 12,
@@ -2761,7 +3008,7 @@ function BodyMap({
     }
   }, /*#__PURE__*/React.createElement("div", {
     className: "section-hdr"
-  }, "ORGAN SYSTEMS"), organs.filter(o => patient.conditions.some(c => c.organId === o.id)).map(o => {
+  }, "ORGAN SYSTEMS"), activeOrgans.map(o => {
     const s = getS(o.id);
     const c = ORGAN_COLORS[s];
     const isSel = sel?.id === o.id;
@@ -2840,21 +3087,20 @@ function BodyMap({
       lineHeight: 1.5,
       margin: 0
     }
-  }, c.findings)))), sel && selConds.length === 0 && /*#__PURE__*/React.createElement("div", {
-    className: "surface fade",
+  }, c.findings))), selConds.length === 0 && /*#__PURE__*/React.createElement("p", {
     style: {
-      padding: 10,
-      textAlign: 'center',
-      color: 'var(--text3)',
       fontSize: 12,
-      marginTop: 10
+      color: 'var(--text3)',
+      margin: 0
     }
-  }, "\u2705 No active conditions"))));
+  }, "\u2705 No active conditions.")))));
 }
-// ── OVERVIEW TAB ──────────────────────────────────────────────────────────────
+
+// ─── OVERVIEW TAB ──────────────────────────────────────────────────────────────
 function OverviewTab({
   patient,
-  isAdmin
+  isAdmin,
+  setTab
 }) {
   const [ai, setAi] = useState(null);
   const [ld, setLd] = useState(false);
@@ -2864,23 +3110,57 @@ function OverviewTab({
     setLd(true);
     setErr('');
     setAi(null);
-    const prompt = `Clinical AI for SBK Health. Patient: ${patient.name}, Age ${patient.age}, ${patient.gender}, BG ${patient.bg}
-Status: ${patient.status}. Latest: ${patient.summary}
-Conditions (${patient.conditions.length}): ${patient.conditions.map(c => c.name + '(' + c.sev + ')').join('; ')}
-Urgent: ${patient.conditions.filter(c => c.sev === 'urgent').map(c => c.name).join(', ') || 'None'}
-Return ONLY compact JSON (no markdown fences):
-{"summary":"2-3 sentence clinical overview","urgentConcerns":["max 3"],"followUps":["max 3"],"riskFlags":["max 2"],"positives":["max 2 good findings"],"overallRisk":"Low|Moderate|High|Critical"}`;
-    try {
-      const _apiKey = localStorage.getItem('sbk_anthropic_key') || '';
-      if (!_apiKey) { setErr('No API key set — click the ⚙ button (bottom-right corner) to save your Anthropic API key.'); setLd(false); return; }
-      if (!_apiKey.startsWith('sk-ant-')) { setErr('API key looks wrong. Should start with sk-ant- — click ⚙ to update it.'); setLd(false); return; }
-      let r;
+    // Option 1: Use backend (server-side Claude key — no CORS issues)
+    const bkUrl = (localStorage.getItem('sbk_backend_url') || '').replace(/\/$/, '');
+    if (bkUrl) {
       try {
-        r = await fetch('https://api.anthropic.com/v1/messages', {
+        const r = await fetch(`${bkUrl}/api/ai/summary`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            name: patient.name,
+            age: patient.age,
+            gender: patient.gender,
+            bg: patient.bg,
+            status: patient.status,
+            summary: patient.summary,
+            conditions: patient.conditions.map(c => ({
+              name: c.name,
+              sev: c.sev,
+              findings: (c.findings || '').substring(0, 200)
+            }))
+          })
+        });
+        if (r.ok) {
+          setAi(await r.json());
+          setLd(false);
+          return;
+        }
+        const errTxt = await r.text();
+        console.warn('Backend AI failed:', errTxt);
+      } catch (e) {
+        console.warn('Backend unreachable:', e.message);
+      }
+    }
+    // Option 2: Direct browser API call
+    const apiKey = localStorage.getItem('sbk_anthropic_key') || '';
+    if (!apiKey) {
+      setErr('No API key set. Click ⚙ Settings (bottom-right) and enter your Anthropic API key OR your Render Backend URL.');
+      setLd(false);
+      return;
+    }
+    const prompt = `Clinical AI. Patient: ${patient.name}, Age ${patient.age}, ${patient.gender}, BG ${patient.bg}
+Status: ${patient.status}. Latest: ${patient.summary}
+Conditions: ${patient.conditions.map(c => c.name + '(' + c.sev + ')').join('; ')}
+Return ONLY JSON: {"summary":"2-3 sentences","urgentConcerns":["max3"],"followUps":["max3"],"riskFlags":["max2"],"positives":["max2"],"overallRisk":"Low|Moderate|High|Critical"}`;
+    try {
+      const r = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-api-key': _apiKey,
+          'x-api-key': apiKey,
           'anthropic-version': '2023-06-01',
           'anthropic-dangerous-allow-browser': 'true'
         },
@@ -2893,18 +3173,14 @@ Return ONLY compact JSON (no markdown fences):
           }]
         })
       });
-      } catch(_fetchErr) {
-        setErr('Network error: ' + _fetchErr.message + '. If this persists on GitHub Pages, try opening the app locally (download index.html and open in Chrome).');
-        setLd(false); return;
-      }
       if (!r.ok) {
-        let _errBody; try { _errBody = await r.json(); } catch(e) { _errBody = {}; }
-        throw new Error(_errBody.error?.message || 'API error ' + r.status + ' — check your API key is valid and has credits.');
+        const e = await r.json();
+        throw new Error(e.error?.message || 'API error ' + r.status);
       }
       const d = await r.json();
       setAi(JSON.parse((d.content[0]?.text || '{}').replace(/```json|```/g, '').trim()));
     } catch (e) {
-      setErr(e.message || 'AI unavailable. Check API key and internet connection.');
+      setErr(e.message || 'AI unavailable. Try using Backend URL in Settings.');
     }
     setLd(false);
   }, [patient]);
@@ -2916,6 +3192,28 @@ Return ONLY compact JSON (no markdown fences):
     Moderate: '#A16207',
     Low: 'var(--green)'
   };
+  // Clickable tiles — each navigates to a specific tab
+  const tiles = [{
+    l: 'Urgent Issues',
+    v: urgent.length,
+    c: 'var(--red)',
+    tab: 'issues'
+  }, {
+    l: 'High Priority',
+    v: high.length,
+    c: 'var(--amber)',
+    tab: 'issues'
+  }, {
+    l: 'Documents',
+    v: patient.documents.length,
+    c: 'var(--blue)',
+    tab: 'documents'
+  }, {
+    l: 'Timeline Events',
+    v: patient.timeline.length,
+    c: 'var(--green)',
+    tab: 'timeline'
+  }];
   return /*#__PURE__*/React.createElement("div", {
     className: "fade"
   }, /*#__PURE__*/React.createElement("div", {
@@ -2942,8 +3240,8 @@ Return ONLY compact JSON (no markdown fences):
       fontSize: 16
     }
   }, "\uD83E\uDD16"), /*#__PURE__*/React.createElement("span", {
+    className: "serif",
     style: {
-      fontFamily: "'DM Serif Display',serif",
       fontSize: 15,
       color: 'var(--text)'
     }
@@ -2966,15 +3264,15 @@ Return ONLY compact JSON (no markdown fences):
     }
   }, ld ? /*#__PURE__*/React.createElement("span", {
     className: "spinner"
-  }) : /*#__PURE__*/React.createElement("span", null, "\u21BA"), " ", ld ? 'Analysing…' : 'Refresh')), !ai && !ld && !err && /*#__PURE__*/React.createElement("p", {
+  }) : '↺', " ", ld ? 'Analysing…' : 'Refresh')), !ai && !ld && !err && /*#__PURE__*/React.createElement("p", {
     style: {
       fontSize: 12,
       color: 'var(--text3)',
       textAlign: 'center',
-      padding: '12px 0',
+      padding: '10px 0',
       margin: 0
     }
-  }, "Click Refresh to generate an AI clinical overview using the latest patient data."), ld && /*#__PURE__*/React.createElement("p", {
+  }, "Click Refresh to generate an AI clinical overview."), ld && /*#__PURE__*/React.createElement("p", {
     style: {
       fontSize: 12,
       color: 'var(--blue)',
@@ -2987,7 +3285,8 @@ Return ONLY compact JSON (no markdown fences):
       fontSize: 12,
       padding: '8px 12px',
       background: 'var(--red-light)',
-      borderRadius: 7
+      borderRadius: 7,
+      lineHeight: 1.5
     }
   }, err), ai && /*#__PURE__*/React.createElement("div", {
     className: "fade"
@@ -3025,8 +3324,7 @@ Return ONLY compact JSON (no markdown fences):
       color: RCOL[ai.overallRisk] || 'var(--blue)',
       background: (RCOL[ai.overallRisk] || 'var(--blue)') + '18',
       padding: '2px 10px',
-      borderRadius: 20,
-      border: `1px solid ${RCOL[ai.overallRisk] || 'var(--blue)'}30`
+      borderRadius: 20
     }
   }, ai.overallRisk)), /*#__PURE__*/React.createElement("div", {
     className: "g3",
@@ -3037,7 +3335,7 @@ Return ONLY compact JSON (no markdown fences):
     key: k,
     style: {
       background: 'var(--bg3)',
-      border: '1px solid var(--border)',
+      border: `1px solid ${c}20`,
       borderRadius: 7,
       padding: '10px 12px'
     }
@@ -3070,26 +3368,23 @@ Return ONLY compact JSON (no markdown fences):
     style: {
       marginBottom: 12
     }
-  }, [{
-    l: 'Urgent',
-    v: urgent.length,
-    c: 'var(--red)'
-  }, {
-    l: 'High',
-    v: high.length,
-    c: 'var(--amber)'
-  }, {
-    l: 'Documents',
-    v: patient.documents.length,
-    c: 'var(--blue)'
-  }, {
-    l: 'Timeline',
-    v: patient.timeline.length,
-    c: 'var(--green)'
-  }].map(s => /*#__PURE__*/React.createElement("div", {
+  }, tiles.map(s => /*#__PURE__*/React.createElement("div", {
     key: s.l,
-    className: "stat-card card-link",
-    onClick: () => {}
+    className: "stat-card",
+    title: `Click to view ${s.l}`,
+    style: {
+      cursor: 'pointer',
+      transition: 'box-shadow .15s,transform .15s'
+    },
+    onClick: () => setTab(s.tab),
+    onMouseEnter: e => {
+      e.currentTarget.style.boxShadow = 'var(--shadow-md)';
+      e.currentTarget.style.transform = 'translateY(-2px)';
+    },
+    onMouseLeave: e => {
+      e.currentTarget.style.boxShadow = '';
+      e.currentTarget.style.transform = '';
+    }
   }, /*#__PURE__*/React.createElement("div", {
     className: "stat-val",
     style: {
@@ -3098,7 +3393,14 @@ Return ONLY compact JSON (no markdown fences):
     }
   }, s.v), /*#__PURE__*/React.createElement("div", {
     className: "stat-label"
-  }, s.l)))), /*#__PURE__*/React.createElement("div", {
+  }, s.l), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 9,
+      color: s.c,
+      marginTop: 2,
+      opacity: .7
+    }
+  }, "\u2192 click to view")))), /*#__PURE__*/React.createElement("div", {
     className: "card",
     style: {
       padding: 14
@@ -3142,7 +3444,7 @@ Return ONLY compact JSON (no markdown fences):
     }
   }, c.name), /*#__PURE__*/React.createElement(Badge, {
     sev: c.sev
-  })), selCond?.id === c.id && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("p", {
+  })), selCond?.id === c.id ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("p", {
     style: {
       fontSize: 11,
       color: 'var(--text2)',
@@ -3162,14 +3464,14 @@ Return ONLY compact JSON (no markdown fences):
       color: 'var(--blue)',
       margin: 0
     }
-  }, c.action))), selCond?.id !== c.id && /*#__PURE__*/React.createElement("p", {
+  }, c.action))) : /*#__PURE__*/React.createElement("p", {
     style: {
       fontSize: 11,
       color: 'var(--text3)',
       lineHeight: 1.4,
       margin: 0
     }
-  }, c.findings.substring(0, 90), "\u2026")), /*#__PURE__*/React.createElement("div", {
+  }, (c.findings || '').substring(0, 90), "\u2026")), /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 10,
       color: 'var(--text3)',
@@ -3179,23 +3481,20 @@ Return ONLY compact JSON (no markdown fences):
   }, c.reviewed)))));
 }
 
-// ── TIMELINE TAB ──────────────────────────────────────────────────────────────
+// ─── TIMELINE TAB ──────────────────────────────────────────────────────────────
 function TimelineTab({
   patient
 }) {
   const [filter, setFilter] = useState('all');
   const types = ['all', 'lab', 'imaging', 'hospital', 'procedure', 'surgery', 'diagnosis'];
   const filtered = filter === 'all' ? patient.timeline : patient.timeline.filter(t => t.type === filter);
-  // Group by year
-  const byYear = useMemo(() => {
-    const map = {};
-    filtered.forEach(ev => {
-      const y = ev.year || parseInt(ev.date);
-      if (!map[y]) map[y] = [];
-      map[y].push(ev);
-    });
-    return Object.entries(map).sort((a, b) => b[0] - a[0]);
-  }, [filtered]);
+  const byYear = {};
+  filtered.forEach(ev => {
+    const y = ev.year || parseInt(ev.date);
+    if (!byYear[y]) byYear[y] = [];
+    byYear[y].push(ev);
+  });
+  const years = Object.keys(byYear).map(Number).sort((a, b) => b - a);
   return /*#__PURE__*/React.createElement("div", {
     className: "fade"
   }, /*#__PURE__*/React.createElement("div", {
@@ -3216,7 +3515,7 @@ function TimelineTab({
       color: filter === t ? 'var(--blue)' : '',
       borderColor: filter === t ? '#BFDBFE' : ''
     }
-  }, t.charAt(0).toUpperCase() + t.slice(1)))), byYear.map(([year, evs]) => /*#__PURE__*/React.createElement("div", {
+  }, t.charAt(0).toUpperCase() + t.slice(1)))), years.map(year => /*#__PURE__*/React.createElement("div", {
     key: year,
     style: {
       marginBottom: 20
@@ -3226,7 +3525,7 @@ function TimelineTab({
     style: {
       marginBottom: 12
     }
-  }, "\uD83D\uDCC5 ", year), evs.map((ev, i) => /*#__PURE__*/React.createElement("div", {
+  }, "\uD83D\uDCC5 ", year), byYear[year].map((ev, i) => /*#__PURE__*/React.createElement("div", {
     key: i,
     className: "tl-wrap"
   }, /*#__PURE__*/React.createElement("div", {
@@ -3235,7 +3534,7 @@ function TimelineTab({
       background: ev.color + '22',
       borderColor: ev.color
     }
-  }), i < evs.length - 1 && /*#__PURE__*/React.createElement("div", {
+  }), i < byYear[year].length - 1 && /*#__PURE__*/React.createElement("div", {
     className: "tl-line"
   }), /*#__PURE__*/React.createElement("div", {
     className: "card",
@@ -3284,7 +3583,7 @@ function TimelineTab({
       lineHeight: 1.5,
       margin: 0
     }
-  }, ev.detail)))))), byYear.length === 0 && /*#__PURE__*/React.createElement("p", {
+  }, ev.detail)))))), years.length === 0 && /*#__PURE__*/React.createElement("p", {
     style: {
       textAlign: 'center',
       padding: 24,
@@ -3294,7 +3593,7 @@ function TimelineTab({
   }, "No events for this filter."));
 }
 
-// ── LAB TRENDS TAB ────────────────────────────────────────────────────────────
+// ─── LAB TRENDS TAB ────────────────────────────────────────────────────────────
 function LabTrendsTab({
   patient
 }) {
@@ -3312,7 +3611,6 @@ function LabTrendsTab({
     style: {
       display: 'flex',
       gap: 8,
-      alignItems: 'center',
       marginBottom: 12
     }
   }, /*#__PURE__*/React.createElement("div", {
@@ -3350,21 +3648,19 @@ function LabTrendsTab({
     }
   }, Object.entries(labs).map(([k, v]) => /*#__PURE__*/React.createElement("button", {
     key: k,
-    className: `metric-pill${active === k ? ' active' : ''}`,
     onClick: () => setActive(k),
     style: {
-      color: active === k ? v.color : 'var(--text2)',
-      borderColor: active === k ? v.color : '',
-      ...(active === k ? {
-        background: v.color + '12'
-      } : {})
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
+      padding: '5px 10px',
       fontSize: 11,
-      fontWeight: 600
+      fontWeight: 500,
+      border: '1px solid',
+      borderRadius: 6,
+      cursor: 'pointer',
+      background: active === k ? v.color + '12' : 'var(--bg2)',
+      color: active === k ? v.color : 'var(--text2)',
+      borderColor: active === k ? v.color : 'var(--border)'
     }
-  }, v.label)))), cur && /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+  }, v.label))), cur && /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
     className: "card",
     style: {
       padding: 16,
@@ -3378,8 +3674,8 @@ function LabTrendsTab({
       marginBottom: 10
     }
   }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    className: "serif",
     style: {
-      fontFamily: "'DM Serif Display',serif",
       fontSize: 15,
       color: 'var(--text)',
       marginBottom: 3
@@ -3399,25 +3695,25 @@ function LabTrendsTab({
       borderRadius: 5,
       padding: '2px 8px'
     }
-  }, cur.unit)), cur.refHigh && /*#__PURE__*/React.createElement("div", {
+  }, cur.unit)), (cur.refHigh || cur.refLow) && /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 10,
       color: 'var(--text3)',
       marginBottom: 8
     }
-  }, "Normal: ", cur.refLow ? `${cur.refLow}–` : '', "<", cur.refHigh, " ", cur.unit, " \xB7", /*#__PURE__*/React.createElement("span", {
+  }, "Normal: ", cur.refLow ? `${cur.refLow}–` : '<', cur.refHigh || '∞', " ", cur.unit, " \xB7 ", /*#__PURE__*/React.createElement("span", {
     style: {
       color: 'var(--red)'
     }
-  }, " Red=high "), "\xB7", cur.refLow && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("span", {
+  }, "Red=high"), cur.refLow && /*#__PURE__*/React.createElement(React.Fragment, null, " \xB7 ", /*#__PURE__*/React.createElement("span", {
     style: {
       color: 'var(--amber)'
     }
-  }, " Amber=low "), "\xB7"), /*#__PURE__*/React.createElement("span", {
+  }, "Amber=low")), " \xB7 ", /*#__PURE__*/React.createElement("span", {
     style: {
       color: 'var(--green)'
     }
-  }, " Green=normal")), /*#__PURE__*/React.createElement(MiniChart, {
+  }, "Green=normal")), /*#__PURE__*/React.createElement(MiniChart, {
     data: cur.data,
     label: cur.label,
     unit: cur.unit,
@@ -3462,66 +3758,235 @@ function LabTrendsTab({
   })()))));
 }
 
-// ── DOCUMENTS TAB ─────────────────────────────────────────────────────────────
-function DocumentsTab(_ref_dt) {
-  var patient = _ref_dt.patient, isAdmin = _ref_dt.isAdmin, onUpload = _ref_dt.onUpload;
-  var _srch = React.useState(''); var srch = _srch[0]; var setSrch = _srch[1];
-  var _tf = React.useState('all'); var tf = _tf[0]; var setTf = _tf[1];
-  var types = ['all'].concat(Array.from(new Set(patient.documents.map(function(d) { return d.type; }))));
-  var filtered = patient.documents.filter(function(d) {
-    var mt = tf === 'all' || d.type === tf;
-    var ms = !srch || d.name.toLowerCase().includes(srch.toLowerCase()) || d.condition.toLowerCase().includes(srch.toLowerCase()) || d.tags.some(function(t) { return t.includes(srch.toLowerCase()); });
+// ─── DOCUMENTS TAB — compact 2-row with all info ───────────────────────────────
+function DocumentsTab({
+  patient,
+  isAdmin,
+  onUpload
+}) {
+  const [srch, setSrch] = useState('');
+  const [tf, setTf] = useState('all');
+  const types = ['all', ...new Set(patient.documents.map(d => d.type))];
+  const filtered = patient.documents.filter(d => {
+    const mt = tf === 'all' || d.type === tf;
+    const ms = !srch || d.name.toLowerCase().includes(srch.toLowerCase()) || (d.condition || '').toLowerCase().includes(srch.toLowerCase()) || (d.tags || []).some(t => t.includes(srch.toLowerCase())) || (d.doctor || '').toLowerCase().includes(srch.toLowerCase());
     return mt && ms;
   });
-  // Group by year, newest first
-  var byYear = {};
-  filtered.forEach(function(d) { var y = d.year || 0; if (!byYear[y]) byYear[y] = []; byYear[y].push(d); });
-  var years = Object.keys(byYear).map(Number).sort(function(a,b){return b-a;});
-  var DOC_DOT = { Lab:'#2563EB', Imaging:'#7C3AED', Cardiac:'#DC2626', Hospital:'#DC2626', Procedure:'#D97706', Consult:'#0891B2', Prescription:'#16A34A' };
-  return /*#__PURE__*/React.createElement("div", { className: "fade" },
-    /*#__PURE__*/React.createElement("div", { style: { display:'flex', gap:8, flexWrap:'wrap', alignItems:'center', marginBottom:10 } },
-      /*#__PURE__*/React.createElement("input", { className:"input", placeholder:"Search docs, conditions, tags\u2026", value:srch, onChange:function(e){setSrch(e.target.value);}, style:{flex:1,minWidth:120,padding:'6px 10px',fontSize:12} }),
-      /*#__PURE__*/React.createElement("div", { style:{display:'flex',gap:4,flexWrap:'wrap'} },
-        types.map(function(t) { return /*#__PURE__*/React.createElement("button", { key:t, className:"btn", onClick:function(){setTf(t);}, style:{fontSize:10,padding:'3px 8px',background:tf===t?'var(--blue-mid)':'',color:tf===t?'var(--blue)':'',borderColor:tf===t?'#BFDBFE':''} }, t); })
-      ),
-      isAdmin && /*#__PURE__*/React.createElement("button", { className:"btn", onClick:onUpload, style:{color:'var(--green)',borderColor:'#BBF7D0',background:'var(--green-light)',fontSize:12} }, "\u2191 Upload")
-    ),
-    /*#__PURE__*/React.createElement("p", { style:{fontSize:11,color:'var(--text3)',marginBottom:8} }, filtered.length, " of ", patient.documents.length, " documents"),
-    years.length === 0 && /*#__PURE__*/React.createElement("p", { style:{textAlign:'center',padding:20,color:'var(--text3)',fontSize:12} }, "No documents match."),
-    years.map(function(year) {
-      return /*#__PURE__*/React.createElement("div", { key:year, style:{marginBottom:14} },
-        /*#__PURE__*/React.createElement("div", { style:{display:'flex',alignItems:'center',gap:8,marginBottom:6} },
-          /*#__PURE__*/React.createElement("div", { style:{background:'var(--blue)',color:'#fff',borderRadius:12,padding:'2px 10px',fontSize:11,fontWeight:600} }, year || 'Unknown'),
-          /*#__PURE__*/React.createElement("div", { style:{flex:1,height:1,background:'var(--border)'} })
-        ),
-        /*#__PURE__*/React.createElement("div", { className:"card", style:{overflow:'hidden'} },
-          byYear[year].map(function(doc, i) {
-            var dotColor = DOC_DOT[doc.type] || '#2563EB';
-            return /*#__PURE__*/React.createElement("div", {
-              key:doc.id,
-              style:{
-                display:'flex', alignItems:'center', gap:10, padding:'7px 12px',
-                borderBottom: i < byYear[year].length-1 ? '1px solid var(--border)' : 'none',
-                transition:'background .12s', cursor:'default'
-              },
-              onMouseEnter:function(e){e.currentTarget.style.background='var(--bg3)';},
-              onMouseLeave:function(e){e.currentTarget.style.background='';}
-            },
-              /*#__PURE__*/React.createElement("div", { style:{width:8,height:8,borderRadius:'50%',background:dotColor,flexShrink:0} }),
-              /*#__PURE__*/React.createElement("span", { style:{fontSize:11,color:'var(--text3)',flexShrink:0,width:60} }, doc.date),
-              /*#__PURE__*/React.createElement("span", { style:{flex:1,fontSize:12,color:'var(--text)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'} }, doc.name),
-              /*#__PURE__*/React.createElement("span", { style:{fontSize:10,color:dotColor,flexShrink:0,width:70,textAlign:'right',overflow:'hidden',textOverflow:'ellipsis'} }, doc.type),
-              /*#__PURE__*/React.createElement("a", { href:'https://app.box.com/file/'+doc.boxId, target:"_blank", rel:"noreferrer", style:{textDecoration:'none',flexShrink:0} },
-                /*#__PURE__*/React.createElement("button", { className:"btn", style:{fontSize:10,padding:'2px 7px'} }, "\ud83d\udcc2")
-              )
-            );
-          })
-        )
-      );
-    })
-  );
+  const byYear = {};
+  filtered.forEach(d => {
+    const y = d.year || 0;
+    if (!byYear[y]) byYear[y] = [];
+    byYear[y].push(d);
+  });
+  const years = Object.keys(byYear).map(Number).sort((a, b) => b - a);
+  return /*#__PURE__*/React.createElement("div", {
+    className: "fade"
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 8,
+      flexWrap: 'wrap',
+      alignItems: 'center',
+      marginBottom: 10
+    }
+  }, /*#__PURE__*/React.createElement("input", {
+    className: "input",
+    placeholder: "Search name, doctor, condition, tags\u2026",
+    value: srch,
+    onChange: e => setSrch(e.target.value),
+    style: {
+      flex: 1,
+      minWidth: 120,
+      padding: '6px 10px',
+      fontSize: 12
+    }
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 4,
+      flexWrap: 'wrap'
+    }
+  }, types.map(t => /*#__PURE__*/React.createElement("button", {
+    key: t,
+    className: "btn",
+    onClick: () => setTf(t),
+    style: {
+      fontSize: 10,
+      padding: '3px 8px',
+      background: tf === t ? 'var(--blue-mid)' : '',
+      color: tf === t ? 'var(--blue)' : '',
+      borderColor: tf === t ? '#BFDBFE' : ''
+    }
+  }, t))), isAdmin && /*#__PURE__*/React.createElement("button", {
+    className: "btn",
+    onClick: onUpload,
+    style: {
+      color: 'var(--green)',
+      borderColor: '#BBF7D0',
+      background: 'var(--green-light)',
+      fontSize: 11
+    }
+  }, "\u2191 Upload")), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 11,
+      color: 'var(--text3)',
+      marginBottom: 8
+    }
+  }, filtered.length, " of ", patient.documents.length, " documents"), years.length === 0 && /*#__PURE__*/React.createElement("p", {
+    style: {
+      textAlign: 'center',
+      padding: 20,
+      color: 'var(--text3)',
+      fontSize: 12
+    }
+  }, "No documents match."), years.map(year => /*#__PURE__*/React.createElement("div", {
+    key: year,
+    style: {
+      marginBottom: 14
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 8,
+      marginBottom: 5
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: 'var(--blue)',
+      color: '#fff',
+      borderRadius: 12,
+      padding: '2px 10px',
+      fontSize: 11,
+      fontWeight: 600,
+      flexShrink: 0
+    }
+  }, year || 'Unknown'), /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1,
+      height: 1,
+      background: 'var(--border)'
+    }
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "card",
+    style: {
+      overflow: 'hidden'
+    }
+  }, byYear[year].map((doc, i) => {
+    const dotColor = DOC_COLORS[doc.type] || '#64748B';
+    const icon = DOC_ICONS[doc.type] || '📄';
+    const tags = (doc.tags || []).slice(0, 4);
+    return /*#__PURE__*/React.createElement("div", {
+      key: doc.id,
+      style: {
+        borderBottom: i < byYear[year].length - 1 ? '1px solid var(--border)' : 'none',
+        transition: 'background .12s'
+      },
+      onMouseEnter: e => e.currentTarget.style.background = 'var(--bg3)',
+      onMouseLeave: e => e.currentTarget.style.background = ''
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: 8,
+        padding: '7px 12px 2px'
+      }
+    }, /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontSize: 13,
+        flexShrink: 0,
+        width: 18
+      }
+    }, icon), /*#__PURE__*/React.createElement("span", {
+      className: "mono",
+      style: {
+        fontSize: 10,
+        color: 'var(--text3)',
+        flexShrink: 0,
+        width: 62
+      }
+    }, doc.date), /*#__PURE__*/React.createElement("span", {
+      style: {
+        flex: 1,
+        fontSize: 12,
+        color: 'var(--text)',
+        fontWeight: 500,
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        whiteSpace: 'nowrap'
+      }
+    }, doc.name), /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontSize: 10,
+        color: dotColor,
+        background: dotColor + '15',
+        border: `1px solid ${dotColor}30`,
+        borderRadius: 4,
+        padding: '1px 6px',
+        flexShrink: 0
+      }
+    }, doc.type), doc.isNew && /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontSize: 9,
+        color: 'var(--green)',
+        fontWeight: 700,
+        background: 'var(--green-light)',
+        borderRadius: 3,
+        padding: '1px 5px',
+        flexShrink: 0
+      }
+    }, "NEW"), /*#__PURE__*/React.createElement("a", {
+      href: 'https://app.box.com/file/' + doc.boxId,
+      target: "_blank",
+      rel: "noreferrer",
+      style: {
+        textDecoration: 'none',
+        flexShrink: 0
+      }
+    }, /*#__PURE__*/React.createElement("button", {
+      className: "btn",
+      style: {
+        fontSize: 10,
+        padding: '2px 7px'
+      }
+    }, "\uD83D\uDCC2 Box"))), /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: 5,
+        padding: '1px 12px 6px 42px',
+        flexWrap: 'wrap'
+      }
+    }, doc.doctor && /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontSize: 10,
+        color: 'var(--text3)'
+      }
+    }, "\uD83D\uDC68\u200D\u2695\uFE0F ", doc.doctor), doc.folder && /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontSize: 10,
+        color: 'var(--blue)',
+        background: 'var(--blue-light)',
+        borderRadius: 3,
+        padding: '1px 5px'
+      }
+    }, "\uD83D\uDCC1 ", doc.folder), doc.condition && /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontSize: 10,
+        color: 'var(--text3)'
+      }
+    }, doc.condition), tags.map(t => /*#__PURE__*/React.createElement("span", {
+      key: t,
+      className: "tag",
+      style: {
+        fontSize: 9,
+        padding: '1px 5px'
+      }
+    }, t))));
+  })))));
 }
 
+// ─── HEALTH ISSUES TAB ─────────────────────────────────────────────────────────
 function HealthIssuesTab({
   patient,
   isAdmin,
@@ -3577,7 +4042,8 @@ function HealthIssuesTab({
     style: {
       display: 'flex',
       alignItems: 'center',
-      gap: 8
+      gap: 8,
+      marginBottom: exp === c.id ? 10 : 0
     }
   }, /*#__PURE__*/React.createElement("div", {
     style: {
@@ -3612,10 +4078,7 @@ function HealthIssuesTab({
       transform: exp === c.id ? 'rotate(90deg)' : 'none'
     }
   }, "\u203A")), exp === c.id && /*#__PURE__*/React.createElement("div", {
-    className: "fade",
-    style: {
-      marginTop: 10
-    }
+    className: "fade"
   }, /*#__PURE__*/React.createElement("div", {
     style: {
       background: 'var(--bg3)',
@@ -3688,23 +4151,18 @@ function HealthIssuesTab({
   }, "\uD83D\uDCDD Add Note"))))))));
 }
 
-// ── SYMPTOMS TAB ──────────────────────────────────────────────────────────────
+// ─── SYMPTOMS TAB ──────────────────────────────────────────────────────────────
 function SymptomsTab({
   patient,
   isAdmin,
   onAddSymptom
 }) {
-  const sevOrder = {
-    severe: 0,
-    moderate: 1,
-    mild: 2
-  };
-  const sorted = [...patient.symptoms].sort((a, b) => new Date(b.date) - new Date(a.date));
   const statusColor = {
     ongoing: 'var(--red)',
     managed: 'var(--amber)',
     resolved: 'var(--green)'
   };
+  const sorted = [...(patient.symptoms || [])].sort((a, b) => new Date(b.date) - new Date(a.date));
   return /*#__PURE__*/React.createElement("div", {
     className: "fade"
   }, isAdmin && /*#__PURE__*/React.createElement("div", {
@@ -3723,10 +4181,6 @@ function SymptomsTab({
       fontSize: 12
     }
   }, "+ Record Symptom")), /*#__PURE__*/React.createElement("div", {
-    style: {
-      marginBottom: 12
-    }
-  }, /*#__PURE__*/React.createElement("div", {
     className: "section-hdr"
   }, "SYMPTOM HISTORY"), /*#__PURE__*/React.createElement("div", {
     style: {
@@ -3804,13 +4258,11 @@ function SymptomsTab({
       color: 'var(--text3)',
       fontSize: 12
     }
-  }, "No symptoms recorded. Click + to add."))));
+  }, "No symptoms recorded. Click + to add.")));
 }
 
-// ── GOOGLE FIT PLACEHOLDER TAB ─────────────────────────────────────────────────
-function HealthDataTab({
-  patient
-}) {
+// ─── HEALTH DATA TAB ───────────────────────────────────────────────────────────
+function HealthDataTab() {
   const mockSteps = [{
     d: 'Mon',
     v: 6240
@@ -3878,7 +4330,7 @@ function HealthDataTab({
       color: 'var(--text)',
       fontWeight: 500
     }
-  }, "Google Fit / Apple Health Integration"), /*#__PURE__*/React.createElement("span", {
+  }, "Health Device Integration"), /*#__PURE__*/React.createElement("span", {
     style: {
       fontSize: 10,
       background: 'var(--amber-mid)',
@@ -3895,7 +4347,7 @@ function HealthDataTab({
       lineHeight: 1.6,
       marginBottom: 10
     }
-  }, "To fetch real-time health data from Google Fit or Apple Health, you need to connect via OAuth 2.0. Once connected, steps, weight, heart rate, sleep, and blood oxygen data will appear here automatically."), /*#__PURE__*/React.createElement("div", {
+  }, "Connect Google Fit, Apple Health, Fitbit, or Garmin to automatically track steps, weight, heart rate, sleep, and blood oxygen."), /*#__PURE__*/React.createElement("div", {
     style: {
       background: 'var(--bg3)',
       borderRadius: 7,
@@ -3904,7 +4356,7 @@ function HealthDataTab({
     }
   }, /*#__PURE__*/React.createElement("div", {
     className: "section-hdr"
-  }, "SETUP STEPS"), [['1', 'Google Fit: Go to console.cloud.google.com → Enable Fitness API → Create OAuth 2.0 credentials'], ['2', 'Apple Health: Install HealthKit connector app on iPhone → Authorize SBK Health to read categories'], ['3', 'Fitbit/Garmin: Connect via OAuth at fitbit.com/api and set redirect_uri to your deployment URL'], ['4', 'Add API keys to .env: GOOGLE_FIT_CLIENT_ID, GOOGLE_FIT_CLIENT_SECRET, APPLE_HEALTH_TOKEN']].map(([n, s]) => /*#__PURE__*/React.createElement("div", {
+  }, "SETUP STEPS"), [['1', 'Google Fit: console.cloud.google.com → Enable Fitness API → Create OAuth 2.0 credentials → add GOOGLE_FIT_CLIENT_ID to Render env vars'], ['2', 'Apple Health: HealthKit connector app on iPhone → Authorize SBK Health'], ['3', 'Fitbit/Garmin: Connect via OAuth → add API token to Render env vars'], ['4', 'After setup, data syncs automatically every 6 hours']].map(([n, s]) => /*#__PURE__*/React.createElement("div", {
     key: n,
     style: {
       display: 'flex',
@@ -3933,13 +4385,16 @@ function HealthDataTab({
       lineHeight: 1.4,
       margin: 0
     }
-  }, s)))), /*#__PURE__*/React.createElement("button", {
-    className: "btn-primary",
+  }, s)))), /*#__PURE__*/React.createElement("div", {
     style: {
-      fontSize: 12,
-      padding: '7px 14px'
+      display: 'flex',
+      flexWrap: 'wrap',
+      gap: 6
     }
-  }, "Connect Google Fit (OAuth)")), /*#__PURE__*/React.createElement("div", {
+  }, ['Google Fit', 'Apple Health', 'Fitbit', 'Garmin', 'Withings', 'Samsung Health'].map(a => /*#__PURE__*/React.createElement("span", {
+    key: a,
+    className: "tag"
+  }, a)))), /*#__PURE__*/React.createElement("div", {
     className: "g2",
     style: {
       marginBottom: 12
@@ -3972,7 +4427,7 @@ function HealthDataTab({
     style: {
       color: 'var(--blue)'
     }
-  }, "6,382 steps/day"))), /*#__PURE__*/React.createElement("div", {
+  }, "6,382/day"))), /*#__PURE__*/React.createElement("div", {
     className: "card",
     style: {
       padding: 14
@@ -4000,26 +4455,15 @@ function HealthDataTab({
     style: {
       color: 'var(--green)'
     }
-  }, "67.2 kg")))), /*#__PURE__*/React.createElement("div", {
-    className: "surface",
-    style: {
-      padding: 12
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "section-hdr"
-  }, "SUPPORTED INTEGRATIONS"), /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: 'flex',
-      gap: 10,
-      flexWrap: 'wrap'
-    }
-  }, ['Google Fit', 'Apple Health', 'Fitbit', 'Garmin Connect', 'Withings', 'Strava', 'Samsung Health', 'Mi Fitness'].map(a => /*#__PURE__*/React.createElement("span", {
-    key: a,
-    className: "tag"
-  }, a)))));
+  }, "67.2 kg")))));
 }
-// ── UPLOAD MODAL ──────────────────────────────────────────────────────────────
-function UploadModal({patient, onClose, onAdded}) {
+
+// ─── UPLOAD MODAL ──────────────────────────────────────────────────────────────
+function UploadModal({
+  patient,
+  onClose,
+  onAdded
+}) {
   const [file, setFile] = useState(null);
   const [dt, setDt] = useState('Lab');
   const [dr, setDr] = useState('');
@@ -4028,78 +4472,245 @@ function UploadModal({patient, onClose, onAdded}) {
   const [done, setDone] = useState(false);
   const [err, setErr] = useState('');
   const fRef = useRef(null);
-  const folderName = {Lab:'1 Lab Reports',Imaging:'2 Imaging',Hospital:'4 Hospital Visits',Prescription:'3 Prescriptions',Cardiac:'2 Imaging',Consult:'3 Prescriptions',Procedure:'2 Imaging'};
+  const folderName = {
+    Lab: '1 Lab Reports',
+    Imaging: '2 Imaging',
+    Hospital: '4 Hospital Visits',
+    Prescription: '3 Prescriptions',
+    Cardiac: '2 Imaging',
+    Consult: '3 Prescriptions',
+    Procedure: '2 Imaging'
+  };
   const submit = () => {
-    if (!file) { setErr('Please select a file.'); return; }
-    setErr(''); setProg(10);
-    const iv = setInterval(() => setProg(p => { if (p>=90){clearInterval(iv);return 90;} return p+15; }), 180);
+    if (!file) {
+      setErr('Please select a file.');
+      return;
+    }
+    setErr('');
+    setProg(10);
+    const iv = setInterval(() => setProg(p => {
+      if (p >= 90) {
+        clearInterval(iv);
+        return 90;
+      }
+      return p + 15;
+    }), 180);
     setTimeout(() => {
-      clearInterval(iv); setProg(100);
+      clearInterval(iv);
+      setProg(100);
       const newDoc = {
         id: Date.now(),
         name: file.name.replace(/\.[^.]+$/, ''),
-        date: new Date().toLocaleDateString('en-GB',{month:'short',year:'numeric'}),
+        date: new Date().toLocaleDateString('en-GB', {
+          month: 'short',
+          year: 'numeric'
+        }),
         year: new Date().getFullYear(),
-        type: dt, doctor: dr||'Unknown', condition: tags||'See file',
-        tags: tags.split(',').map(t=>t.trim()).filter(Boolean),
-        boxId: 'PENDING_'+Date.now(),
-        folder: folderName[dt]||'1 Lab Reports',
+        type: dt,
+        doctor: dr || 'Unknown',
+        condition: tags || 'See file',
+        tags: tags.split(',').map(t => t.trim()).filter(Boolean),
+        boxId: 'PENDING_' + Date.now(),
+        folder: folderName[dt] || '1 Lab Reports',
         isNew: true
       };
       if (onAdded) onAdded(newDoc);
       setDone(true);
     }, 1800);
   };
-  if (done) return /*#__PURE__*/React.createElement("div", {className:"modal-bg",onClick:onClose},
-    /*#__PURE__*/React.createElement("div", {className:"modal fade",onClick:e=>e.stopPropagation(),style:{textAlign:'center'}},
-      /*#__PURE__*/React.createElement("div", {style:{fontSize:40,marginBottom:10}}, "✅"),
-      /*#__PURE__*/React.createElement("h3", {style:{fontFamily:"'DM Serif Display',serif",fontSize:18,color:'var(--text)',marginBottom:6}}, "Upload Complete"),
-      /*#__PURE__*/React.createElement("p", {style:{fontSize:12,color:'var(--text2)',marginBottom:4}}, `"${file?.name}" added to ${patient.name} / ${folderName[dt]}`),
-      /*#__PURE__*/React.createElement("p", {style:{fontSize:11,color:'var(--text3)',marginBottom:4}}, "Document now appears in the Documents tab."),
-      /*#__PURE__*/React.createElement("p", {style:{fontSize:11,color:'var(--amber)',marginBottom:16}}, "💡 To also save to Box: run main.py backend with BOX credentials in .env"),
-      /*#__PURE__*/React.createElement("button", {className:"btn-primary",onClick:onClose}, "Done")
-    )
-  );
-  return /*#__PURE__*/React.createElement("div", {className:"modal-bg",onClick:onClose},
-    /*#__PURE__*/React.createElement("div", {className:"modal fade",onClick:e=>e.stopPropagation()},
-      /*#__PURE__*/React.createElement("div", {style:{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:16}},
-        /*#__PURE__*/React.createElement("h3", {style:{fontFamily:"'DM Serif Display',serif",fontSize:17,color:'var(--text)'}}, "Upload Medical File"),
-        /*#__PURE__*/React.createElement("button", {className:"btn-ghost",onClick:onClose}, "✕")
-      ),
-      /*#__PURE__*/React.createElement("div", {className:"upload-zone",onClick:()=>fRef.current?.click(),style:{marginBottom:12,borderColor:file?'var(--green)':''}},
-        /*#__PURE__*/React.createElement("input", {ref:fRef,type:"file",accept:".pdf,.jpg,.jpeg,.png",style:{display:'none'},onChange:e=>setFile(e.target.files[0])}),
-        file
-          ? /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div",{style:{fontSize:22,marginBottom:4}},"📄"), /*#__PURE__*/React.createElement("div",{style:{color:'var(--green)',fontWeight:500,fontSize:12}},file.name), /*#__PURE__*/React.createElement("div",{style:{fontSize:11,color:'var(--text3)',marginTop:2}},(file.size/1024/1024).toFixed(2)," MB · Click to change"))
-          : /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div",{style:{fontSize:26,marginBottom:6}},"📁"), /*#__PURE__*/React.createElement("div",{style:{color:'var(--text2)',fontSize:13}},"Click to select file"), /*#__PURE__*/React.createElement("div",{style:{fontSize:11,color:'var(--text3)',marginTop:2}},"PDF, JPG, PNG"))
-      ),
-      /*#__PURE__*/React.createElement("div", {style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8,marginBottom:10}},
-        /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label",{className:"field-label"},"TYPE"),
-          /*#__PURE__*/React.createElement("select",{className:"select",value:dt,onChange:e=>setDt(e.target.value)},
-            ['Lab','Imaging','Hospital','Prescription','Cardiac','Consult','Procedure'].map(t=>/*#__PURE__*/React.createElement("option",{key:t},t))
-          )
-        ),
-        /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label",{className:"field-label"},"DOCTOR"),
-          /*#__PURE__*/React.createElement("input",{className:"input",placeholder:"Doctor / Lab name",value:dr,onChange:e=>setDr(e.target.value)})
-        )
-      ),
-      /*#__PURE__*/React.createElement("div", {style:{marginBottom:12}}, /*#__PURE__*/React.createElement("label",{className:"field-label"},"TAGS"),
-        /*#__PURE__*/React.createElement("input",{className:"input",placeholder:"e.g. mri, spine, urgent",value:tags,onChange:e=>setTags(e.target.value)})
-      ),
-      err && /*#__PURE__*/React.createElement("p",{style:{color:'var(--red)',fontSize:12,marginBottom:8}},err),
-      prog>0 && /*#__PURE__*/React.createElement("div",{style:{marginBottom:10}},
-        /*#__PURE__*/React.createElement("div",{style:{display:'flex',justifyContent:'space-between',fontSize:11,color:'var(--text3)',marginBottom:3}},/*#__PURE__*/React.createElement("span",null,"Adding to list…"),/*#__PURE__*/React.createElement("span",null,prog,"%")),
-        /*#__PURE__*/React.createElement("div",{className:"progress-bar"},/*#__PURE__*/React.createElement("div",{className:"progress-fill",style:{width:prog+'%'}}))
-      ),
-      /*#__PURE__*/React.createElement("div",{style:{display:'flex',gap:8,justifyContent:'flex-end'}},
-        /*#__PURE__*/React.createElement("button",{className:"btn",onClick:onClose},"Cancel"),
-        /*#__PURE__*/React.createElement("button",{className:"btn-primary",onClick:submit,disabled:prog>0&&prog<100,style:{fontSize:12}},
-          (prog>0&&prog<100) ? /*#__PURE__*/React.createElement(React.Fragment,null,/*#__PURE__*/React.createElement("span",{className:"spinner"}),"Uploading…") : "↑ Upload File"
-        )
-      )
-    )
-  );
+  if (done) return /*#__PURE__*/React.createElement("div", {
+    className: "modal-bg",
+    onClick: onClose
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "modal fade",
+    onClick: e => e.stopPropagation(),
+    style: {
+      textAlign: 'center'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 40,
+      marginBottom: 10
+    }
+  }, "\u2705"), /*#__PURE__*/React.createElement("h3", {
+    className: "serif",
+    style: {
+      fontSize: 18,
+      color: 'var(--text)',
+      marginBottom: 6
+    }
+  }, "Upload Complete"), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 12,
+      color: 'var(--text2)',
+      marginBottom: 4
+    }
+  }, "\"", file?.name, "\" added to ", patient.name), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 11,
+      color: 'var(--text3)',
+      marginBottom: 4
+    }
+  }, "Document now appears in the Documents tab and persists across refresh."), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 11,
+      color: 'var(--amber)',
+      marginBottom: 16
+    }
+  }, "\uD83D\uDCA1 To also save to Box: ensure Render backend is running with Box credentials in env vars."), /*#__PURE__*/React.createElement("button", {
+    className: "btn-primary",
+    onClick: onClose
+  }, "Done")));
+  return /*#__PURE__*/React.createElement("div", {
+    className: "modal-bg",
+    onClick: onClose
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "modal fade",
+    onClick: e => e.stopPropagation()
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginBottom: 16
+    }
+  }, /*#__PURE__*/React.createElement("h3", {
+    className: "serif",
+    style: {
+      fontSize: 17,
+      color: 'var(--text)'
+    }
+  }, "Upload Medical File"), /*#__PURE__*/React.createElement("button", {
+    className: "btn-ghost",
+    onClick: onClose
+  }, "\u2715")), /*#__PURE__*/React.createElement("div", {
+    className: "upload-zone",
+    onClick: () => fRef.current?.click(),
+    style: {
+      marginBottom: 12,
+      borderColor: file ? 'var(--green)' : ''
+    }
+  }, /*#__PURE__*/React.createElement("input", {
+    ref: fRef,
+    type: "file",
+    accept: ".pdf,.jpg,.jpeg,.png",
+    style: {
+      display: 'none'
+    },
+    onChange: e => setFile(e.target.files[0])
+  }), file ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 22,
+      marginBottom: 4
+    }
+  }, "\uD83D\uDCC4"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      color: 'var(--green)',
+      fontWeight: 500,
+      fontSize: 12
+    }
+  }, file.name), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11,
+      color: 'var(--text3)',
+      marginTop: 2
+    }
+  }, (file.size / 1024 / 1024).toFixed(2), " MB \xB7 Click to change")) : /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 26,
+      marginBottom: 6
+    }
+  }, "\uD83D\uDCC1"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      color: 'var(--text2)',
+      fontSize: 13
+    }
+  }, "Click to select file"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11,
+      color: 'var(--text3)',
+      marginTop: 2
+    }
+  }, "PDF, JPG, PNG"))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'grid',
+      gridTemplateColumns: '1fr 1fr',
+      gap: 8,
+      marginBottom: 10
+    }
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    className: "field-label"
+  }, "TYPE"), /*#__PURE__*/React.createElement("select", {
+    className: "select",
+    value: dt,
+    onChange: e => setDt(e.target.value)
+  }, ['Lab', 'Imaging', 'Hospital', 'Prescription', 'Cardiac', 'Consult', 'Procedure'].map(t => /*#__PURE__*/React.createElement("option", {
+    key: t
+  }, t)))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    className: "field-label"
+  }, "DOCTOR"), /*#__PURE__*/React.createElement("input", {
+    className: "input",
+    placeholder: "Doctor / Lab",
+    value: dr,
+    onChange: e => setDr(e.target.value)
+  }))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginBottom: 12
+    }
+  }, /*#__PURE__*/React.createElement("label", {
+    className: "field-label"
+  }, "TAGS"), /*#__PURE__*/React.createElement("input", {
+    className: "input",
+    placeholder: "e.g. mri, spine, urgent",
+    value: tags,
+    onChange: e => setTags(e.target.value)
+  })), err && /*#__PURE__*/React.createElement("p", {
+    style: {
+      color: 'var(--red)',
+      fontSize: 12,
+      marginBottom: 8
+    }
+  }, err), prog > 0 && /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginBottom: 10
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      fontSize: 11,
+      color: 'var(--text3)',
+      marginBottom: 3
+    }
+  }, /*#__PURE__*/React.createElement("span", null, "Adding\u2026"), /*#__PURE__*/React.createElement("span", null, prog, "%")), /*#__PURE__*/React.createElement("div", {
+    className: "progress-bar"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "progress-fill",
+    style: {
+      width: prog + '%'
+    }
+  }))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 8,
+      justifyContent: 'flex-end'
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    className: "btn",
+    onClick: onClose
+  }, "Cancel"), /*#__PURE__*/React.createElement("button", {
+    className: "btn-primary",
+    onClick: submit,
+    disabled: prog > 0 && prog < 100,
+    style: {
+      fontSize: 12
+    }
+  }, prog > 0 && prog < 100 ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("span", {
+    className: "spinner"
+  }), "Uploading\u2026") : '↑ Upload File'))));
 }
 
+// ─── EDIT PATIENT MODAL ────────────────────────────────────────────────────────
 function EditPatientModal({
   patient,
   onClose,
@@ -4130,8 +4741,8 @@ function EditPatientModal({
       marginBottom: 18
     }
   }, /*#__PURE__*/React.createElement("h3", {
+    className: "serif",
     style: {
-      fontFamily: "'DM Serif Display',serif",
       fontSize: 17,
       color: 'var(--text)'
     }
@@ -4188,7 +4799,7 @@ function EditPatientModal({
   }, "Save Changes"))));
 }
 
-// ── ADD CONDITION MODAL ───────────────────────────────────────────────────────
+// ─── CONDITION MODAL ───────────────────────────────────────────────────────────
 function ConditionModal({
   cond,
   onClose,
@@ -4221,8 +4832,8 @@ function ConditionModal({
       marginBottom: 18
     }
   }, /*#__PURE__*/React.createElement("h3", {
+    className: "serif",
     style: {
-      fontFamily: "'DM Serif Display',serif",
       fontSize: 17,
       color: 'var(--text)'
     }
@@ -4269,11 +4880,11 @@ function ConditionModal({
   }, s.charAt(0).toUpperCase() + s.slice(1))))), [{
     k: 'findings',
     l: 'LATEST FINDINGS',
-    p: 'Describe current findings…'
+    p: 'Current findings…'
   }, {
     k: 'action',
     l: 'RECOMMENDED ACTION',
-    p: 'Treatment or follow-up plan…'
+    p: 'Treatment plan…'
   }].map(({
     k,
     l,
@@ -4324,7 +4935,7 @@ function ConditionModal({
   }, cond ? 'Save Changes' : 'Add Condition'))));
 }
 
-// ── ADD NOTE MODAL ────────────────────────────────────────────────────────────
+// ─── NOTE MODAL ────────────────────────────────────────────────────────────────
 function NoteModal({
   condition,
   onClose,
@@ -4345,8 +4956,8 @@ function NoteModal({
       marginBottom: 18
     }
   }, /*#__PURE__*/React.createElement("h3", {
+    className: "serif",
     style: {
-      fontFamily: "'DM Serif Display',serif",
       fontSize: 17,
       color: 'var(--text)'
     }
@@ -4367,7 +4978,7 @@ function NoteModal({
     className: "field-label"
   }, "NOTE"), /*#__PURE__*/React.createElement("textarea", {
     className: "input",
-    placeholder: "Enter clinical note, observation, or update\u2026",
+    placeholder: "Enter clinical note or observation\u2026",
     value: note,
     onChange: e => setNote(e.target.value),
     style: {
@@ -4396,7 +5007,7 @@ function NoteModal({
   }, "Save Note"))));
 }
 
-// ── ADD SYMPTOM MODAL ─────────────────────────────────────────────────────────
+// ─── SYMPTOM MODAL ─────────────────────────────────────────────────────────────
 function SymptomModal({
   onClose,
   onSave
@@ -4426,8 +5037,8 @@ function SymptomModal({
       marginBottom: 18
     }
   }, /*#__PURE__*/React.createElement("h3", {
+    className: "serif",
     style: {
-      fontFamily: "'DM Serif Display',serif",
       fontSize: 17,
       color: 'var(--text)'
     }
@@ -4440,9 +5051,9 @@ function SymptomModal({
     }
   }, /*#__PURE__*/React.createElement("label", {
     className: "field-label"
-  }, "SYMPTOM DESCRIPTION"), /*#__PURE__*/React.createElement("input", {
+  }, "SYMPTOM"), /*#__PURE__*/React.createElement("input", {
     className: "input",
-    placeholder: "e.g. Severe lower back pain radiating to left leg",
+    placeholder: "e.g. Severe lower back pain",
     value: form.symptom,
     onChange: set('symptom')
   })), /*#__PURE__*/React.createElement("div", {
@@ -4485,9 +5096,9 @@ function SymptomModal({
     }
   }, /*#__PURE__*/React.createElement("label", {
     className: "field-label"
-  }, "NOTES / CONTEXT"), /*#__PURE__*/React.createElement("input", {
+  }, "NOTES"), /*#__PURE__*/React.createElement("input", {
     className: "input",
-    placeholder: "e.g. Started after lifting, worsens at night",
+    placeholder: "Context or clinical note\u2026",
     value: form.note,
     onChange: set('note')
   })), /*#__PURE__*/React.createElement("div", {
@@ -4513,7 +5124,7 @@ function SymptomModal({
   }, "Save"))));
 }
 
-// ── ADD PATIENT MODAL ─────────────────────────────────────────────────────────
+// ─── ADD PATIENT MODAL ─────────────────────────────────────────────────────────
 function AddPatientModal({
   onClose,
   onAdd
@@ -4543,8 +5154,8 @@ function AddPatientModal({
       marginBottom: 18
     }
   }, /*#__PURE__*/React.createElement("h3", {
+    className: "serif",
     style: {
-      fontFamily: "'DM Serif Display',serif",
       fontSize: 17,
       color: 'var(--text)'
     }
@@ -4605,7 +5216,7 @@ function AddPatientModal({
       fontSize: 11,
       color: 'var(--blue)'
     }
-  }, "\uD83D\uDCE6 On save, Box folders auto-created: Medical Records/", form.name || 'Patient Name', "/1 Lab Reports \xB7 /2 Imaging \xB7 /3 Prescriptions \xB7 /4 Hospital Visits"), /*#__PURE__*/React.createElement("div", {
+  }, "\uD83D\uDCE6 On save, Box folders auto-created: Medical Records/", form.name || 'Patient Name', "/1 Lab \xB7 /2 Imaging \xB7 /3 Rx \xB7 /4 Hospital"), /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'flex',
       gap: 8,
@@ -4628,91 +5239,248 @@ function AddPatientModal({
   }, "Create Patient"))));
 }
 
-function SettingsModal({onClose}) {
-  var _saved = localStorage.getItem('sbk_anthropic_key') || '';
-  var _st = React.useState(_saved);
-  var key = _st[0]; var setKey = _st[1];
-  var _mt = React.useState('');
-  var msg = _mt[0]; var setMsg = _mt[1];
-  var save = function() {
-    var trimmed = key.trim();
-    if (!trimmed) { setMsg('Please enter your API key.'); return; }
-    if (!trimmed.startsWith('sk-ant-')) { setMsg('Key should start with sk-ant- — check you copied the full key.'); return; }
-    localStorage.setItem('sbk_anthropic_key', trimmed);
-    setMsg('✅ Key saved for this browser session. It clears when you close the tab.');
+// ─── SETTINGS MODAL ────────────────────────────────────────────────────────────
+function SettingsModal({
+  onClose
+}) {
+  const [key, setKey] = useState(localStorage.getItem('sbk_anthropic_key') || '');
+  const [bkUrl, setBkUrl] = useState(localStorage.getItem('sbk_backend_url') || '');
+  const [msg, setMsg] = useState('');
+  const save = () => {
+    const trimKey = key.trim();
+    const trimUrl = bkUrl.trim().replace(/\/$/, '');
+    if (trimKey && !trimKey.startsWith('sk-ant-')) {
+      setMsg('API key should start with sk-ant- — check you copied it fully.');
+      return;
+    }
+    if (trimKey) localStorage.setItem('sbk_anthropic_key', trimKey);else localStorage.removeItem('sbk_anthropic_key');
+    if (trimUrl) localStorage.setItem('sbk_backend_url', trimUrl);else localStorage.removeItem('sbk_backend_url');
+    setMsg('✅ Settings saved!');
   };
-  var clear = function() { localStorage.removeItem('sbk_anthropic_key'); setKey(''); setMsg('Key cleared.'); };
-  return React.createElement('div', {className:'modal-bg', onClick:onClose},
-    React.createElement('div', {className:'modal fade', onClick:function(e){e.stopPropagation();}, style:{maxWidth:460}},
-      React.createElement('div', {style:{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:18}},
-        React.createElement('div', null,
-          React.createElement('h3', {style:{fontFamily:"'DM Serif Display',serif",fontSize:17,color:'var(--text)',marginBottom:2}}, '⚙ Settings'),
-          React.createElement('p', {style:{fontSize:11,color:'var(--text3)',margin:0}}, 'API keys are stored only in your browser session memory')
-        ),
-        React.createElement('button', {className:'btn-ghost', onClick:onClose}, '✕')
-      ),
-      React.createElement('div', {style:{background:'var(--blue-light)',border:'1px solid #BFDBFE',borderRadius:8,padding:'10px 14px',marginBottom:16}},
-        React.createElement('p', {style:{fontSize:12,color:'var(--blue)',margin:'0 0 4px',fontWeight:600}}, '🔒 How your key is stored securely'),
-        React.createElement('p', {style:{fontSize:11,color:'var(--text2)',margin:0,lineHeight:1.6}},
-          'Your Anthropic API key is stored in localStorage — it stays on this device only, is never written to any file or code, never sent to any server other than api.anthropic.com, and is never included in your GitHub repository. You can clear it anytime using the Clear Key button.'
-        )
-      ),
-      React.createElement('div', {style:{marginBottom:12}},
-        React.createElement('label', {className:'field-label'}, 'ANTHROPIC API KEY'),
-        React.createElement('input', {
-          className:'input',
-          type:'password',
-          placeholder:'sk-ant-api03-...',
-          value:key,
-          onChange:function(e){setKey(e.target.value);setMsg('');},
-          style:{fontFamily:"'Fira Code',monospace",fontSize:12}
-        }),
-        React.createElement('p', {style:{fontSize:11,color:'var(--text3)',marginTop:4}},
-          'Get your key at: console.anthropic.com → API Keys → Create Key'
-        )
-      ),
-      msg && React.createElement('div', {
-        style:{
-          padding:'8px 12px',borderRadius:7,marginBottom:12,fontSize:12,
-          background: msg.startsWith('✅') ? 'var(--green-light)' : msg.startsWith('Key cleared') ? 'var(--bg3)' : 'var(--red-light)',
-          color: msg.startsWith('✅') ? 'var(--green)' : msg.startsWith('Key cleared') ? 'var(--text3)' : 'var(--red)',
-          border: '1px solid ' + (msg.startsWith('✅') ? '#BBF7D0' : msg.startsWith('Key cleared') ? 'var(--border)' : '#FECACA')
-        }
-      }, msg),
-      React.createElement('div', {style:{display:'flex',gap:8,justifyContent:'space-between'}},
-        React.createElement('button', {className:'btn', onClick:clear, style:{fontSize:12,color:'var(--red)'}}, 'Clear Key'),
-        React.createElement('div', {style:{display:'flex',gap:8}},
-          React.createElement('button', {className:'btn', onClick:onClose}, 'Cancel'),
-          React.createElement('button', {className:'btn-primary', onClick:save, style:{fontSize:12}}, 'Save Key')
-        )
-      )
-    )
-  );
+  const clear = () => {
+    localStorage.removeItem('sbk_anthropic_key');
+    localStorage.removeItem('sbk_backend_url');
+    setKey('');
+    setBkUrl('');
+    setMsg('Cleared.');
+  };
+  return /*#__PURE__*/React.createElement("div", {
+    className: "modal-bg",
+    onClick: onClose
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "modal fade",
+    onClick: e => e.stopPropagation(),
+    style: {
+      maxWidth: 480
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginBottom: 16
+    }
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h3", {
+    className: "serif",
+    style: {
+      fontSize: 17,
+      color: 'var(--text)',
+      marginBottom: 2
+    }
+  }, "\u2699 Settings"), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 11,
+      color: 'var(--text3)',
+      margin: 0
+    }
+  }, "Keys stored in browser only \u2014 never in any file or GitHub")), /*#__PURE__*/React.createElement("button", {
+    className: "btn-ghost",
+    onClick: onClose
+  }, "\u2715")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: 'var(--blue-light)',
+      border: '1px solid #BFDBFE',
+      borderRadius: 8,
+      padding: '10px 14px',
+      marginBottom: 14
+    }
+  }, /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 11,
+      color: 'var(--blue)',
+      fontWeight: 600,
+      margin: '0 0 4px'
+    }
+  }, "\uD83D\uDE80 Option 1 \u2014 Use Render Backend (Recommended)"), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 11,
+      color: 'var(--text2)',
+      margin: 0,
+      lineHeight: 1.6
+    }
+  }, "If your Render.com backend is running, the AI key is already there server-side. Just enter the URL \u2014 no API key needed here. Photos also sync across all devices.")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginBottom: 14
+    }
+  }, /*#__PURE__*/React.createElement("label", {
+    className: "field-label"
+  }, "RENDER BACKEND URL"), /*#__PURE__*/React.createElement("input", {
+    className: "input",
+    placeholder: "https://sbkhealth-api.onrender.com",
+    value: bkUrl,
+    onChange: e => {
+      setBkUrl(e.target.value);
+      setMsg('');
+    },
+    style: {
+      fontFamily: "'Fira Code',monospace",
+      fontSize: 12
+    }
+  }), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 10,
+      color: 'var(--text3)',
+      marginTop: 3
+    }
+  }, "Find this on your Render dashboard \u2014 your web service URL")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 8,
+      marginBottom: 14
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1,
+      height: 1,
+      background: 'var(--border)'
+    }
+  }), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 11,
+      color: 'var(--text3)'
+    }
+  }, "OR"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1,
+      height: 1,
+      background: 'var(--border)'
+    }
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: 'var(--bg3)',
+      border: '1px solid var(--border)',
+      borderRadius: 8,
+      padding: '10px 14px',
+      marginBottom: 14
+    }
+  }, /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 11,
+      color: 'var(--text2)',
+      fontWeight: 600,
+      margin: '0 0 4px'
+    }
+  }, "\uD83D\uDD11 Option 2 \u2014 Direct API Key"), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 11,
+      color: 'var(--text3)',
+      margin: 0,
+      lineHeight: 1.6
+    }
+  }, "Works when you open index.html locally in Chrome. May not work on GitHub Pages due to browser CORS rules.")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginBottom: 14
+    }
+  }, /*#__PURE__*/React.createElement("label", {
+    className: "field-label"
+  }, "ANTHROPIC API KEY"), /*#__PURE__*/React.createElement("input", {
+    className: "input",
+    type: "password",
+    placeholder: "sk-ant-api03-\u2026",
+    value: key,
+    onChange: e => {
+      setKey(e.target.value);
+      setMsg('');
+    },
+    style: {
+      fontFamily: "'Fira Code',monospace",
+      fontSize: 12
+    }
+  }), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 10,
+      color: 'var(--text3)',
+      marginTop: 3
+    }
+  }, "Get from: console.anthropic.com \u2192 API Keys")), msg && /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: '8px 12px',
+      borderRadius: 7,
+      marginBottom: 12,
+      fontSize: 12,
+      background: msg.startsWith('✅') ? 'var(--green-light)' : 'var(--red-light)',
+      color: msg.startsWith('✅') ? 'var(--green)' : msg.startsWith('Cleared') ? 'var(--text3)' : 'var(--red)',
+      border: `1px solid ${msg.startsWith('✅') ? '#BBF7D0' : '#FECACA'}`
+    }
+  }, msg), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 8,
+      justifyContent: 'space-between'
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    className: "btn",
+    onClick: clear,
+    style: {
+      fontSize: 12,
+      color: 'var(--red)'
+    }
+  }, "Clear All"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 8
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    className: "btn",
+    onClick: onClose
+  }, "Cancel"), /*#__PURE__*/React.createElement("button", {
+    className: "btn-primary",
+    onClick: save,
+    style: {
+      fontSize: 12
+    }
+  }, "Save Settings")))));
 }
 
+// ─── SETTINGS BUTTON ───────────────────────────────────────────────────────────
 function SettingsButton() {
-  var _st = React.useState(false);
-  var open = _st[0]; var setOpen = _st[1];
-  var _kt = React.useState(!!localStorage.getItem('sbk_anthropic_key'));
-  var hasKey = _kt[0]; var setHasKey = _kt[1];
-  var handleClose = function() {
+  const [open, setOpen] = useState(false);
+  const [hasKey, setHasKey] = useState(!!localStorage.getItem('sbk_anthropic_key'));
+  const [hasBk, setHasBk] = useState(!!localStorage.getItem('sbk_backend_url'));
+  const handleClose = () => {
     setHasKey(!!localStorage.getItem('sbk_anthropic_key'));
+    setHasBk(!!localStorage.getItem('sbk_backend_url'));
     setOpen(false);
   };
-  return React.createElement(React.Fragment, null,
-    open && React.createElement(SettingsModal, {onClose:handleClose}),
-    React.createElement('div', {
-      className: 'api-indicator ' + (hasKey ? 'api-ok' : 'api-missing')
-    }, hasKey ? '🔑 API Key Set' : '⚠ No API Key'),
-    React.createElement('button', {
-      className:'settings-btn',
-      onClick:function(){setOpen(true);},
-      title:'Settings — Enter Anthropic API key'
-    }, '⚙')
-  );
+  const isOk = hasBk || hasKey;
+  const label = hasBk ? '🚀 Backend' : hasKey ? '🔑 API Key' : '⚠ Configure AI';
+  return /*#__PURE__*/React.createElement(React.Fragment, null, open && /*#__PURE__*/React.createElement(SettingsModal, {
+    onClose: handleClose
+  }), /*#__PURE__*/React.createElement("div", {
+    className: 'api-indicator ' + (isOk ? 'api-ok' : 'api-missing'),
+    style: {
+      cursor: 'pointer'
+    },
+    onClick: () => setOpen(true)
+  }, label), /*#__PURE__*/React.createElement("button", {
+    className: "settings-btn",
+    onClick: () => setOpen(true),
+    title: "Settings"
+  }, "\u2699"));
 }
 
-// ── PATIENT PAGE ──────────────────────────────────────────────────────────────
+// ─── PATIENT PAGE ──────────────────────────────────────────────────────────────
 function PatientPage({
   patient,
   user,
@@ -4722,7 +5490,7 @@ function PatientPage({
   const [tab, setTab] = useState('overview');
   const [showUpload, setShowUpload] = useState(false);
   const [showEdit, setShowEdit] = useState(false);
-  const [condModal, setCondModal] = useState(null); // null | {mode:'add'} | {mode:'edit',cond:...}
+  const [condModal, setCondModal] = useState(null);
   const [noteModal, setNoteModal] = useState(null);
   const [symptomModal, setSymptomModal] = useState(false);
   const isAdmin = user.role === 'admin';
@@ -4764,15 +5532,29 @@ function PatientPage({
     const reader = new FileReader();
     reader.onload = ev => {
       const photoData = ev.target.result;
-      updatePatient({ photo: photoData });
-      try { localStorage.setItem('sbk_photo_' + patient.id, photoData); } catch(e) {}
+      updatePatient({
+        photo: photoData
+      });
+      try {
+        localStorage.setItem('sbk_photo_' + patient.id, photoData);
+      } catch (e) {}
     };
     reader.readAsDataURL(f);
   };
   return /*#__PURE__*/React.createElement("div", null, showUpload && /*#__PURE__*/React.createElement(UploadModal, {
     patient: patient,
     onClose: () => setShowUpload(false),
-    onAdded: function(doc) { updatePatient({documents: [doc, ...patient.documents]}); }
+    onAdded: doc => {
+      updatePatient({
+        documents: [doc, ...patient.documents]
+      });
+      try {
+        const k = 'sbk_docs_' + patient.id;
+        const saved = JSON.parse(localStorage.getItem(k) || '[]');
+        saved.unshift(doc);
+        localStorage.setItem(k, JSON.stringify(saved.slice(0, 50)));
+      } catch (e) {}
+    }
   }), showEdit && /*#__PURE__*/React.createElement(EditPatientModal, {
     patient: patient,
     onClose: () => setShowEdit(false),
@@ -4785,37 +5567,30 @@ function PatientPage({
     })
   }), condModal?.mode === 'add' && /*#__PURE__*/React.createElement(ConditionModal, {
     onClose: () => setCondModal(null),
-    onSave: c => {
-      updatePatient({
-        conditions: [...patient.conditions, {
-          ...c,
-          id: 'c' + Date.now()
-        }]
-      });
-    }
+    onSave: c => updatePatient({
+      conditions: [...patient.conditions, {
+        ...c,
+        id: 'c' + Date.now()
+      }]
+    })
   }), condModal?.mode === 'edit' && /*#__PURE__*/React.createElement(ConditionModal, {
     cond: condModal.cond,
     onClose: () => setCondModal(null),
-    onSave: c => {
-      updatePatient({
-        conditions: patient.conditions.map(x => x.id === c.id ? {
-          ...x,
-          ...c
-        } : x)
-      });
-    }
+    onSave: c => updatePatient({
+      conditions: patient.conditions.map(x => x.id === c.id ? {
+        ...x,
+        ...c
+      } : x)
+    })
   }), noteModal && /*#__PURE__*/React.createElement(NoteModal, {
     condition: noteModal,
     onClose: () => setNoteModal(null),
-    onSave: note => {
-      const updated = {
-        ...noteModal,
-        findings: noteModal.findings + '\n📝 Note (' + new Date().toLocaleDateString() + '): ' + note
-      };
-      updatePatient({
-        conditions: patient.conditions.map(c => c.id === noteModal.id ? updated : c)
-      });
-    }
+    onSave: note => updatePatient({
+      conditions: patient.conditions.map(c => c.id === noteModal.id ? {
+        ...c,
+        findings: c.findings + '\n📝 Note (' + new Date().toLocaleDateString() + '): ' + note
+      } : c)
+    })
   }), symptomModal && /*#__PURE__*/React.createElement(SymptomModal, {
     onClose: () => setSymptomModal(false),
     onSave: s => updatePatient({
@@ -4849,6 +5624,7 @@ function PatientPage({
     photo: patient.photo
   }), isAdmin && /*#__PURE__*/React.createElement("div", {
     onClick: () => photoRef.current?.click(),
+    title: "Change photo",
     style: {
       position: 'absolute',
       inset: 0,
@@ -4888,8 +5664,8 @@ function PatientPage({
       flexWrap: 'wrap'
     }
   }, /*#__PURE__*/React.createElement("span", {
+    className: "serif",
     style: {
-      fontFamily: "'DM Serif Display',serif",
       fontSize: 15,
       color: 'var(--text)'
     }
@@ -4944,7 +5720,8 @@ function PatientPage({
     className: "container"
   }, tab === 'overview' && /*#__PURE__*/React.createElement(OverviewTab, {
     patient: patient,
-    isAdmin: isAdmin
+    isAdmin: isAdmin,
+    setTab: setTab
   }), tab === 'bodymap' && /*#__PURE__*/React.createElement(BodyMap, {
     patient: patient
   }), tab === 'timeline' && /*#__PURE__*/React.createElement(TimelineTab, {
@@ -4970,34 +5747,58 @@ function PatientPage({
       cond: c
     }),
     onAddNote: c => setNoteModal(c)
-  }), tab === 'fitness' && /*#__PURE__*/React.createElement(HealthDataTab, {
-    patient: patient
-  })));
+  }), tab === 'fitness' && /*#__PURE__*/React.createElement(HealthDataTab, null)));
 }
 
-// ── ROOT APP ──────────────────────────────────────────────────────────────────
+// ─── ROOT APP ──────────────────────────────────────────────────────────────────
 function App() {
-  const _storedUser = (function() { try { var u = localStorage.getItem('sbk_user'); return u ? JSON.parse(u) : null; } catch(e) { return null; } })();
-  const [user, setUser] = useState(_storedUser);
-  const [selectedId, setSelectedId] = useState(null);
-  const [patients, setPatients] = useState(function() {
-    return PATIENTS.map(function(p) {
-      try {
-        var savedPhoto = localStorage.getItem('sbk_photo_' + p.id);
-        return savedPhoto ? Object.assign({}, p, {photo: savedPhoto}) : p;
-      } catch(e) { return p; }
-    });
+  // Restore login session from localStorage
+  const [user, setUser] = useState(() => {
+    try {
+      const u = localStorage.getItem('sbk_user');
+      return u ? JSON.parse(u) : null;
+    } catch (e) {
+      return null;
+    }
   });
+  const [selectedId, setSelectedId] = useState(null);
   const [showAdd, setShowAdd] = useState(false);
+
+  // Restore patients with saved photos + uploaded docs
+  const [patients, setPatients] = useState(() => PATIENTS.map(p => {
+    try {
+      const photo = localStorage.getItem('sbk_photo_' + p.id);
+      const savedDocs = JSON.parse(localStorage.getItem('sbk_docs_' + p.id) || '[]');
+      const baseIds = new Set(p.documents.map(d => d.id));
+      const extraDocs = savedDocs.filter(d => !baseIds.has(d.id));
+      return {
+        ...p,
+        photo: photo || null,
+        documents: [...extraDocs, ...p.documents]
+      };
+    } catch (e) {
+      return p;
+    }
+  }));
+  const login = u => {
+    try {
+      localStorage.setItem('sbk_user', JSON.stringify(u));
+    } catch (e) {}
+    setUser(u);
+  };
+  const logout = () => {
+    localStorage.removeItem('sbk_user');
+    setUser(null);
+    setSelectedId(null);
+  };
   const addPatient = p => {
     const initials = p.name.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase();
     const yr = parseInt(p.dob?.split(' ').pop() || new Date().getFullYear());
-    const age = new Date().getFullYear() - yr;
     const np = {
       ...p,
       id: 'P' + Date.now(),
       initials,
-      age,
+      age: new Date().getFullYear() - yr,
       urgentCount: 0,
       conditions: [],
       timeline: [],
@@ -5016,10 +5817,9 @@ function App() {
       }
     };
     setPatients(prev => [...prev, np]);
-    alert(`Patient "${p.name}" created.\n\nBox folders will be created via backend API:\nPOST /api/patients → BoxSDK auto-creates:\n  Medical Records/${p.name}/\n    1 Lab Reports/\n    2 Imaging/\n    3 Prescriptions/\n    4 Hospital Visits/`);
   };
   if (!user) return /*#__PURE__*/React.createElement(LoginPage, {
-    onLogin: function(u) { try { localStorage.setItem('sbk_user', JSON.stringify(u)); } catch(e) {} setUser(u); }
+    onLogin: login
   });
   const patient = selectedId ? patients.find(p => p.id === selectedId) : null;
   if (patient) return /*#__PURE__*/React.createElement(PatientPage, {
@@ -5028,23 +5828,17 @@ function App() {
     onBack: () => setSelectedId(null),
     setPatients: setPatients
   });
-  return /*#__PURE__*/React.createElement("div", null,
-    /*#__PURE__*/React.createElement(SettingsButton, null),
-    showAdd && /*#__PURE__*/React.createElement(AddPatientModal, {
+  return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(SettingsButton, null), showAdd && /*#__PURE__*/React.createElement(AddPatientModal, {
     onClose: () => setShowAdd(false),
-    onAdd: p => {
-      addPatient(p);
-    }
+    onAdd: addPatient
   }), /*#__PURE__*/React.createElement(HomePage, {
     user: user,
     patients: patients,
     onSelect: p => setSelectedId(p.id),
-    onLogout: () => {
-      setUser(null);
-      setSelectedId(null);
-    },
+    onLogout: logout,
     onAdd: () => user.role === 'admin' && setShowAdd(true)
   }));
 }
 ReactDOM.createRoot(document.getElementById('root')).render(/*#__PURE__*/React.createElement(App, null));
-</script></body></html>
+</script>
+</body></html>
