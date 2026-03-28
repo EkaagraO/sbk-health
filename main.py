@@ -533,6 +533,8 @@ class AISummaryIn(BaseModel):
     status: Optional[str] = None
     summary: Optional[str] = None
     conditions: Optional[list] = []
+    narrative_mode: Optional[bool] = False
+    prompt_override: Optional[str] = None
 
 @app.post("/api/ai/summary")
 async def ai_summary_public(data: AISummaryIn):
@@ -555,9 +557,10 @@ async def ai_summary_public(data: AISummaryIn):
         f'"riskFlags":["max2"],"positives":["max2"],'
         f'"overallRisk":"Low|Moderate|High|Critical"}}'
     )
+    final_prompt = data.prompt_override if data.prompt_override else prompt
     resp = anthropic.Anthropic(api_key=ANTHROPIC_KEY).messages.create(
-        model="claude-sonnet-4-20250514", max_tokens=700,
-        messages=[{"role": "user", "content": prompt}])
+        model="claude-sonnet-4-20250514", max_tokens=1200 if data.narrative_mode else 700,
+        messages=[{"role": "user", "content": final_prompt}])
     return JSONResponse(
         content=json.loads(
             resp.content[0].text.replace("```json","").replace("```","").strip()))
