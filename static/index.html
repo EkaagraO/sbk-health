@@ -4123,98 +4123,83 @@ function DocumentsTab({
       style: {
         display: 'flex',
         alignItems: 'center',
-        gap: 7,
         padding: '6px 12px',
-        overflow: 'hidden'
+        minWidth: 0
       }
     }, /*#__PURE__*/React.createElement("span", {
       style: {
-        fontSize: 12,
-        flexShrink: 0
+        fontSize: 13,
+        width: 22,
+        flexShrink: 0,
+        textAlign: 'center'
       }
     }, icon), /*#__PURE__*/React.createElement("span", {
       className: "mono",
       style: {
         fontSize: 10,
         color: 'var(--text3)',
-        flexShrink: 0,
-        minWidth: 58
+        width: 65,
+        flexShrink: 0
       }
     }, doc.date), /*#__PURE__*/React.createElement("span", {
       style: {
         fontSize: 12,
         color: 'var(--text)',
         fontWeight: 500,
+        flex: '1 1 0',
+        minWidth: 0,
         overflow: 'hidden',
         textOverflow: 'ellipsis',
         whiteSpace: 'nowrap',
-        flex: '2 1 120px'
+        paddingRight: 6
       }
     }, doc.name), doc.doctor && /*#__PURE__*/React.createElement("span", {
       style: {
         fontSize: 10,
         color: 'var(--text3)',
+        width: 100,
+        flexShrink: 0,
         overflow: 'hidden',
         textOverflow: 'ellipsis',
-        whiteSpace: 'nowrap',
-        flex: '1 1 80px',
-        flexShrink: 1
-      }
-    }, "\uD83D\uDC68\u200D\u2695\uFE0F ", doc.doctor), doc.folder && /*#__PURE__*/React.createElement("span", {
-      style: {
-        fontSize: 10,
-        color: 'var(--blue)',
-        background: 'var(--blue-light)',
-        borderRadius: 3,
-        padding: '1px 5px',
-        flexShrink: 0,
         whiteSpace: 'nowrap'
       }
-    }, "\uD83D\uDCC1 ", doc.folder), doc.condition && /*#__PURE__*/React.createElement("span", {
+    }, "\uD83D\uDC68\u200D\u2695\uFE0F ", doc.doctor), /*#__PURE__*/React.createElement("div", {
       style: {
-        fontSize: 10,
-        color: 'var(--text3)',
-        overflow: 'hidden',
-        textOverflow: 'ellipsis',
-        whiteSpace: 'nowrap',
-        flex: '1 1 60px',
-        flexShrink: 2
-      }
-    }, doc.condition), tags.slice(0, 2).map(t => /*#__PURE__*/React.createElement("span", {
-      key: t,
-      className: "tag",
-      style: {
-        fontSize: 9,
-        padding: '1px 5px',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 4,
         flexShrink: 0,
-        whiteSpace: 'nowrap'
+        marginLeft: 6
       }
-    }, t)), doc.isNew && /*#__PURE__*/React.createElement("span", {
+    }, doc.isNew && /*#__PURE__*/React.createElement("span", {
       style: {
         fontSize: 9,
         color: 'var(--green)',
         fontWeight: 700,
         background: 'var(--green-light)',
         borderRadius: 3,
-        padding: '1px 5px',
-        flexShrink: 0
+        padding: '1px 5px'
       }
-    }, "NEW"), /*#__PURE__*/React.createElement("div", {
+    }, "NEW"), tags.slice(0, 1).map(t => /*#__PURE__*/React.createElement("span", {
+      key: t,
       style: {
-        marginLeft: 'auto',
-        display: 'flex',
-        alignItems: 'center',
-        gap: 5,
-        flexShrink: 0
+        fontSize: 9,
+        color: 'var(--text3)',
+        background: 'var(--bg3)',
+        border: '1px solid var(--border)',
+        borderRadius: 3,
+        padding: '1px 5px',
+        whiteSpace: 'nowrap'
       }
-    }, /*#__PURE__*/React.createElement("span", {
+    }, t)), /*#__PURE__*/React.createElement("span", {
       style: {
         fontSize: 10,
         color: dotColor,
         background: dotColor + '15',
         border: `1px solid ${dotColor}30`,
         borderRadius: 4,
-        padding: '1px 6px'
+        padding: '1px 7px',
+        whiteSpace: 'nowrap'
       }
     }, doc.type), /*#__PURE__*/React.createElement("a", {
       href: 'https://app.box.com/file/' + doc.boxId,
@@ -4227,9 +4212,9 @@ function DocumentsTab({
       className: "btn",
       style: {
         fontSize: 10,
-        padding: '2px 7px'
+        padding: '2px 8px'
       }
-    }, "\uD83D\uDCC2 Box")))));
+    }, "\uD83D\uDCC2")))));
   })))));
 }
 
@@ -4745,7 +4730,7 @@ function UploadModal({
         fd.append('doc_type', dt);
         fd.append('doctor', dr || '');
         fd.append('tags', tags || '');
-        const r = await fetch(`${bkUrl}/api/patients/${patient.id}/upload`, {
+        const r = await fetch(`${bkUrl}/api/upload/${patient.id}`, {
           method: 'POST',
           body: fd
         });
