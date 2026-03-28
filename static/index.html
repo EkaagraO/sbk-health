@@ -101,7 +101,7 @@ textarea.input{resize:vertical;min-height:70px}
 
 .settings-btn{position:fixed;bottom:18px;right:18px;width:44px;height:44px;border-radius:50%;background:var(--blue);color:#fff;border:none;font-size:20px;cursor:pointer;box-shadow:0 4px 14px rgba(22,72,160,.4);z-index:200;display:flex;align-items:center;justify-content:center;transition:transform .15s}
 .settings-btn:hover{transform:scale(1.12)}
-.api-indicator{position:fixed;bottom:70px;right:10px;font-size:10px;padding:3px 10px;border-radius:10px;z-index:200;font-family:'Inter',sans-serif;font-weight:600;letter-spacing:.3px;white-space:nowrap}
+.api-indicator{position:fixed;bottom:70px;right:10px;font-size:10px;padding:3px 10px;border-radius:10px;z-index:200;font-family:'Inter',sans-serif;font-weight:600;letter-spacing:.3px;white-space:nowrap;cursor:pointer}
 .api-ok{background:#DCFCE7;color:#16A34A;border:1px solid #BBF7D0}
 .api-missing{background:#FEE2E2;color:#DC2626;border:1px solid #FECACA}
 
@@ -110,7 +110,6 @@ textarea.input{resize:vertical;min-height:70px}
 <body>
 <div id="root"><div style="display:flex;align-items:center;justify-content:center;height:100vh;background:#F8FAFC;color:#94A3B8;font-family:Inter,sans-serif;gap:10px"><div style="width:16px;height:16px;border:2px solid #E2E8F0;border-top-color:#1648A0;border-radius:50%;animation:spin .7s linear infinite"></div>Loading SBK Health…</div></div>
 <script>
-// ─── ALL DATA (unchanged from previous sessions) ──────────────────────────────
 const USERS = {
   admin: {
     id: 'u1',
@@ -240,22 +239,31 @@ const MOM_CONDITIONS = [{
 }];
 const DAD_CONDITIONS = [{
   id: 'psa',
-  name: 'Prostate Cancer — Active Surveillance (Gleason 3+3=6)',
+  name: 'Prostate Cancer — Post-Treatment Surveillance (Gleason 3+3=6)',
   sev: 'urgent',
   organ: 'Prostate',
   organId: 'prostate',
-  findings: 'First elevated PSA Mar 2019 (5.0). PSA 4.8 (Jan 2025). Biopsy Gleason 3+3=6. DRE: slight asymmetric enlargement.',
-  action: 'Repeat PSA + MRI prostate every 6 months. Annual biopsy discussion with urology.',
-  reviewed: 'Jan 2025'
+  findings: 'Post-treatment PSA at excellent nadir: Apr 2022: 0.0447, Apr 2023: 0.015, Jul 2023: 0.042, Nov 2025: 0.11 ng/mL (all far below 4.0 threshold). Treatment (likely radiation/brachytherapy) ~2019-2020. Gleason 3+3=6 confirmed biopsy. PET staging Jun 2019.',
+  action: 'Continue 6-monthly PSA monitoring. Rising PSA (>0.2 or doubling time <12 months) warrants oncology review immediately.',
+  reviewed: 'Nov 2025'
 }, {
   id: 'lipid2',
-  name: 'Dyslipidaemia — On Statin',
+  name: 'Dyslipidaemia WORSENING - On Statin',
   sev: 'high',
   organ: 'Cardiovascular',
   organId: 'heart',
-  findings: 'LDL elevated historically. On Rosuvastatin. Last lipid panel Feb 2026.',
-  action: 'Continue statin. Monitor LDL annually. Target <100 mg/dL.',
+  findings: 'LDL worsening despite statin: Jan 2025: 105 - Nov 2025: 148 - Feb 2026: 172. HDL dropped Feb 2026: 39 (ref >40). TC: 234. Urgent review.',
+  action: 'Increase statin dose or add ezetimibe. Target LDL <100. Cardiology review. Repeat lipid 6 weeks post dose-change.',
   reviewed: 'Feb 2026'
+}, {
+  id: 'prediab',
+  name: 'Pre-Diabetes (HbA1c Worsening)',
+  sev: 'moderate',
+  organ: 'Metabolic',
+  organId: 'metabolic',
+  findings: 'HbA1c trend: Feb 2020: 6.5% - Jul 2022: 6.8% - Jan 2025: 6.2% - Nov 2025: 6.4% (pre-diabetic range 5.7-6.4%). Fasting glucose Nov 2025: 105 mg/dL. Average BG 137 mg/dL.',
+  action: 'Lifestyle: reduce refined carbs, increase walking 30 min/day. Repeat HbA1c in 3 months. Metformin if HbA1c 6.5%+.',
+  reviewed: 'Nov 2025'
 }, {
   id: 'bone2',
   name: 'Osteoporosis / Low Bone Density',
@@ -267,12 +275,12 @@ const DAD_CONDITIONS = [{
   reviewed: 'Nov 2022'
 }, {
   id: 'tsh2',
-  name: 'Hypothyroidism',
+  name: 'Hypothyroidism — Suboptimal Control',
   sev: 'moderate',
   organ: 'Thyroid',
   organId: 'thyroid',
-  findings: 'TSH elevated on multiple readings. On levothyroxine. TSH Jan 2026 monitored.',
-  action: 'Continue levothyroxine. Recheck TSH in 3 months.',
+  findings: 'TSH poorly controlled despite levothyroxine: Jan 2025: 5.28↑ → Nov 2025: 6.55↑↑ → Jan 2026: 6.31↑↑ (ref 0.27–5.35). T3/T4 normal. TSH trending up on current dose.',
+  action: 'Increase levothyroxine dose. Recheck TSH+FT4 in 6-8 weeks. Take fasting, 30-60 min before food. Avoid calcium/iron within 4 hours.',
   reviewed: 'Jan 2026'
 }, {
   id: 'renal2',
@@ -2183,49 +2191,40 @@ const PATIENTS = [{
   dob: '15 Jun 1943',
   age: 82,
   gender: 'Male',
-  bg: 'O+',
+  bg: 'A+',
   status: 'Active Monitoring',
   doctor: 'Multiple Specialists',
   initials: 'BG',
-  urgentCount: 1,
+  urgentCount: 2,
   conditions: DAD_CONDITIONS,
   timeline: DAD_TIMELINE,
   documents: DAD_DOCS,
   symptoms: DAD_SYMPTOMS,
   labsKey: {
     psa: {
-      label: 'PSA (Prostate)',
+      label: 'PSA (Post-Treatment Nadir)',
       unit: 'ng/mL',
       refHigh: 4.0,
-      color: '#DC2626',
+      color: '#16A34A',
       data: [{
-        d: "Mar'19",
-        v: 5.0
-      }, {
-        d: "Jan'22",
-        v: 4.2
-      }, {
         d: "Apr'22",
-        v: 4.1
-      }, {
-        d: "Oct'22",
-        v: 4.3
+        v: 0.0447
       }, {
         d: "Apr'23",
-        v: 4.6
+        v: 0.015
       }, {
         d: "Jul'23",
-        v: 4.5
+        v: 0.042
       }, {
-        d: "Jan'25",
-        v: 4.8
+        d: "Nov'25",
+        v: 0.11
       }],
-      note: 'First elevated Mar 2019. Active surveillance. Latest 4.8 (Jan 2025).'
+      note: 'EXCELLENT post-treatment response. All values 0.01–0.11 ng/mL (threshold: 4.0). Treatment highly effective. Continue 6-monthly monitoring.'
     },
     hba1c: {
-      label: 'HbA1c',
+      label: 'HbA1c (Glycaemia)',
       unit: '%',
-      refHigh: 7.0,
+      refHigh: 5.7,
       color: '#D97706',
       data: [{
         d: "Feb'20",
@@ -2234,14 +2233,182 @@ const PATIENTS = [{
         d: "Jul'22",
         v: 6.8
       }, {
-        d: "Apr'25",
-        v: 6.9
+        d: "Jan'25",
+        v: 6.2
+      }, {
+        d: "Nov'25",
+        v: 6.4
       }],
-      note: 'Borderline — on medication. Target <7%.'
+      note: 'Pre-diabetic range (5.7–6.4%). Jan 2025: 6.2 → Nov 2025: 6.4%. Worsening trend. Lifestyle intervention urgent.'
+    },
+    tsh: {
+      label: 'TSH (Thyroid)',
+      unit: 'µIU/mL',
+      refLow: 0.27,
+      refHigh: 5.35,
+      color: '#7C3AED',
+      data: [{
+        d: "Jan'25",
+        v: 5.28
+      }, {
+        d: "Nov'25",
+        v: 6.55
+      }, {
+        d: "Jan'26",
+        v: 6.31
+      }],
+      note: 'Suboptimal hypothyroid control. TSH should be 0.5–2.5 on treatment. All three readings elevated. Dose increase needed.'
+    },
+    ldl: {
+      label: 'LDL Cholesterol',
+      unit: 'mg/dL',
+      refHigh: 100,
+      color: '#DC2626',
+      data: [{
+        d: "Jan'25",
+        v: 105
+      }, {
+        d: "Nov'25",
+        v: 148
+      }, {
+        d: "Feb'26",
+        v: 172
+      }],
+      note: 'WORSENING despite statin: 105✓ → 148↑ → 172↑↑. Target <100. Dose review and/or ezetimibe needed urgently.'
+    },
+    hb: {
+      label: 'Haemoglobin',
+      unit: 'g/dL',
+      refLow: 13.0,
+      color: '#2563EB',
+      data: [{
+        d: "Jan'25",
+        v: 13.1
+      }, {
+        d: "Nov'25",
+        v: 13.5
+      }],
+      note: 'Normal throughout. Jan 2025: 13.1✓, Nov 2025: 13.5✓. No anaemia.'
+    },
+    creatinine: {
+      label: 'Creatinine (Renal)',
+      unit: 'mg/dL',
+      refHigh: 1.18,
+      color: '#0891B2',
+      data: [{
+        d: "Jan'25",
+        v: 0.77
+      }, {
+        d: "Nov'25",
+        v: 0.73
+      }],
+      note: 'Excellent kidney function. eGFR 100 mL/min (Nov 2025). Stable and well within range.'
     }
   },
-  labsFull: {},
-  summary: 'PSA 4.8↑ | On surveillance | Bone density ↓ | TSH monitored',
+  labsFull: {
+    tc: {
+      label: 'Total Cholesterol',
+      unit: 'mg/dL',
+      refHigh: 200,
+      color: '#DC2626',
+      data: [{
+        d: "Jan'25",
+        v: 198
+      }, {
+        d: "Nov'25",
+        v: 225
+      }, {
+        d: "Feb'26",
+        v: 234
+      }],
+      note: 'Worsening: 198 (Jan 2025, acceptable) → 225↑ (Nov 2025) → 234↑ (Feb 2026). Target <200.'
+    },
+    hdl: {
+      label: 'HDL Cholesterol',
+      unit: 'mg/dL',
+      refLow: 40,
+      color: '#16A34A',
+      data: [{
+        d: "Jan'25",
+        v: 48.7
+      }, {
+        d: "Nov'25",
+        v: 54
+      }, {
+        d: "Feb'26",
+        v: 39
+      }],
+      note: 'HDL dropped Feb 2026: 39↓ (ref >40). Previously 48.7–54. Low HDL increases cardiac risk significantly.'
+    },
+    tg: {
+      label: 'Triglycerides',
+      unit: 'mg/dL',
+      refHigh: 150,
+      color: '#F59E0B',
+      data: [{
+        d: "Jan'25",
+        v: 102.74
+      }, {
+        d: "Nov'25",
+        v: 123
+      }, {
+        d: "Feb'26",
+        v: 117
+      }],
+      note: 'Well controlled throughout. All within normal range <150. Best: 102.74 (Jan 2025).'
+    },
+    vitd: {
+      label: 'Vitamin D (25-OH)',
+      unit: 'ng/mL',
+      refLow: 30,
+      color: '#16A34A',
+      data: [{
+        d: "Jan'25",
+        v: 57.8
+      }, {
+        d: "Nov'25",
+        v: 32.1
+      }],
+      note: 'Jan 2025: 57.8✓ (sufficient). Nov 2025: 32.1 (borderline). Supplement to maintain ≥40 ng/mL.'
+    },
+    b12: {
+      label: 'Vitamin B12',
+      unit: 'pg/mL',
+      refLow: 197,
+      color: '#06B6D4',
+      data: [{
+        d: "Jan'25",
+        v: 689
+      }, {
+        d: "Nov'25",
+        v: 378
+      }],
+      note: 'Both within range. Jan 2025: 689✓, Nov 2025: 378✓ (declined but normal). Continue monitoring.'
+    },
+    fbs: {
+      label: 'Fasting Blood Sugar',
+      unit: 'mg/dL',
+      refHigh: 100,
+      color: '#F59E0B',
+      data: [{
+        d: "Nov'25",
+        v: 104.97
+      }],
+      note: 'Nov 2025: 105↑ (pre-diabetic, ref <100). Consistent with HbA1c 6.4%. Diet modification essential.'
+    },
+    esr: {
+      label: 'ESR (Inflammation)',
+      unit: 'mm/hr',
+      refHigh: 15,
+      color: '#EF4444',
+      data: [{
+        d: "Nov'25",
+        v: 30
+      }],
+      note: 'Nov 2025: 30↑ (ref 0–15 for males). Elevated. Could be hypothyroidism-related or residual from prostate treatment.'
+    }
+  },
+  summary: 'PSA 0.11✓ (nadir) | HbA1c 6.4%↑ | TSH 6.31↑↑ | LDL 172↑↑ | Hb 13.5✓',
   lastVisit: 'Jan 2025',
   photo: null,
   boxFolders: {
@@ -3110,77 +3277,46 @@ function OverviewTab({
     setLd(true);
     setErr('');
     setAi(null);
-    // Option 1: Use backend (server-side Claude key — no CORS issues)
+    // Always use backend (server-side Claude key — no CORS, no API key needed in browser)
     const bkUrl = (localStorage.getItem('sbk_backend_url') || '').replace(/\/$/, '');
-    if (bkUrl) {
-      try {
-        const r = await fetch(`${bkUrl}/api/ai/summary`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            name: patient.name,
-            age: patient.age,
-            gender: patient.gender,
-            bg: patient.bg,
-            status: patient.status,
-            summary: patient.summary,
-            conditions: patient.conditions.map(c => ({
-              name: c.name,
-              sev: c.sev,
-              findings: (c.findings || '').substring(0, 200)
-            }))
-          })
-        });
-        if (r.ok) {
-          setAi(await r.json());
-          setLd(false);
-          return;
-        }
-        const errTxt = await r.text();
-        console.warn('Backend AI failed:', errTxt);
-      } catch (e) {
-        console.warn('Backend unreachable:', e.message);
-      }
-    }
-    // Option 2: Direct browser API call
-    const apiKey = localStorage.getItem('sbk_anthropic_key') || '';
-    if (!apiKey) {
-      setErr('No API key set. Click ⚙ Settings (bottom-right) and enter your Anthropic API key OR your Render Backend URL.');
+    if (!bkUrl) {
+      setErr('Backend URL not configured. Click ⚙ Settings (bottom-right) and enter your Render Backend URL (e.g. https://sbkhealth-api.onrender.com).');
       setLd(false);
       return;
     }
-    const prompt = `Clinical AI. Patient: ${patient.name}, Age ${patient.age}, ${patient.gender}, BG ${patient.bg}
-Status: ${patient.status}. Latest: ${patient.summary}
-Conditions: ${patient.conditions.map(c => c.name + '(' + c.sev + ')').join('; ')}
-Return ONLY JSON: {"summary":"2-3 sentences","urgentConcerns":["max3"],"followUps":["max3"],"riskFlags":["max2"],"positives":["max2"],"overallRisk":"Low|Moderate|High|Critical"}`;
     try {
-      const r = await fetch('https://api.anthropic.com/v1/messages', {
+      const r = await fetch(`${bkUrl}/api/ai/summary`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': apiKey,
-          'anthropic-version': '2023-06-01',
-          'anthropic-dangerous-allow-browser': 'true'
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
-          max_tokens: 600,
-          messages: [{
-            role: 'user',
-            content: prompt
-          }]
+          name: patient.name,
+          age: patient.age,
+          gender: patient.gender,
+          bg: patient.bg,
+          status: patient.status,
+          summary: patient.summary,
+          conditions: patient.conditions.map(c => ({
+            name: c.name,
+            sev: c.sev,
+            findings: (c.findings || '').substring(0, 200)
+          }))
         })
       });
-      if (!r.ok) {
-        const e = await r.json();
-        throw new Error(e.error?.message || 'API error ' + r.status);
+      if (r.ok) {
+        setAi(await r.json());
+        setLd(false);
+        return;
       }
-      const d = await r.json();
-      setAi(JSON.parse((d.content[0]?.text || '{}').replace(/```json|```/g, '').trim()));
+      let errMsg = `Backend error ${r.status}`;
+      try {
+        const e = await r.json();
+        errMsg = e.detail || errMsg;
+      } catch (_) {}
+      throw new Error(errMsg);
     } catch (e) {
-      setErr(e.message || 'AI unavailable. Try using Backend URL in Settings.');
+      setErr(`Backend AI failed: ${e.message}. Make sure your Render service is awake (visit ${bkUrl}/api/health first) and ANTHROPIC_API_KEY is set in Render environment variables.`);
     }
     setLd(false);
   }, [patient]);
@@ -3393,14 +3529,7 @@ Return ONLY JSON: {"summary":"2-3 sentences","urgentConcerns":["max3"],"followUp
     }
   }, s.v), /*#__PURE__*/React.createElement("div", {
     className: "stat-label"
-  }, s.l), /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 9,
-      color: s.c,
-      marginTop: 2,
-      opacity: .7
-    }
-  }, "\u2192 click to view")))), /*#__PURE__*/React.createElement("div", {
+  }, s.l)))), /*#__PURE__*/React.createElement("div", {
     className: "card",
     style: {
       padding: 14
@@ -3758,7 +3887,7 @@ function LabTrendsTab({
   })()))));
 }
 
-// ─── DOCUMENTS TAB — compact 2-row with all info ───────────────────────────────
+// ─── DOCUMENTS TAB — single-row compact layout ─────────────────────────────────
 function DocumentsTab({
   patient,
   isAdmin,
@@ -3888,14 +4017,14 @@ function DocumentsTab({
       style: {
         display: 'flex',
         alignItems: 'center',
-        gap: 8,
-        padding: '7px 12px 2px'
+        gap: 7,
+        padding: '6px 12px',
+        overflow: 'hidden'
       }
     }, /*#__PURE__*/React.createElement("span", {
       style: {
-        fontSize: 13,
-        flexShrink: 0,
-        width: 18
+        fontSize: 12,
+        flexShrink: 0
       }
     }, icon), /*#__PURE__*/React.createElement("span", {
       className: "mono",
@@ -3903,29 +4032,58 @@ function DocumentsTab({
         fontSize: 10,
         color: 'var(--text3)',
         flexShrink: 0,
-        width: 62
+        minWidth: 58
       }
     }, doc.date), /*#__PURE__*/React.createElement("span", {
       style: {
-        flex: 1,
         fontSize: 12,
         color: 'var(--text)',
         fontWeight: 500,
         overflow: 'hidden',
         textOverflow: 'ellipsis',
-        whiteSpace: 'nowrap'
+        whiteSpace: 'nowrap',
+        flex: '2 1 120px'
       }
-    }, doc.name), /*#__PURE__*/React.createElement("span", {
+    }, doc.name), doc.doctor && /*#__PURE__*/React.createElement("span", {
       style: {
         fontSize: 10,
-        color: dotColor,
-        background: dotColor + '15',
-        border: `1px solid ${dotColor}30`,
-        borderRadius: 4,
-        padding: '1px 6px',
-        flexShrink: 0
+        color: 'var(--text3)',
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        whiteSpace: 'nowrap',
+        flex: '1 1 80px',
+        flexShrink: 1
       }
-    }, doc.type), doc.isNew && /*#__PURE__*/React.createElement("span", {
+    }, "\uD83D\uDC68\u200D\u2695\uFE0F ", doc.doctor), doc.folder && /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontSize: 10,
+        color: 'var(--blue)',
+        background: 'var(--blue-light)',
+        borderRadius: 3,
+        padding: '1px 5px',
+        flexShrink: 0,
+        whiteSpace: 'nowrap'
+      }
+    }, "\uD83D\uDCC1 ", doc.folder), doc.condition && /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontSize: 10,
+        color: 'var(--text3)',
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        whiteSpace: 'nowrap',
+        flex: '1 1 60px',
+        flexShrink: 2
+      }
+    }, doc.condition), tags.slice(0, 2).map(t => /*#__PURE__*/React.createElement("span", {
+      key: t,
+      className: "tag",
+      style: {
+        fontSize: 9,
+        padding: '1px 5px',
+        flexShrink: 0,
+        whiteSpace: 'nowrap'
+      }
+    }, t)), doc.isNew && /*#__PURE__*/React.createElement("span", {
       style: {
         fontSize: 9,
         color: 'var(--green)',
@@ -3935,7 +4093,17 @@ function DocumentsTab({
         padding: '1px 5px',
         flexShrink: 0
       }
-    }, "NEW"), /*#__PURE__*/React.createElement("a", {
+    }, "NEW"), /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontSize: 10,
+        color: dotColor,
+        background: dotColor + '15',
+        border: `1px solid ${dotColor}30`,
+        borderRadius: 4,
+        padding: '1px 6px',
+        flexShrink: 0
+      }
+    }, doc.type), /*#__PURE__*/React.createElement("a", {
       href: 'https://app.box.com/file/' + doc.boxId,
       target: "_blank",
       rel: "noreferrer",
@@ -3949,40 +4117,7 @@ function DocumentsTab({
         fontSize: 10,
         padding: '2px 7px'
       }
-    }, "\uD83D\uDCC2 Box"))), /*#__PURE__*/React.createElement("div", {
-      style: {
-        display: 'flex',
-        alignItems: 'center',
-        gap: 5,
-        padding: '1px 12px 6px 42px',
-        flexWrap: 'wrap'
-      }
-    }, doc.doctor && /*#__PURE__*/React.createElement("span", {
-      style: {
-        fontSize: 10,
-        color: 'var(--text3)'
-      }
-    }, "\uD83D\uDC68\u200D\u2695\uFE0F ", doc.doctor), doc.folder && /*#__PURE__*/React.createElement("span", {
-      style: {
-        fontSize: 10,
-        color: 'var(--blue)',
-        background: 'var(--blue-light)',
-        borderRadius: 3,
-        padding: '1px 5px'
-      }
-    }, "\uD83D\uDCC1 ", doc.folder), doc.condition && /*#__PURE__*/React.createElement("span", {
-      style: {
-        fontSize: 10,
-        color: 'var(--text3)'
-      }
-    }, doc.condition), tags.map(t => /*#__PURE__*/React.createElement("span", {
-      key: t,
-      className: "tag",
-      style: {
-        fontSize: 9,
-        padding: '1px 5px'
-      }
-    }, t))));
+    }, "\uD83D\uDCC2"))));
   })))));
 }
 
@@ -5243,24 +5378,19 @@ function AddPatientModal({
 function SettingsModal({
   onClose
 }) {
-  const [key, setKey] = useState(localStorage.getItem('sbk_anthropic_key') || '');
   const [bkUrl, setBkUrl] = useState(localStorage.getItem('sbk_backend_url') || '');
   const [msg, setMsg] = useState('');
   const save = () => {
-    const trimKey = key.trim();
     const trimUrl = bkUrl.trim().replace(/\/$/, '');
-    if (trimKey && !trimKey.startsWith('sk-ant-')) {
-      setMsg('API key should start with sk-ant- — check you copied it fully.');
+    if (trimUrl && !trimUrl.startsWith('http')) {
+      setMsg('URL should start with https:// — check the address.');
       return;
     }
-    if (trimKey) localStorage.setItem('sbk_anthropic_key', trimKey);else localStorage.removeItem('sbk_anthropic_key');
     if (trimUrl) localStorage.setItem('sbk_backend_url', trimUrl);else localStorage.removeItem('sbk_backend_url');
     setMsg('✅ Settings saved!');
   };
   const clear = () => {
-    localStorage.removeItem('sbk_anthropic_key');
     localStorage.removeItem('sbk_backend_url');
-    setKey('');
     setBkUrl('');
     setMsg('Cleared.');
   };
@@ -5311,14 +5441,14 @@ function SettingsModal({
       fontWeight: 600,
       margin: '0 0 4px'
     }
-  }, "\uD83D\uDE80 Option 1 \u2014 Use Render Backend (Recommended)"), /*#__PURE__*/React.createElement("p", {
+  }, "\uD83D\uDE80 Render Backend (required for AI Summary)"), /*#__PURE__*/React.createElement("p", {
     style: {
       fontSize: 11,
       color: 'var(--text2)',
       margin: 0,
       lineHeight: 1.6
     }
-  }, "If your Render.com backend is running, the AI key is already there server-side. Just enter the URL \u2014 no API key needed here. Photos also sync across all devices.")), /*#__PURE__*/React.createElement("div", {
+  }, "Enter your Render.com backend URL. The Anthropic API key is already configured server-side \u2014 nothing else needed here. Profile photos also sync across all devices once connected.")), /*#__PURE__*/React.createElement("div", {
     style: {
       marginBottom: 14
     }
@@ -5342,78 +5472,23 @@ function SettingsModal({
       color: 'var(--text3)',
       marginTop: 3
     }
-  }, "Find this on your Render dashboard \u2014 your web service URL")), /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: 'flex',
-      alignItems: 'center',
-      gap: 8,
-      marginBottom: 14
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      flex: 1,
-      height: 1,
-      background: 'var(--border)'
-    }
-  }), /*#__PURE__*/React.createElement("span", {
-    style: {
-      fontSize: 11,
-      color: 'var(--text3)'
-    }
-  }, "OR"), /*#__PURE__*/React.createElement("div", {
-    style: {
-      flex: 1,
-      height: 1,
-      background: 'var(--border)'
-    }
-  })), /*#__PURE__*/React.createElement("div", {
+  }, "Your Render web service URL \u2014 find it on your Render dashboard")), /*#__PURE__*/React.createElement("div", {
     style: {
       background: 'var(--bg3)',
-      border: '1px solid var(--border)',
-      borderRadius: 8,
-      padding: '10px 14px',
-      marginBottom: 14
-    }
-  }, /*#__PURE__*/React.createElement("p", {
-    style: {
+      borderRadius: 7,
+      padding: '9px 12px',
+      marginBottom: 14,
       fontSize: 11,
-      color: 'var(--text2)',
-      fontWeight: 600,
-      margin: '0 0 4px'
+      color: 'var(--text2)'
     }
-  }, "\uD83D\uDD11 Option 2 \u2014 Direct API Key"), /*#__PURE__*/React.createElement("p", {
+  }, "\uD83D\uDCA1 ", /*#__PURE__*/React.createElement("strong", null, "First visit is slow?"), " Render free tier sleeps after 15 minutes. Visit ", /*#__PURE__*/React.createElement("a", {
+    href: bkUrl + '/api/health',
+    target: "_blank",
+    rel: "noreferrer",
     style: {
-      fontSize: 11,
-      color: 'var(--text3)',
-      margin: 0,
-      lineHeight: 1.6
+      color: 'var(--blue)'
     }
-  }, "Works when you open index.html locally in Chrome. May not work on GitHub Pages due to browser CORS rules.")), /*#__PURE__*/React.createElement("div", {
-    style: {
-      marginBottom: 14
-    }
-  }, /*#__PURE__*/React.createElement("label", {
-    className: "field-label"
-  }, "ANTHROPIC API KEY"), /*#__PURE__*/React.createElement("input", {
-    className: "input",
-    type: "password",
-    placeholder: "sk-ant-api03-\u2026",
-    value: key,
-    onChange: e => {
-      setKey(e.target.value);
-      setMsg('');
-    },
-    style: {
-      fontFamily: "'Fira Code',monospace",
-      fontSize: 12
-    }
-  }), /*#__PURE__*/React.createElement("p", {
-    style: {
-      fontSize: 10,
-      color: 'var(--text3)',
-      marginTop: 3
-    }
-  }, "Get from: console.anthropic.com \u2192 API Keys")), msg && /*#__PURE__*/React.createElement("div", {
+  }, bkUrl || 'your-url', "/api/health"), " first to wake it up, then click Refresh."), msg && /*#__PURE__*/React.createElement("div", {
     style: {
       padding: '8px 12px',
       borderRadius: 7,
@@ -5454,21 +5529,22 @@ function SettingsModal({
 }
 
 // ─── SETTINGS BUTTON ───────────────────────────────────────────────────────────
-function SettingsButton() {
+function SettingsButton({
+  isAdmin
+}) {
   const [open, setOpen] = useState(false);
-  const [hasKey, setHasKey] = useState(!!localStorage.getItem('sbk_anthropic_key'));
   const [hasBk, setHasBk] = useState(!!localStorage.getItem('sbk_backend_url'));
   const handleClose = () => {
-    setHasKey(!!localStorage.getItem('sbk_anthropic_key'));
     setHasBk(!!localStorage.getItem('sbk_backend_url'));
     setOpen(false);
   };
-  const isOk = hasBk || hasKey;
-  const label = hasBk ? '🚀 Backend' : hasKey ? '🔑 API Key' : '⚠ Configure AI';
+  // Only admin can see/change settings
+  if (!isAdmin) return null;
+  const label = hasBk ? '🚀 Backend Connected' : '⚠ Configure Backend';
   return /*#__PURE__*/React.createElement(React.Fragment, null, open && /*#__PURE__*/React.createElement(SettingsModal, {
     onClose: handleClose
   }), /*#__PURE__*/React.createElement("div", {
-    className: 'api-indicator ' + (isOk ? 'api-ok' : 'api-missing'),
+    className: 'api-indicator ' + (hasBk ? 'api-ok' : 'api-missing'),
     style: {
       cursor: 'pointer'
     },
@@ -5476,7 +5552,7 @@ function SettingsButton() {
   }, label), /*#__PURE__*/React.createElement("button", {
     className: "settings-btn",
     onClick: () => setOpen(true),
-    title: "Settings"
+    title: "Settings \u2014 Admin only"
   }, "\u2699"));
 }
 
@@ -5530,14 +5606,31 @@ function PatientPage({
     const f = e.target.files[0];
     if (!f) return;
     const reader = new FileReader();
-    reader.onload = ev => {
+    reader.onload = async ev => {
       const photoData = ev.target.result;
       updatePatient({
         photo: photoData
       });
       try {
         localStorage.setItem('sbk_photo_' + patient.id, photoData);
-      } catch (e) {}
+      } catch (ex) {}
+      // Also save to cloud via backend (cross-device sync)
+      const bkUrl = (localStorage.getItem('sbk_backend_url') || '').replace(/\/$/, '');
+      if (bkUrl) {
+        try {
+          await fetch(`${bkUrl}/api/patients/${patient.id}/photo`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              photo: photoData
+            })
+          });
+        } catch (ex) {
+          console.warn('Photo cloud save failed:', ex.message);
+        }
+      }
     };
     reader.readAsDataURL(f);
   };
@@ -5818,6 +5911,33 @@ function App() {
     };
     setPatients(prev => [...prev, np]);
   };
+  const isAdmin = user?.role === 'admin';
+
+  // Load photos from backend cloud (cross-device sync) on mount
+  useEffect(() => {
+    if (!user) return;
+    const bkUrl = (localStorage.getItem('sbk_backend_url') || '').replace(/\/$/, '');
+    if (!bkUrl) return;
+    PATIENTS.forEach(async p => {
+      try {
+        const r = await fetch(`${bkUrl}/api/patients/${p.id}/photo`);
+        if (r.ok) {
+          const {
+            photo
+          } = await r.json();
+          if (photo) {
+            setPatients(prev => prev.map(x => x.id === p.id ? {
+              ...x,
+              photo
+            } : x));
+            try {
+              localStorage.setItem('sbk_photo_' + p.id, photo);
+            } catch (_) {}
+          }
+        }
+      } catch (_) {}
+    });
+  }, [user]);
   if (!user) return /*#__PURE__*/React.createElement(LoginPage, {
     onLogin: login
   });
@@ -5828,7 +5948,9 @@ function App() {
     onBack: () => setSelectedId(null),
     setPatients: setPatients
   });
-  return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(SettingsButton, null), showAdd && /*#__PURE__*/React.createElement(AddPatientModal, {
+  return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(SettingsButton, {
+    isAdmin: isAdmin
+  }), showAdd && /*#__PURE__*/React.createElement(AddPatientModal, {
     onClose: () => setShowAdd(false),
     onAdd: addPatient
   }), /*#__PURE__*/React.createElement(HomePage, {
@@ -5836,7 +5958,7 @@ function App() {
     patients: patients,
     onSelect: p => setSelectedId(p.id),
     onLogout: logout,
-    onAdd: () => user.role === 'admin' && setShowAdd(true)
+    onAdd: () => isAdmin && setShowAdd(true)
   }));
 }
 ReactDOM.createRoot(document.getElementById('root')).render(/*#__PURE__*/React.createElement(App, null));
