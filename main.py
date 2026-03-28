@@ -17,7 +17,7 @@ from typing import Optional
 from fastapi import (FastAPI, Depends, HTTPException,
                      UploadFile, File, Form, BackgroundTasks, Request)
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jose import jwt, JWTError
 from passlib.context import CryptContext
@@ -773,7 +773,6 @@ async def box_auth_redirect():
     if not BOX_CLIENT_ID:
         return HTMLResponse("<h2>BOX_CLIENT_ID not set in Render environment variables</h2>"
                             "<p>Add it in Render Dashboard → your service → Environment</p>")
-    from fastapi.responses import RedirectResponse
     url = (f"https://account.box.com/api/oauth2/authorize"
            f"?client_id={BOX_CLIENT_ID}"
            f"&redirect_uri={BOX_REDIRECT_URI}"
