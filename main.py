@@ -169,6 +169,17 @@ CREATE TABLE IF NOT EXISTS audit_log (
     created_at  TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- Stores AI summaries and narratives per patient (keyed by frontend patient ID like P001, P002)
+-- This is the server-side persistent store - not localStorage
+CREATE TABLE IF NOT EXISTS patient_ai_data (
+    patient_key       VARCHAR(20)  PRIMARY KEY,
+    ai_summary        JSONB,
+    ai_summary_ts     TIMESTAMPTZ,
+    narrative         JSONB,
+    narrative_ts      TIMESTAMPTZ,
+    updated_at        TIMESTAMPTZ  DEFAULT NOW()
+);
+
 -- Seed default accounts (only if they don't already exist)
 -- Passwords: admin/admin123  viewer/viewer123
 INSERT INTO users (username, email, password_hash, role, full_name) VALUES
@@ -614,6 +625,77 @@ async def get_photo(pid: str):
     except Exception as e:
         log.error(f"Photo fetch failed: {e}")
         return JSONResponse({"photo": None})
+    finally:
+        await conn.close()
+
+# ── AI Data persistence (summary + narrative stored server-side) ────────────────
+# Patient key is the frontend ID (e.g. "P001", "P002") — not a DB UUID.
+# These endpoints are public (no auth) so the standalone HTML app can call them.
+
+class AISummaryStore(BaseModel):
+    data: dict          # The AI summary JSON object
+    ts:   str           # Human-readable timestamp string
+
+class NarrativeStore(BaseModel):
+    data: dict          # The narrative JSON object
+    ts:   str
+
+@app.get("/api/ai-data/{patient_key}")
+async def get_ai_data(patient_key: str):
+    """Load both AI summary and narrative for a patient. Called on app load."""
+    if not DATABASE_URL:
+        return JSONResponse({"ai_summary": None, "narrative": None})
+    conn = await db()
+    try:
+        row = await conn.fetchrow(
+            "SELECT ai_summary, ai_summary_ts, narrative, narrative_ts "
+            "FROM patient_ai_data WHERE patient_key=$1", patient_key)
+        if not row:
+            return JSONResponse({"ai_summary": None, "narrative": None})
+        return JSONResponse({
+            "ai_summary": {
+                "data": json.loads(row["ai_summary"])  if row["ai_summary"]  else None,
+                "ts":   row["ai_summary_ts"].strftime("%d %b %Y, %I:%M %p") if row["ai_summary_ts"] else None,
+            },
+            "narrative": {
+                "data": json.loads(row["narrative"])   if row["narrative"]   else None,
+                "ts":   row["narrative_ts"].strftime("%d %b %Y, %I:%M %p")  if row["narrative_ts"]  else None,
+            }
+        })
+    finally:
+        await conn.close()
+
+@app.put("/api/ai-data/{patient_key}/summary")
+async def save_ai_summary(patient_key: str, body: AISummaryStore):
+    """Save AI clinical summary for a patient."""
+    if not DATABASE_URL:
+        return JSONResponse({"message": "No database configured"})
+    conn = await db()
+    try:
+        await conn.execute(
+            """INSERT INTO patient_ai_data (patient_key, ai_summary, ai_summary_ts, updated_at)
+               VALUES ($1, $2::jsonb, NOW(), NOW())
+               ON CONFLICT (patient_key) DO UPDATE
+               SET ai_summary=$2::jsonb, ai_summary_ts=NOW(), updated_at=NOW()""",
+            patient_key, json.dumps(body.data))
+        return JSONResponse({"message": "Saved"})
+    finally:
+        await conn.close()
+
+@app.put("/api/ai-data/{patient_key}/narrative")
+async def save_narrative(patient_key: str, body: NarrativeStore):
+    """Save medical narrative for a patient."""
+    if not DATABASE_URL:
+        return JSONResponse({"message": "No database configured"})
+    conn = await db()
+    try:
+        await conn.execute(
+            """INSERT INTO patient_ai_data (patient_key, narrative, narrative_ts, updated_at)
+               VALUES ($1, $2::jsonb, NOW(), NOW())
+               ON CONFLICT (patient_key) DO UPDATE
+               SET narrative=$2::jsonb, narrative_ts=NOW(), updated_at=NOW()""",
+            patient_key, json.dumps(body.data))
+        return JSONResponse({"message": "Saved"})
     finally:
         await conn.close()
 
