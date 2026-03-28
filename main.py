@@ -515,6 +515,47 @@ async def ai_refresh(pid: str):
     finally:
         await conn.close()
 
+# ── Public AI summary endpoint (called by frontend, no auth needed) ────────────
+# The frontend sends patient context; server calls Claude with its own API key.
+# This avoids CORS issues and keeps the Anthropic key server-side and secure.
+
+class AISummaryIn(BaseModel):
+    name: str
+    age: int
+    gender: str
+    bg: Optional[str] = None
+    status: Optional[str] = None
+    summary: Optional[str] = None
+    conditions: Optional[list] = []
+
+@app.post("/api/ai/summary")
+async def ai_summary_public(data: AISummaryIn):
+    """Public endpoint — frontend calls this to get AI summary via server-side Claude key."""
+    if not ANTHROPIC_KEY:
+        raise HTTPException(503,
+            "ANTHROPIC_API_KEY not set in Render environment variables. "
+            "Go to Render dashboard → your web service → Environment → add ANTHROPIC_API_KEY")
+    import anthropic
+    cond_text = "\n".join(
+        f"- {c.get('name','?')} ({c.get('sev','?')}): {str(c.get('findings',''))[:150]}"
+        for c in (data.conditions or [])[:10]
+    )
+    prompt = (
+        f"Clinical AI. Patient: {data.name}, Age {data.age}, {data.gender}, BG {data.bg}\n"
+        f"Status: {data.status}. Latest: {data.summary}\n"
+        f"Conditions:\n{cond_text}\n"
+        f'Return ONLY JSON (no markdown): {{"summary":"2-3 sentences",'
+        f'"urgentConcerns":["max3"],"followUps":["max3"],'
+        f'"riskFlags":["max2"],"positives":["max2"],'
+        f'"overallRisk":"Low|Moderate|High|Critical"}}'
+    )
+    resp = anthropic.Anthropic(api_key=ANTHROPIC_KEY).messages.create(
+        model="claude-sonnet-4-20250514", max_tokens=700,
+        messages=[{"role": "user", "content": prompt}])
+    return JSONResponse(
+        content=json.loads(
+            resp.content[0].text.replace("```json","").replace("```","").strip()))
+
 # ── User management ─────────────────────────────────────────────────────────────
 @app.post("/api/users", dependencies=[Depends(admin_only)])
 async def create_user(data: UserIn):
