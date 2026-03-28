@@ -4153,17 +4153,18 @@ function DocumentsTab({
         whiteSpace: 'nowrap',
         paddingRight: 6
       }
-    }, doc.name), doc.doctor && /*#__PURE__*/React.createElement("span", {
+    }, doc.name), /*#__PURE__*/React.createElement("span", {
       style: {
         fontSize: 10,
         color: 'var(--text3)',
-        width: 100,
+        width: 105,
         flexShrink: 0,
         overflow: 'hidden',
         textOverflow: 'ellipsis',
-        whiteSpace: 'nowrap'
+        whiteSpace: 'nowrap',
+        display: 'inline-block'
       }
-    }, "\uD83D\uDC68\u200D\u2695\uFE0F ", doc.doctor), /*#__PURE__*/React.createElement("div", {
+    }, doc.doctor ? '👨‍⚕️ ' + doc.doctor : ''), /*#__PURE__*/React.createElement("div", {
       style: {
         display: 'flex',
         alignItems: 'center',
@@ -4706,6 +4707,8 @@ function UploadModal({
   onClose,
   onAdded
 }) {
+  // FIX 1: bkUrl at component scope so done-screen can use it
+  const bkUrl = (localStorage.getItem('sbk_backend_url') || '').replace(/\/$/, '');
   const [file, setFile] = useState(null);
   const [dt, setDt] = useState('Lab');
   const [dr, setDr] = useState('');
@@ -4713,7 +4716,7 @@ function UploadModal({
   const [prog, setProg] = useState(0);
   const [done, setDone] = useState(false);
   const [err, setErr] = useState('');
-  const [uploadResult, setUploadResult] = useState(null);
+  const [result, setResult] = useState(null); // backend response
   const fRef = useRef(null);
   const folderName = {
     Lab: '1 Lab Reports',
@@ -4729,87 +4732,61 @@ function UploadModal({
       setErr('Please select a file.');
       return;
     }
-    setErr('');
-    setProg(10);
-    const bkUrl = (localStorage.getItem('sbk_backend_url') || '').replace(/\/$/, '');
-    if (bkUrl) {
-      // Upload to backend which saves to Box
-      try {
-        setProg(30);
-        const fd = new FormData();
-        fd.append('file', file);
-        fd.append('doc_type', dt);
-        fd.append('doctor', dr || '');
-        fd.append('tags', tags || '');
-        const r = await fetch(`${bkUrl}/api/upload/${patient.id}`, {
-          method: 'POST',
-          body: fd
-        });
-        if (r.ok) {
-          const resp = await r.json();
-          setUploadResult(resp);
-          setProg(100);
-          const newDoc = {
-            id: Date.now(),
-            name: file.name.replace(/\.[^.]+$/, ''),
-            date: new Date().toLocaleDateString('en-GB', {
-              month: 'short',
-              year: 'numeric'
-            }),
-            year: new Date().getFullYear(),
-            type: dt,
-            doctor: dr || 'Unknown',
-            condition: tags || 'See file',
-            tags: tags.split(',').map(t => t.trim()).filter(Boolean),
-            boxId: resp.box_file_id && !resp.box_file_id.startsWith('PENDING_') ? resp.box_file_id : 'PENDING_' + Date.now(),
-            boxLink: resp.box_link || null,
-            folder: folderName[dt] || '1 Lab Reports',
-            isNew: true
-          };
-          if (onAdded) onAdded(newDoc);
-          setDone(true);
-          return;
-        } else {
-          const e = await r.json().catch(() => ({
-            detail: 'Upload failed'
-          }));
-          setErr(`Backend error: ${e.detail || r.status}. File saved locally only.`);
-        }
-      } catch (ex) {
-        setErr(`Could not reach backend: ${ex.message}. File saved locally only.`);
-      }
+    if (!bkUrl) {
+      setErr('Set Render Backend URL in ⚙ Settings to enable uploads.');
+      return;
     }
-    // Fallback: local-only (no real Box upload)
-    const iv = setInterval(() => setProg(p => {
-      if (p >= 90) {
-        clearInterval(iv);
-        return 90;
-      }
-      return p + 15;
-    }), 180);
-    setTimeout(() => {
-      clearInterval(iv);
+    setErr('');
+    setProg(20);
+    try {
+      setProg(40);
+      const fd = new FormData();
+      fd.append('file', file);
+      fd.append('doc_type', dt);
+      fd.append('doctor', dr || '');
+      fd.append('tags', tags || '');
+      const r = await fetch(`${bkUrl}/api/upload/${patient.id}`, {
+        method: 'POST',
+        body: fd
+      });
+      const resp = await r.json().catch(() => null);
       setProg(100);
-      const newDoc = {
-        id: Date.now(),
-        name: file.name.replace(/\.[^.]+$/, ''),
-        date: new Date().toLocaleDateString('en-GB', {
-          month: 'short',
-          year: 'numeric'
-        }),
-        year: new Date().getFullYear(),
-        type: dt,
-        doctor: dr || 'Unknown',
-        condition: tags || 'See file',
-        tags: tags.split(',').map(t => t.trim()).filter(Boolean),
-        boxId: 'PENDING_' + Date.now(),
-        folder: folderName[dt] || '1 Lab Reports',
-        isNew: true
-      };
-      if (onAdded) onAdded(newDoc);
-      setDone(true);
-    }, 1800);
+
+      // FIX 3: Only add to list when Box upload actually succeeded
+      if (r.ok && resp?.saved_to_box && resp?.box_file_id) {
+        setResult(resp);
+        const newDoc = {
+          id: Date.now(),
+          name: file.name.replace(/\.[^.]+$/, ''),
+          date: new Date().toLocaleDateString('en-GB', {
+            month: 'short',
+            year: 'numeric'
+          }),
+          year: new Date().getFullYear(),
+          type: dt,
+          doctor: dr || 'Unknown',
+          condition: tags || 'See file',
+          tags: tags.split(',').map(t => t.trim()).filter(Boolean),
+          boxId: resp.box_file_id,
+          boxLink: resp.box_link,
+          folder: folderName[dt] || '1 Lab Reports',
+          isNew: true
+        };
+        if (onAdded) onAdded(newDoc);
+        setDone(true);
+      } else {
+        // Upload reached backend but didn't save to Box — do NOT add to list
+        const reason = resp?.message || resp?.detail || `HTTP ${r.status}`;
+        setProg(0);
+        setErr(`Upload failed: ${reason}. File NOT added to list.`);
+      }
+    } catch (ex) {
+      setProg(0);
+      setErr(`Could not reach backend: ${ex.message}`);
+    }
   };
+
+  // ── Success screen ──────────────────────────────────────────────────────────
   if (done) return /*#__PURE__*/React.createElement("div", {
     className: "modal-bg",
     onClick: onClose
@@ -4835,46 +4812,35 @@ function UploadModal({
     style: {
       fontSize: 12,
       color: 'var(--text2)',
-      marginBottom: 4
+      marginBottom: 8
     }
-  }, "\"", file?.name, "\" added to ", patient.name), /*#__PURE__*/React.createElement("p", {
+  }, "\"", file?.name, "\" saved to Box and added to ", patient.name, "'s documents."), result?.ai_analysis === 'queued' && /*#__PURE__*/React.createElement("div", {
     style: {
-      fontSize: 11,
-      color: 'var(--text3)',
-      marginBottom: 4
-    }
-  }, "File added to the documents list."), bkUrl ? /*#__PURE__*/React.createElement("div", {
-    style: {
-      marginBottom: 16
-    }
-  }, uploadResult?.saved_to_box ? /*#__PURE__*/React.createElement("p", {
-    style: {
-      fontSize: 11,
-      color: 'var(--green)',
-      margin: '0 0 6px'
-    }
-  }, "\u2705 Saved to Box \u2014 link is live") : /*#__PURE__*/React.createElement("p", {
-    style: {
-      fontSize: 11,
-      color: 'var(--amber)',
-      margin: '0 0 6px'
-    }
-  }, "\u26A0 Indexed in database but not in Box. Connect Box in \u2699 Settings to enable cloud uploads."), uploadResult?.ai_analysis === 'queued' && /*#__PURE__*/React.createElement("p", {
-    style: {
+      background: 'var(--blue-light)',
+      border: '1px solid #BFDBFE',
+      borderRadius: 8,
+      padding: '10px 14px',
+      marginBottom: 12,
       fontSize: 11,
       color: 'var(--blue)',
-      margin: 0
+      textAlign: 'left'
     }
-  }, "\uD83E\uDD16 AI analysis queued \u2014 lab values will be extracted and charts/summary will update automatically in ~30 seconds.")) : /*#__PURE__*/React.createElement("p", {
+  }, "\uD83E\uDD16 ", /*#__PURE__*/React.createElement("strong", null, "AI analysis queued."), " Claude will extract lab values from this file in ~30 seconds. The clinical summary and narrative will update automatically."), /*#__PURE__*/React.createElement("a", {
+    href: 'https://app.box.com/file/' + result?.box_file_id,
+    target: "_blank",
+    rel: "noreferrer",
     style: {
+      display: 'inline-block',
+      marginBottom: 14,
       fontSize: 11,
-      color: 'var(--amber)',
-      marginBottom: 16
+      color: 'var(--blue)'
     }
-  }, "\uD83D\uDCA1 Set Backend URL in \u2699 Settings to enable cloud uploads."), /*#__PURE__*/React.createElement("button", {
+  }, "\uD83D\uDCC2 Open in Box \u2192"), /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("button", {
     className: "btn-primary",
     onClick: onClose
   }, "Done")));
+
+  // ── Upload form ─────────────────────────────────────────────────────────────
   return /*#__PURE__*/React.createElement("div", {
     className: "modal-bg",
     onClick: onClose
@@ -4897,7 +4863,17 @@ function UploadModal({
   }, "Upload Medical File"), /*#__PURE__*/React.createElement("button", {
     className: "btn-ghost",
     onClick: onClose
-  }, "\u2715")), /*#__PURE__*/React.createElement("div", {
+  }, "\u2715")), !bkUrl && /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: '#FEF3C7',
+      border: '1px solid #FDE68A',
+      borderRadius: 7,
+      padding: '8px 12px',
+      marginBottom: 12,
+      fontSize: 11,
+      color: '#92400E'
+    }
+  }, "\u26A0 Set Render Backend URL in \u2699 Settings first \u2014 uploads require the backend."), /*#__PURE__*/React.createElement("div", {
     className: "upload-zone",
     onClick: () => fRef.current?.click(),
     style: {
@@ -4962,9 +4938,9 @@ function UploadModal({
     key: t
   }, t)))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
     className: "field-label"
-  }, "DOCTOR"), /*#__PURE__*/React.createElement("input", {
+  }, "DOCTOR / LAB"), /*#__PURE__*/React.createElement("input", {
     className: "input",
-    placeholder: "Doctor / Lab",
+    placeholder: "e.g. Aarthi Scans",
     value: dr,
     onChange: e => setDr(e.target.value)
   }))), /*#__PURE__*/React.createElement("div", {
@@ -4973,18 +4949,22 @@ function UploadModal({
     }
   }, /*#__PURE__*/React.createElement("label", {
     className: "field-label"
-  }, "TAGS"), /*#__PURE__*/React.createElement("input", {
+  }, "TAGS (comma separated)"), /*#__PURE__*/React.createElement("input", {
     className: "input",
-    placeholder: "e.g. mri, spine, urgent",
+    placeholder: "e.g. hba1c, thyroid, urgent",
     value: tags,
     onChange: e => setTags(e.target.value)
-  })), err && /*#__PURE__*/React.createElement("p", {
+  })), err && /*#__PURE__*/React.createElement("div", {
     style: {
       color: 'var(--red)',
       fontSize: 12,
-      marginBottom: 8
+      padding: '6px 10px',
+      background: 'var(--red-light)',
+      borderRadius: 6,
+      marginBottom: 10,
+      lineHeight: 1.5
     }
-  }, err), prog > 0 && /*#__PURE__*/React.createElement("div", {
+  }, err), prog > 0 && prog < 100 && /*#__PURE__*/React.createElement("div", {
     style: {
       marginBottom: 10
     }
@@ -4996,7 +4976,7 @@ function UploadModal({
       color: 'var(--text3)',
       marginBottom: 3
     }
-  }, /*#__PURE__*/React.createElement("span", null, "Adding\u2026"), /*#__PURE__*/React.createElement("span", null, prog, "%")), /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement("span", null, prog < 80 ? 'Uploading to Box…' : 'Processing…'), /*#__PURE__*/React.createElement("span", null, prog, "%")), /*#__PURE__*/React.createElement("div", {
     className: "progress-bar"
   }, /*#__PURE__*/React.createElement("div", {
     className: "progress-fill",
@@ -5015,13 +4995,13 @@ function UploadModal({
   }, "Cancel"), /*#__PURE__*/React.createElement("button", {
     className: "btn-primary",
     onClick: submit,
-    disabled: prog > 0 && prog < 100,
+    disabled: prog > 0 && prog < 100 || !bkUrl,
     style: {
       fontSize: 12
     }
   }, prog > 0 && prog < 100 ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("span", {
     className: "spinner"
-  }), "Uploading\u2026") : '↑ Upload File'))));
+  }), "Uploading\u2026") : '↑ Upload to Box'))));
 }
 
 // ─── EDIT PATIENT MODAL ────────────────────────────────────────────────────────
