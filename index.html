@@ -110,6 +110,9 @@ textarea.input{resize:vertical;min-height:70px}
 <body>
 <div id="root"><div style="display:flex;align-items:center;justify-content:center;height:100vh;background:#F8FAFC;color:#94A3B8;font-family:Inter,sans-serif;gap:10px"><div style="width:16px;height:16px;border:2px solid #E2E8F0;border-top-color:#1648A0;border-radius:50%;animation:spin .7s linear infinite"></div>Loading SBK Health…</div></div>
 <script>
+// ─── SBK Health — Complete Data ───────────────────────────────────────────────
+// DEFAULT_BACKEND_URL: viewers don't need to set Settings — photos and AI load automatically
+const DEFAULT_BACKEND_URL = 'https://sbkhealth-api.onrender.com';
 const USERS = {
   admin: {
     id: 'u1',
@@ -128,14 +131,16 @@ const USERS = {
     initials: 'FM'
   }
 };
+
+// ─── MOM: Conditions ──────────────────────────────────────────────────────────
 const MOM_CONDITIONS = [{
   id: 'dys',
   name: 'Severe Dyslipidaemia',
   sev: 'urgent',
   organ: 'Cardiovascular',
   organId: 'heart',
-  findings: 'LDL 181↑↑ + HDL 37↓↓ + TG 207↑↑ + CRP 6.7↑ (Feb 2026). WORST EVER: LDL 207 (Jan 2015). 11+ year chronic history. Statin NEVER started.',
-  action: 'Start Rosuvastatin/Atorvastatin TODAY. Target LDL <130. Recheck 6-8 weeks.',
+  findings: 'LDL 181 (Feb 2026), HDL 37, TG 207, CRP 6.7. WORST EVER: LDL 207 (Jan 2015). 11+ year chronic history. Statin never started.',
+  action: 'Start Rosuvastatin or Atorvastatin TODAY. Target LDL <130. Recheck in 6-8 weeks.',
   reviewed: 'Feb 2026'
 }, {
   id: 'thy',
@@ -143,8 +148,8 @@ const MOM_CONDITIONS = [{
   sev: 'urgent',
   organ: 'Thyroid',
   organId: 'thyroid',
-  findings: 'Anti-TPO 92.22↑↑ (ref <60, Jul 2019). TSH peaked 24.41↑↑ (overt, Jul 2019), 7.45↑↑ (Nov 2025). Currently 3.89✓ (Jan 2026). Levothyroxine ongoing.',
-  action: 'Recheck TSH in 3 months. Target 0.5–3.0 μIU/mL.',
+  findings: 'Anti-TPO 92.22 (Jul 2019). TSH peaked 24.41 (Jul 2019, overt). TSH 7.45 relapse. Currently 3.89 (Jan 2026). Levothyroxine ongoing.',
+  action: 'Recheck TSH in 3 months. Target 0.5-3.0 uIU/mL.',
   reviewed: 'Jan 2026'
 }, {
   id: 'spi',
@@ -175,11 +180,11 @@ const MOM_CONDITIONS = [{
   reviewed: 'May 2023'
 }, {
   id: 'ost',
-  name: 'Osteoporosis — Femur Neck Left (T-score −2.9)',
+  name: 'Osteoporosis — Femur Neck Left (T-score -2.9)',
   sev: 'high',
   organ: 'Bone Density',
   organId: 'bones',
-  findings: 'DEXA Nov 2022: Femur Neck Left T-score −2.9 (osteoporosis). TSH 1.94✓ on DEXA day — NOT thyroid-driven. Vit D 26.2↓. DEXA overdue.',
+  findings: 'DEXA Nov 2022: Femur Neck Left T-score -2.9. TSH 1.94 on DEXA day — NOT thyroid-driven. Vit D 26.2 low. DEXA overdue.',
   action: 'Alendronate 70mg weekly + Calcium + Vit D3. Repeat DEXA immediately.',
   reviewed: 'Nov 2022'
 }, {
@@ -215,7 +220,7 @@ const MOM_CONDITIONS = [{
   sev: 'monitor',
   organ: 'Metabolic',
   organId: 'metabolic',
-  findings: '1.72 mg/dL (Aug 2024, ref 1.90-3.10). Not rechecked. Causes muscle cramps, poor sleep.',
+  findings: '1.72 mg/dL (Aug 2024, ref 1.90-3.10). Causes muscle cramps, poor sleep.',
   action: 'Start magnesium glycinate. Include in next panel.',
   reviewed: 'Aug 2024'
 }, {
@@ -233,26 +238,28 @@ const MOM_CONDITIONS = [{
   sev: 'monitor',
   organ: 'Haematology',
   organId: 'metabolic',
-  findings: 'Hb low multiple times — worst 11.2 (May 2023). Iron deficiency Jul 2022 (Fe 39.3↓). Normalised Nov 2025.',
+  findings: 'Hb low multiple times — worst 11.2 (May 2023). Iron deficiency Jul 2022. Normalised Jan 2025 (12.3).',
   action: 'Monitor Hb annually. Iron-rich diet. Recheck if Hb <12.',
-  reviewed: 'Nov 2025'
+  reviewed: 'Jan 2025'
 }];
+
+// ─── DAD: Conditions ──────────────────────────────────────────────────────────
 const DAD_CONDITIONS = [{
   id: 'psa',
   name: 'Prostate Cancer — Post-Treatment Surveillance (Gleason 3+3=6)',
   sev: 'urgent',
   organ: 'Prostate',
   organId: 'prostate',
-  findings: 'Post-treatment PSA at excellent nadir: Apr 2022: 0.0447, Apr 2023: 0.015, Jul 2023: 0.042, Nov 2025: 0.11 ng/mL (all far below 4.0 threshold). Treatment (likely radiation/brachytherapy) ~2019-2020. Gleason 3+3=6 confirmed biopsy. PET staging Jun 2019.',
+  findings: 'Post-treatment PSA at excellent nadir: Apr 2022: 0.0447, Apr 2023: 0.015, Jul 2023: 0.042, Apr 2025: 0.128, Nov 2025: 0.11 ng/mL (all far below 4.0 threshold). Treatment (likely radiation ~2019-2020) highly effective. PET staging Jun 2019.',
   action: 'Continue 6-monthly PSA monitoring. Rising PSA (>0.2 or doubling time <12 months) warrants oncology review immediately.',
   reviewed: 'Nov 2025'
 }, {
   id: 'lipid2',
-  name: 'Dyslipidaemia WORSENING - On Statin',
+  name: 'Dyslipidaemia WORSENING — On Statin',
   sev: 'high',
   organ: 'Cardiovascular',
   organId: 'heart',
-  findings: 'LDL worsening despite statin: Jan 2025: 105 - Nov 2025: 148 - Feb 2026: 172. HDL dropped Feb 2026: 39 (ref >40). TC: 234. Urgent review.',
+  findings: 'LDL worsening despite statin: Apr 2022: 119, Jan 2025: 105 (best), Nov 2025: 148, Feb 2026: 172. HDL dropped Feb 2026: 39 (ref >40). TC: 234. Non-HDL 194 (ref <160). Urgent review.',
   action: 'Increase statin dose or add ezetimibe. Target LDL <100. Cardiology review. Repeat lipid 6 weeks post dose-change.',
   reviewed: 'Feb 2026'
 }, {
@@ -261,51 +268,53 @@ const DAD_CONDITIONS = [{
   sev: 'moderate',
   organ: 'Metabolic',
   organId: 'metabolic',
-  findings: 'HbA1c trend: Feb 2020: 6.5% - Jul 2022: 6.8% - Jan 2025: 6.2% - Nov 2025: 6.4% (pre-diabetic range 5.7-6.4%). Fasting glucose Nov 2025: 105 mg/dL. Average BG 137 mg/dL.',
+  findings: 'HbA1c trend: Feb 2020: 6.5%, Apr 2022: 6.0%, Jul 2022: 6.8%, Jan 2025: 6.2%, Apr 2025: 6.1%, Nov 2025: 6.4% (pre-diabetic 5.7-6.4%). Fasting glucose Nov 2025: 105 mg/dL. Worsening pattern.',
   action: 'Lifestyle: reduce refined carbs, increase walking 30 min/day. Repeat HbA1c in 3 months. Metformin if HbA1c 6.5%+.',
   reviewed: 'Nov 2025'
-}, {
-  id: 'bone2',
-  name: 'Osteoporosis / Low Bone Density',
-  sev: 'high',
-  organ: 'Bone Density',
-  organId: 'bones',
-  findings: 'DEXA Nov 2022: Multiple sites with T-score ≤ -2.5. Documented in 3 separate DEXA reports.',
-  action: 'Bisphosphonate + Calcium + Vit D3. Repeat DEXA.',
-  reviewed: 'Nov 2022'
 }, {
   id: 'tsh2',
   name: 'Hypothyroidism — Suboptimal Control',
   sev: 'moderate',
   organ: 'Thyroid',
   organId: 'thyroid',
-  findings: 'TSH poorly controlled despite levothyroxine: Jan 2025: 5.28↑ → Nov 2025: 6.55↑↑ → Jan 2026: 6.31↑↑ (ref 0.27–5.35). T3/T4 normal. TSH trending up on current dose.',
-  action: 'Increase levothyroxine dose. Recheck TSH+FT4 in 6-8 weeks. Take fasting, 30-60 min before food. Avoid calcium/iron within 4 hours.',
+  findings: 'TSH suboptimal despite levothyroxine: Apr 2022: 6.58, Jan 2025: 5.28, Nov 2025: 6.55, Jan 2026: 6.31 (ref 0.27-5.35). T3/T4 both normal — compensated state. Dose needs increase.',
+  action: 'Increase levothyroxine dose. Recheck TSH in 6-8 weeks. Take fasting, 30-60 min before food. No calcium/iron within 4 hours of dose.',
   reviewed: 'Jan 2026'
+}, {
+  id: 'bone2',
+  name: 'Osteoporosis / Low Bone Density',
+  sev: 'high',
+  organ: 'Bone Density',
+  organId: 'bones',
+  findings: 'DEXA Nov 2022: Multiple sites with T-score at or below -2.5. Documented in 3 separate DEXA reports.',
+  action: 'Bisphosphonate + Calcium + Vit D3. Repeat DEXA.',
+  reviewed: 'Nov 2022'
 }, {
   id: 'renal2',
   name: 'Urinary / Renal Monitoring',
   sev: 'monitor',
   organ: 'Kidneys',
   organId: 'kidneys',
-  findings: 'Urine analysis Sep 2025. Creatinine monitored. Uric acid history (gout risk).',
+  findings: 'Urine analysis Sep 2025. Creatinine monitored. Uric acid history. eGFR 100 (Nov 2025).',
   action: 'Annual renal panel. Stay well hydrated.',
-  reviewed: 'Sep 2025'
+  reviewed: 'Nov 2025'
 }];
+
+// ─── MOM: Timeline ────────────────────────────────────────────────────────────
 const MOM_TIMELINE = [{
   date: 'Feb 2026',
   year: 2026,
   type: 'lab',
   color: '#DC2626',
-  title: 'Lipid Profile + CRP — CRITICAL',
-  detail: 'LDL 181↑↑, HDL 37↓↓, CRP 6.7↑. Urgent statin indication.',
+  title: 'Lipid + CRP — CRITICAL',
+  detail: 'LDL 181, HDL 37, TG 207, CRP 6.7. Urgent statin indication. Worst-ever lipid combination.',
   specialty: 'Cardiology'
 }, {
   date: 'Jan 2026',
   year: 2026,
   type: 'lab',
   color: '#16A34A',
-  title: 'TSH 3.89✓ — Improved',
+  title: 'TSH 3.89 — Improved',
   detail: 'TSH 3.89 after Nov 2025 relapse. Dose adjustment effective.',
   specialty: 'Endocrinology'
 }, {
@@ -313,15 +322,15 @@ const MOM_TIMELINE = [{
   year: 2025,
   type: 'lab',
   color: '#DC2626',
-  title: 'TSH Relapse 7.45↑↑ + LDL 174↑↑',
-  detail: 'TSH 7.45↑↑, LDL 174↑↑, TG 295↑↑, Vit D 26.2↓.',
+  title: 'TSH Relapse 7.45 + LDL 174',
+  detail: 'TSH 7.45, LDL 174, TG 295, Vit D 26.2.',
   specialty: 'Endocrinology'
 }, {
   date: 'Sep 2024',
   year: 2024,
   type: 'hospital',
   color: '#7C3AED',
-  title: 'Admitted — Aster Prime Hospital (5 days)',
+  title: 'Admitted — Aster Prime (5 days)',
   detail: 'L5-S1 PIVD. Epidural: Depomedrol 80mg + Bupivacaine. Dr. A.K. Purohit.',
   specialty: 'Neurosurgery'
 }, {
@@ -345,7 +354,7 @@ const MOM_TIMELINE = [{
   year: 2023,
   type: 'imaging',
   color: '#16A34A',
-  title: 'CT Coronary Angio — Calcium Score 0 ✓',
+  title: 'CT Coronary Angio — Calcium Score 0',
   detail: 'Calcium Score: 0 (EXCELLENT). EF 64%. No PAH.',
   specialty: 'Cardiology'
 }, {
@@ -362,14 +371,14 @@ const MOM_TIMELINE = [{
   type: 'lab',
   color: '#DC2626',
   title: 'DEXA — Osteoporosis Confirmed',
-  detail: 'Femur Neck Left T-score −2.9. TSH 1.94✓ on same day — not thyroid-driven.',
+  detail: 'Femur Neck Left T-score -2.9. TSH 1.94 on same day — not thyroid-driven.',
   specialty: 'Endocrinology'
 }, {
   date: 'Nov 2022',
   year: 2022,
   type: 'imaging',
   color: '#16A34A',
-  title: 'Exercise Stress Test — NEGATIVE ✓',
+  title: 'Exercise Stress Test — NEGATIVE',
   detail: 'NEGATIVE for ischaemia. Max METs 7.20, HR 146 bpm (91% predicted).',
   specialty: 'Cardiology'
 }, {
@@ -377,7 +386,7 @@ const MOM_TIMELINE = [{
   year: 2020,
   type: 'surgery',
   color: '#6366F1',
-  title: 'Bilateral Cataract Surgery — Success',
+  title: 'Bilateral Cataract Surgery',
   detail: 'RE: IOL +25.0D, LE: IOL +25.5D. Tanvi Eye Centre.',
   specialty: 'Ophthalmology'
 }, {
@@ -386,7 +395,7 @@ const MOM_TIMELINE = [{
   type: 'diagnosis',
   color: '#DC2626',
   title: "Overt Hypothyroidism — Hashimoto's Diagnosed",
-  detail: "TSH 24.41↑↑. Anti-TPO 92.22↑↑. Levothyroxine commenced.",
+  detail: 'TSH 24.41. Anti-TPO 92.22. Levothyroxine commenced.',
   specialty: 'Endocrinology'
 }, {
   date: 'Jan 2015',
@@ -394,64 +403,82 @@ const MOM_TIMELINE = [{
   type: 'lab',
   color: '#DC2626',
   title: 'WORST EVER Lipid Panel',
-  detail: 'LDL 207↑↑, TC 309↑↑, TG 328↑↑, HDL 36↓↓. Statin not started.',
+  detail: 'LDL 207, TC 309, TG 328, HDL 36. Statin not started.',
   specialty: 'Cardiology'
 }];
+
+// ─── DAD: Timeline ────────────────────────────────────────────────────────────
 const DAD_TIMELINE = [{
   date: 'Feb 2026',
   year: 2026,
   type: 'lab',
   color: '#D97706',
-  title: 'Lipid Profile',
-  detail: 'Latest lipid panel. On Rosuvastatin.',
+  title: 'Lipid Profile — LDL 172',
+  detail: 'LDL 172, HDL 39 (low), TC 234. Dyslipidaemia worsening.',
   specialty: 'Cardiology'
 }, {
   date: 'Jan 2026',
   year: 2026,
   type: 'lab',
   color: '#D97706',
-  title: 'TSH Check',
-  detail: 'TSH monitored — on levothyroxine.',
+  title: 'TSH 6.31 — Still Elevated',
+  detail: 'TSH 6.31 despite levothyroxine. Dose needs increase.',
   specialty: 'Endocrinology'
+}, {
+  date: 'Nov 2025',
+  year: 2025,
+  type: 'lab',
+  color: '#2563EB',
+  title: 'Master Checkup — Comprehensive Panel',
+  detail: 'PSA 0.11 (excellent nadir). HbA1c 6.4%. TSH 6.55. LDL 148.',
+  specialty: 'Multi-specialty'
+}, {
+  date: 'Apr 2025',
+  year: 2025,
+  type: 'lab',
+  color: '#16A34A',
+  title: 'PSA 0.128 — Still Low',
+  detail: 'PSA 0.128 ng/mL. Slight rise but still far below 4.0 threshold. HbA1c 6.1%.',
+  specialty: 'Urology'
 }, {
   date: 'Jan 2025',
   year: 2025,
   type: 'lab',
-  color: '#DC2626',
-  title: 'PSA 4.8↑ — Active Surveillance',
-  detail: 'PSA 4.8 ng/mL. DRE slight asymmetry.',
-  specialty: 'Urology'
+  color: '#16A34A',
+  title: 'Full Body HEAL — Good Results',
+  detail: 'HbA1c 6.2%, TSH 5.28, LDL 105 (best), Vit D 57.8, eGFR 100.',
+  specialty: 'Multi-specialty'
 }, {
   date: 'Jun 2023',
   year: 2023,
   type: 'imaging',
-  color: '#16A34A',
-  title: 'CT Coronary Angio',
-  detail: 'Coronary arteries assessed. Cardiac findings documented.',
+  color: '#2563EB',
+  title: 'CT Coronary Angiogram',
+  detail: 'CAD assessment. Multiple specialist prescriptions post-procedure.',
   specialty: 'Cardiology'
 }, {
-  date: 'Jun 2023',
+  date: 'Jul 2023',
   year: 2023,
-  type: 'hospital',
-  color: '#7C3AED',
-  title: 'Discharge — Coronary Angiogram',
-  detail: 'Post-angiogram discharge. Multiple specialist prescriptions.',
-  specialty: 'Cardiology'
+  type: 'lab',
+  color: '#16A34A',
+  title: 'PSA 0.042 — Excellent Nadir',
+  detail: 'PSA 0.042 ng/mL. Post-treatment surveillance continues excellently.',
+  specialty: 'Urology'
 }, {
   date: 'Nov 2022',
   year: 2022,
   type: 'lab',
   color: '#2563EB',
   title: 'DEXA Bone Density',
-  detail: 'Multiple sites below threshold. Osteoporosis confirmed.',
+  detail: 'Multiple sites T-score at or below -2.5. Osteoporosis confirmed.',
   specialty: 'Endocrinology'
 }, {
-  date: 'Mar 2019',
-  year: 2019,
-  type: 'diagnosis',
-  color: '#DC2626',
-  title: 'First Elevated PSA',
-  detail: 'PSA elevated first time at CC Shroff. Urology referral.',
+  date: 'Apr 2022',
+  year: 2022,
+  type: 'lab',
+  color: '#D97706',
+  title: 'PSA 0.044 — Post-Treatment Nadir',
+  detail: 'PSA 0.0447. TSH 6.58 (elevated). LDL 119.',
   specialty: 'Urology'
 }, {
   date: 'Jun 2019',
@@ -459,9 +486,1339 @@ const DAD_TIMELINE = [{
   type: 'imaging',
   color: '#8B5CF6',
   title: 'PET CT Scan — Prostate Staging',
-  detail: 'Full prostate cancer workup. Multiple specialist consultations.',
+  detail: 'Full prostate cancer workup post-biopsy. Gleason 3+3=6.',
   specialty: 'Oncology'
+}, {
+  date: 'Mar 2019',
+  year: 2019,
+  type: 'diagnosis',
+  color: '#DC2626',
+  title: 'First Elevated PSA',
+  detail: 'First elevated PSA at CC Shroff. Urology referral leading to diagnosis.',
+  specialty: 'Urology'
 }];
+
+// ─── MOM: Lab Data — KEY MARKERS (with boxId for tooltip source links) ────────
+const MOM_LABS_KEY = {
+  tsh: {
+    label: 'TSH (Thyroid)',
+    unit: 'uIU/mL',
+    refLow: 0.27,
+    refHigh: 5.35,
+    color: '#7C3AED',
+    data: [{
+      d: "Apr'13",
+      v: 3.27,
+      boxId: null
+    }, {
+      d: "Jan'15",
+      v: 3.53,
+      boxId: '2175600861238',
+      src: 'Full Body CC Shroff Jan 2015'
+    }, {
+      d: "Jan'16",
+      v: 3.92,
+      boxId: '2175280890985',
+      src: 'Medical Test Jan 2016'
+    }, {
+      d: "Mar'18",
+      v: 2.65,
+      boxId: '2175285558327',
+      src: 'Full Checkup Maxcure Mar 2018'
+    }, {
+      d: "Jul'19",
+      v: 24.41,
+      boxId: '2175285189103',
+      src: 'Full Checkup Thyrocare Jul 2019'
+    }, {
+      d: "Feb'20",
+      v: 2.51,
+      boxId: '2175284696724',
+      src: 'Blood Tests Sri Sai Feb 2020'
+    }, {
+      d: "Sep'21",
+      v: 6.23,
+      boxId: '2175289923662',
+      src: 'Full Body Sep 2021'
+    }, {
+      d: "Nov'22",
+      v: 1.94,
+      boxId: '2175597224462',
+      src: 'Full Body Aster Nov 2022'
+    }, {
+      d: "May'23",
+      v: 5.39,
+      boxId: '2175284259896',
+      src: 'Health Checkup May 2023'
+    }, {
+      d: "Jul'23",
+      v: 2.87,
+      boxId: '2175285606396',
+      src: 'Full Body Aarthi Jul 2023'
+    }, {
+      d: "Sep'24",
+      v: 4.791,
+      boxId: '2175285748343',
+      src: 'Full Body Aster Prime Sep 2024'
+    }, {
+      d: "Jan'25",
+      v: 3.12,
+      boxId: '2175283362145',
+      src: 'Full Body HEAL Jan 2025'
+    }, {
+      d: "Nov'25",
+      v: 7.45,
+      boxId: '2175286177374',
+      src: 'Full Body Nov 2024'
+    }, {
+      d: "Jan'26",
+      v: 3.89,
+      boxId: '2175282015807',
+      src: 'TSH Bioline Jan 2026'
+    }],
+    note: "Hashimoto's — overt Jul 2019 (24.41). TSH 1.94 on DEXA day. Latest: 3.89 (Jan 2026)."
+  },
+  ldl: {
+    label: 'LDL Cholesterol',
+    unit: 'mg/dL',
+    refHigh: 130,
+    color: '#DC2626',
+    data: [{
+      d: "Jan'15",
+      v: 207,
+      boxId: '2175600861238',
+      src: 'Full Body CC Shroff Jan 2015'
+    }, {
+      d: "Sep'15",
+      v: 104,
+      boxId: '2175592408503',
+      src: 'Lipid Red Cross Sep 2015'
+    }, {
+      d: "Jan'16",
+      v: 194,
+      boxId: '2175280890985',
+      src: 'Medical Test Jan 2016'
+    }, {
+      d: "Mar'18",
+      v: 150,
+      boxId: '2175285558327',
+      src: 'Full Checkup Maxcure Mar 2018'
+    }, {
+      d: "Jul'19",
+      v: 189,
+      boxId: '2175285189103',
+      src: 'Full Checkup Thyrocare Jul 2019'
+    }, {
+      d: "Feb'20",
+      v: 145,
+      boxId: '2175284696724',
+      src: 'Blood Tests Feb 2020'
+    }, {
+      d: "Sep'21",
+      v: 137,
+      boxId: '2175289923662',
+      src: 'Full Body Sep 2021'
+    }, {
+      d: "May'23",
+      v: 87.57,
+      boxId: '2175284259896',
+      src: 'Health Checkup May 2023'
+    }, {
+      d: "Jul'23",
+      v: 106,
+      boxId: '2175285606396',
+      src: 'Full Body Aarthi Jul 2023'
+    }, {
+      d: "Sep'24",
+      v: 163,
+      boxId: '2175285748343',
+      src: 'Full Body Sep 2024'
+    }, {
+      d: "Jan'25",
+      v: 118.54,
+      boxId: '2175283362145',
+      src: 'Full Body HEAL Jan 2025'
+    }, {
+      d: "Nov'25",
+      v: 174,
+      boxId: '2175286177374',
+      src: 'Full Body Nov 2024'
+    }, {
+      d: "Feb'26",
+      v: 181,
+      boxId: '2175290687427',
+      src: 'Lipid+CRP Sai Baba Feb 2026'
+    }],
+    note: 'WORST: 207 (Jan 2015). BEST: 87.57 (May 2023). Current: 181. STATIN NEVER STARTED.'
+  },
+  hba1c: {
+    label: 'HbA1c',
+    unit: '%',
+    refHigh: 5.7,
+    color: '#D97706',
+    data: [{
+      d: "Mar'18",
+      v: 5.8,
+      boxId: '2175285558327',
+      src: 'Full Checkup Maxcure Mar 2018'
+    }, {
+      d: "Nov'22",
+      v: 5.1,
+      boxId: '2175597224462',
+      src: 'Full Body Aster Nov 2022'
+    }, {
+      d: "Jul'22",
+      v: 5.5,
+      boxId: '2175282141422',
+      src: 'Full Body Jul 2022'
+    }, {
+      d: "Jul'23",
+      v: 5.3,
+      boxId: '2175285606396',
+      src: 'Full Body Aarthi Jul 2023'
+    }, {
+      d: "Sep'24",
+      v: 5.5,
+      boxId: '2175285748343',
+      src: 'Full Body Sep 2024'
+    }, {
+      d: "Jan'25",
+      v: 5.0,
+      boxId: '2175283362145',
+      src: 'Full Body HEAL Jan 2025'
+    }, {
+      d: "Nov'25",
+      v: 5.2,
+      boxId: '2175286177374',
+      src: 'Full Body Nov 2024'
+    }],
+    note: 'Best: 5.0% (Jan 2025). Consistently non-diabetic range throughout.'
+  },
+  vitd: {
+    label: 'Vitamin D',
+    unit: 'ng/mL',
+    refLow: 30,
+    color: '#16A34A',
+    data: [{
+      d: "Jul'19",
+      v: 16.08,
+      boxId: '2175285189103',
+      src: 'Full Checkup Thyrocare Jul 2019'
+    }, {
+      d: "Jul'22",
+      v: 42.4,
+      boxId: '2175282141422',
+      src: 'Full Body Jul 2022'
+    }, {
+      d: "Nov'22",
+      v: 30.3,
+      boxId: '2175597224462',
+      src: 'Full Body Aster Nov 2022'
+    }, {
+      d: "Jul'23",
+      v: 51.19,
+      boxId: '2175285606396',
+      src: 'Full Body Aarthi Jul 2023'
+    }, {
+      d: "Sep'24",
+      v: 30.6,
+      boxId: '2175285748343',
+      src: 'Full Body Sep 2024'
+    }, {
+      d: "Jan'25",
+      v: 42.30,
+      boxId: '2175283362145',
+      src: 'Full Body HEAL Jan 2025'
+    }, {
+      d: "Nov'25",
+      v: 26.2,
+      boxId: '2175286177374',
+      src: 'Full Body Nov 2024'
+    }],
+    note: 'BEST: 51.19 (Jul 2023). Current: 26.2 (insufficient). Target 40-60 ng/mL.'
+  },
+  hb: {
+    label: 'Haemoglobin',
+    unit: 'g/dL',
+    refLow: 12.0,
+    color: '#2563EB',
+    data: [{
+      d: "Oct'13",
+      v: 12.5,
+      boxId: '2175282212449',
+      src: 'Medical Test Oct 2013'
+    }, {
+      d: "Jan'15",
+      v: 12.9,
+      boxId: '2175600861238'
+    }, {
+      d: "Jan'16",
+      v: 12.0,
+      boxId: '2175280890985'
+    }, {
+      d: "Mar'18",
+      v: 12.1,
+      boxId: '2175285558327'
+    }, {
+      d: "Aug'19",
+      v: 11.5,
+      boxId: '2175286274361',
+      src: 'Full Body Tapadia Aug 2019'
+    }, {
+      d: "Feb'20",
+      v: 12.2,
+      boxId: '2175284696724'
+    }, {
+      d: "Sep'21",
+      v: 11.8,
+      boxId: '2175289923662'
+    }, {
+      d: "Jul'22",
+      v: 11.5,
+      boxId: '2175282141422'
+    }, {
+      d: "May'23",
+      v: 11.2,
+      boxId: '2175284259896'
+    }, {
+      d: "Jul'23",
+      v: 13.0,
+      boxId: '2175285606396'
+    }, {
+      d: "Sep'24",
+      v: 12.5,
+      boxId: '2175285748343',
+      src: 'Aster Prime Hospital Sep 2024'
+    }, {
+      d: "Jan'25",
+      v: 12.3,
+      boxId: '2175283362145'
+    }, {
+      d: "Nov'25",
+      v: 13.1,
+      boxId: '2175286177374'
+    }],
+    note: 'Recurring mild anaemia. Iron deficiency Jul 2022. Normalised Jan 2025.'
+  },
+  creatinine: {
+    label: 'Creatinine',
+    unit: 'mg/dL',
+    refHigh: 1.02,
+    color: '#0891B2',
+    data: [{
+      d: "Jan'15",
+      v: 0.9,
+      boxId: '2175600861238'
+    }, {
+      d: "Jan'16",
+      v: 0.7,
+      boxId: '2175280890985'
+    }, {
+      d: "Mar'18",
+      v: 1.0,
+      boxId: '2175285558327'
+    }, {
+      d: "Jul'19",
+      v: 0.64,
+      boxId: '2175285189103'
+    }, {
+      d: "Feb'20",
+      v: 0.9,
+      boxId: '2175284696724'
+    }, {
+      d: "Sep'21",
+      v: 0.6,
+      boxId: '2175289923662'
+    }, {
+      d: "Jul'22",
+      v: 0.67,
+      boxId: '2175282141422'
+    }, {
+      d: "May'23",
+      v: 0.67,
+      boxId: '2175284259896'
+    }, {
+      d: "Jul'23",
+      v: 0.7,
+      boxId: '2175285606396'
+    }, {
+      d: "Sep'24",
+      v: 0.66,
+      boxId: '2175285748343'
+    }, {
+      d: "Jan'25",
+      v: 0.64,
+      boxId: '2175283362145'
+    }, {
+      d: "Nov'25",
+      v: 0.62,
+      boxId: '2175286177374'
+    }],
+    note: 'Excellent kidney function throughout. eGFR 90-100 mL/min. No concern.'
+  }
+};
+
+// ─── MOM: Lab Data — FULL MARKERS (by category) ───────────────────────────────
+const MOM_LABS_FULL = {
+  // CARDIOVASCULAR
+  tc: {
+    label: 'Total Cholesterol',
+    unit: 'mg/dL',
+    refHigh: 200,
+    color: '#DC2626',
+    category: 'cardiovascular',
+    data: [{
+      d: "Jan'15",
+      v: 309,
+      boxId: '2175600861238'
+    }, {
+      d: "Sep'15",
+      v: 170,
+      boxId: '2175592408503'
+    }, {
+      d: "Jan'16",
+      v: 270,
+      boxId: '2175280890985'
+    }, {
+      d: "Jul'19",
+      v: 271,
+      boxId: '2175285189103'
+    }, {
+      d: "Nov'22",
+      v: 242,
+      boxId: '2175597224462'
+    }, {
+      d: "Jul'23",
+      v: 178,
+      boxId: '2175285606396'
+    }, {
+      d: "Jan'25",
+      v: 261.98,
+      boxId: '2175283362145'
+    }, {
+      d: "Nov'25",
+      v: 263,
+      boxId: '2175286177374'
+    }, {
+      d: "Feb'26",
+      v: 259,
+      boxId: '2175290687427'
+    }],
+    note: 'Consistently elevated. WORST: 309 (Jan 2015). Best recent: 178 (Jul 2023). Latest: 259.'
+  },
+  hdl: {
+    label: 'HDL Cholesterol',
+    unit: 'mg/dL',
+    refLow: 45,
+    color: '#16A34A',
+    category: 'cardiovascular',
+    data: [{
+      d: "Jan'15",
+      v: 36,
+      boxId: '2175600861238'
+    }, {
+      d: "Sep'15",
+      v: 36,
+      boxId: '2175592408503'
+    }, {
+      d: "Jan'16",
+      v: 40,
+      boxId: '2175280890985'
+    }, {
+      d: "Jul'19",
+      v: 57,
+      boxId: '2175285189103'
+    }, {
+      d: "Nov'22",
+      v: 50,
+      boxId: '2175597224462'
+    }, {
+      d: "Jul'23",
+      v: 45.6,
+      boxId: '2175285606396'
+    }, {
+      d: "Jan'25",
+      v: 52.74,
+      boxId: '2175283362145'
+    }, {
+      d: "Nov'25",
+      v: 51,
+      boxId: '2175286177374'
+    }, {
+      d: "Feb'26",
+      v: 37,
+      boxId: '2175290687427'
+    }],
+    note: 'Feb 2026: HDL dropped to 37 (ref >45). Previously 50-57. Low HDL increases cardiac risk significantly.'
+  },
+  tg: {
+    label: 'Triglycerides',
+    unit: 'mg/dL',
+    refHigh: 150,
+    color: '#F59E0B',
+    category: 'cardiovascular',
+    data: [{
+      d: "Jan'15",
+      v: 328,
+      boxId: '2175600861238'
+    }, {
+      d: "Sep'15",
+      v: 150,
+      boxId: '2175592408503'
+    }, {
+      d: "Jan'16",
+      v: 179,
+      boxId: '2175280890985'
+    }, {
+      d: "Jul'19",
+      v: 212,
+      boxId: '2175285189103'
+    }, {
+      d: "Nov'22",
+      v: 195,
+      boxId: '2175597224462'
+    }, {
+      d: "Jul'23",
+      v: 254,
+      boxId: '2175285606396'
+    }, {
+      d: "Jan'25",
+      v: 244,
+      boxId: '2175283362145'
+    }, {
+      d: "Nov'25",
+      v: 295,
+      boxId: '2175286177374'
+    }, {
+      d: "Feb'26",
+      v: 207,
+      boxId: '2175290687427'
+    }],
+    note: 'WORST: 328 (Jan 2015). Persistently elevated. Nov 2025: 295 (high). Target <150.'
+  },
+  crp: {
+    label: 'CRP (Inflammation)',
+    unit: 'mg/L',
+    refHigh: 5,
+    color: '#EF4444',
+    category: 'cardiovascular',
+    data: [{
+      d: "Apr'13",
+      v: 0.13
+    }, {
+      d: "Mar'18",
+      v: 0.3,
+      boxId: '2175285558327'
+    }, {
+      d: "May'23",
+      v: 1.2,
+      boxId: '2175284259896'
+    }, {
+      d: "Feb'26",
+      v: 6.7,
+      boxId: '2175290687427'
+    }],
+    note: 'Feb 2026: 6.7 (elevated, ref <5). Tracks dyslipidaemia and inflammation.'
+  },
+  // THYROID
+  t3: {
+    label: 'T3 (Total Triiodothyronine)',
+    unit: 'ng/dL',
+    refLow: 97,
+    refHigh: 169,
+    color: '#8B5CF6',
+    category: 'thyroid',
+    data: [{
+      d: "Nov'22",
+      v: 115,
+      boxId: '2175597224462',
+      src: 'Aster Labs Full Body Nov 2022'
+    }, {
+      d: "Jul'23",
+      v: 100.2,
+      boxId: '2175285606396',
+      src: 'Full Body Aarthi Jul 2023'
+    }],
+    note: 'T3 normal on both readings despite Hashimotos — peripheral conversion adequate on levothyroxine. Nov 22: 115, Jul 23: 100.2 ng/dL (ref 97-169).'
+  },
+  t4: {
+    label: 'T4 (Total Thyroxine)',
+    unit: 'ug/dL',
+    refLow: 5.0,
+    refHigh: 10.7,
+    color: '#A78BFA',
+    category: 'thyroid',
+    data: [{
+      d: "Nov'22",
+      v: 7.93,
+      boxId: '2175597224462',
+      src: 'Aster Labs Full Body Nov 2022'
+    }, {
+      d: "Jul'23",
+      v: 8.2,
+      boxId: '2175285606396',
+      src: 'Full Body Aarthi Jul 2023'
+    }],
+    note: 'T4 normal on both readings. Nov 22: 7.93, Jul 23: 8.2 ug/dL (ref 5.0-10.7). Adequate thyroid hormone on levothyroxine.'
+  },
+  tpo: {
+    label: 'Anti-TPO (Thyroid Antibodies)',
+    unit: 'IU/mL',
+    refHigh: 60,
+    color: '#7C3AED',
+    category: 'thyroid',
+    data: [{
+      d: "Jul'19",
+      v: 92.22,
+      boxId: '2175288626022',
+      src: 'Anti-TG Sri Sai Lab Jul 2019'
+    }, {
+      d: "Feb'23",
+      v: 42,
+      boxId: '2175588231612',
+      src: 'Blood Tests Lucid Feb 2023'
+    }],
+    note: 'Jul 2019: 92.22 (confirmed Hashimotos). Feb 2023: 42 (declining with treatment — positive response).'
+  },
+  // METABOLIC
+  vitd_f: {
+    label: 'Vitamin D (25-OH)',
+    unit: 'ng/mL',
+    refLow: 30,
+    color: '#16A34A',
+    category: 'metabolic',
+    data: [{
+      d: "Jul'19",
+      v: 16.08,
+      boxId: '2175285189103'
+    }, {
+      d: "Jul'22",
+      v: 42.4,
+      boxId: '2175282141422'
+    }, {
+      d: "Nov'22",
+      v: 30.3,
+      boxId: '2175597224462'
+    }, {
+      d: "Jul'23",
+      v: 51.19,
+      boxId: '2175285606396'
+    }, {
+      d: "Sep'24",
+      v: 30.6,
+      boxId: '2175285748343'
+    }, {
+      d: "Jan'25",
+      v: 42.30,
+      boxId: '2175283362145'
+    }, {
+      d: "Nov'25",
+      v: 26.2,
+      boxId: '2175286177374'
+    }],
+    note: 'BEST: 51.19 (Jul 2023). Currently 26.2 (insufficient). Supplement to maintain 40+.'
+  },
+  b12: {
+    label: 'Vitamin B12',
+    unit: 'pg/mL',
+    refLow: 200,
+    color: '#06B6D4',
+    category: 'metabolic',
+    data: [{
+      d: "Mar'18",
+      v: 312,
+      boxId: '2175285558327'
+    }, {
+      d: "Jul'19",
+      v: 285,
+      boxId: '2175285189103'
+    }, {
+      d: "Feb'23",
+      v: 1595,
+      boxId: '2175588231612'
+    }, {
+      d: "Jan'25",
+      v: 389,
+      boxId: '2175283362145'
+    }, {
+      d: "Nov'25",
+      v: 715,
+      boxId: '2175286177374'
+    }],
+    note: 'Feb 2023 spike 1595 (likely high-dose supplement). Currently 715 (normal). Maintain supplementation.'
+  },
+  mg: {
+    label: 'Magnesium',
+    unit: 'mg/dL',
+    refLow: 1.9,
+    color: '#10B981',
+    category: 'metabolic',
+    data: [{
+      d: "Aug'24",
+      v: 1.72,
+      boxId: '2175285395530',
+      src: 'Magnesium Test Aug 2024'
+    }],
+    note: 'Aug 2024: 1.72 (below normal 1.90-3.10). Causes muscle cramps and poor sleep. Supplement needed.'
+  },
+  fbs: {
+    label: 'Fasting/Random Blood Sugar',
+    unit: 'mg/dL',
+    refHigh: 100,
+    color: '#F59E0B',
+    category: 'metabolic',
+    data: [{
+      d: "Nov'22",
+      v: 96,
+      boxId: '2175597224462',
+      src: 'Aster Labs Full Body Nov 2022'
+    }, {
+      d: "Jan'25",
+      v: 100,
+      boxId: '2175283362145',
+      src: 'Full Body HEAL Jan 2025'
+    }],
+    note: 'Both readings at upper normal. HbA1c consistently below 5.7% — no diabetes. Monitor.'
+  },
+  calcium: {
+    label: 'Calcium (Serum)',
+    unit: 'mg/dL',
+    refLow: 8.8,
+    refHigh: 10.6,
+    color: '#10B981',
+    category: 'metabolic',
+    data: [{
+      d: "Jan'25",
+      v: 9.82,
+      boxId: '2175283362145',
+      src: 'Full Body HEAL Jan 2025'
+    }],
+    note: 'Jan 2025: 9.82 (normal 8.8-10.6). Important given osteoporosis — calcium absorption adequate.'
+  },
+  // RENAL
+  uric: {
+    label: 'Uric Acid',
+    unit: 'mg/dL',
+    refHigh: 6.2,
+    color: '#8B5CF6',
+    category: 'renal',
+    data: [{
+      d: "Nov'22",
+      v: 4.9,
+      boxId: '2175597224462'
+    }, {
+      d: "Jul'23",
+      v: 5.3,
+      boxId: '2175285606396'
+    }, {
+      d: "Jan'25",
+      v: 4.29,
+      boxId: '2175283362145'
+    }],
+    note: 'All readings normal (ref <6.2 for women). No gout risk. Good hydration maintained.'
+  },
+  egfr: {
+    label: 'eGFR (Kidney Function)',
+    unit: 'mL/min',
+    refLow: 60,
+    color: '#0891B2',
+    category: 'renal',
+    data: [{
+      d: "Nov'22",
+      v: 79,
+      boxId: '2175597224462',
+      src: 'Aster Labs Nov 2022'
+    }, {
+      d: "Jul'23",
+      v: 90,
+      boxId: '2175285606396',
+      src: 'Full Body Aarthi Jul 2023'
+    }, {
+      d: "Nov'25",
+      v: 100,
+      boxId: '2175286177374',
+      src: 'Full Body Nov 2024'
+    }],
+    note: 'Nov 2022: 79 (mild reduction). Improved to 90 (Jul 2023) and 100 (Nov 2025). Excellent trend!'
+  },
+  // HEPATIC
+  alt: {
+    label: 'ALT/SGPT (Liver)',
+    unit: 'U/L',
+    refHigh: 34,
+    color: '#D97706',
+    category: 'hepatic',
+    data: [{
+      d: "Nov'22",
+      v: 13,
+      boxId: '2175597224462'
+    }, {
+      d: "Jul'23",
+      v: 12,
+      boxId: '2175285606396'
+    }, {
+      d: "Sep'24",
+      v: 26,
+      boxId: '2175285748343',
+      src: 'Aster Prime Sep 2024'
+    }, {
+      d: "Jan'25",
+      v: 19.6,
+      boxId: '2175283362145'
+    }],
+    note: 'All readings normal (ref <34). Liver function excellent throughout. PPI has no hepatic impact.'
+  },
+  ast: {
+    label: 'AST/SGOT (Liver)',
+    unit: 'U/L',
+    refHigh: 31,
+    color: '#F59E0B',
+    category: 'hepatic',
+    data: [{
+      d: "Jul'23",
+      v: 18,
+      boxId: '2175285606396'
+    }, {
+      d: "Sep'24",
+      v: 23,
+      boxId: '2175285748343',
+      src: 'Aster Prime Sep 2024'
+    }, {
+      d: "Jan'25",
+      v: 18,
+      boxId: '2175283362145'
+    }],
+    note: 'AST normal on both readings. No hepatic injury. Liver architecture intact.'
+  },
+  alp: {
+    label: 'ALP (Alkaline Phosphatase)',
+    unit: 'U/L',
+    refLow: 53,
+    refHigh: 141,
+    color: '#F59E0B',
+    category: 'hepatic',
+    data: [{
+      d: "Nov'22",
+      v: 72,
+      boxId: '2175597224462'
+    }, {
+      d: "Jul'23",
+      v: 76,
+      boxId: '2175285606396'
+    }, {
+      d: "Sep'24",
+      v: 79,
+      boxId: '2175285748343',
+      src: 'Aster Prime Sep 2024'
+    }, {
+      d: "Jan'25",
+      v: 89.4,
+      boxId: '2175283362145'
+    }],
+    note: 'ALP normal throughout (53-141). Normal biliary function and bone turnover.'
+  },
+  // HAEMATOLOGY
+  esr: {
+    label: 'ESR (Inflammation)',
+    unit: 'mm/hr',
+    refHigh: 20,
+    color: '#EF4444',
+    category: 'haematology',
+    data: [{
+      d: "Nov'22",
+      v: 30,
+      boxId: '2175597224462',
+      src: 'Aster Labs Nov 2022'
+    }, {
+      d: "Jul'23",
+      v: 23,
+      boxId: '2175285606396',
+      src: 'Full Body Aarthi Jul 2023'
+    }, {
+      d: "Jan'25",
+      v: 10,
+      boxId: '2175283362145',
+      src: 'Full Body HEAL Jan 2025'
+    }],
+    note: 'Nov 2022: 30 (elevated). Jul 2023: 23 (elevated). Jan 2025: 10 (NORMAL! — great improvement).'
+  }
+};
+
+// ─── DAD: Lab Data — KEY MARKERS ──────────────────────────────────────────────
+const DAD_LABS_KEY = {
+  psa: {
+    label: 'PSA (Post-Treatment Nadir)',
+    unit: 'ng/mL',
+    refHigh: 4.0,
+    color: '#16A34A',
+    data: [{
+      d: "Apr'22",
+      v: 0.0447,
+      boxId: '2161693401513',
+      src: 'PSA Vijaya Apr 2022'
+    }, {
+      d: "Apr'23",
+      v: 0.015,
+      boxId: '2161694466595',
+      src: 'PSA Lucid Apr 2023'
+    }, {
+      d: "Jul'23",
+      v: 0.042,
+      boxId: '2161690562007',
+      src: 'PSA Lucid Jul 2023'
+    }, {
+      d: "Apr'25",
+      v: 0.128,
+      boxId: '2161695373696',
+      src: 'HbA1c+PSA Apr 2025'
+    }, {
+      d: "Nov'25",
+      v: 0.11,
+      boxId: '2155657530240',
+      src: 'Master Checkup Nov 2025'
+    }],
+    note: 'EXCELLENT post-treatment response. All values 0.01-0.13 ng/mL (threshold: 4.0). Apr 2025: slight rise to 0.128 but still excellent. Continue 6-monthly surveillance.'
+  },
+  hba1c: {
+    label: 'HbA1c (Glycaemia)',
+    unit: '%',
+    refHigh: 5.7,
+    color: '#D97706',
+    data: [{
+      d: "Feb'20",
+      v: 6.5,
+      boxId: '2155657967741',
+      src: 'HbA1c Medicover Feb 2020'
+    }, {
+      d: "Apr'22",
+      v: 6.0,
+      boxId: '2161688358566',
+      src: 'Full Checkup Redcliffe Apr 2022'
+    }, {
+      d: "Jul'22",
+      v: 6.8,
+      boxId: '2161694949093',
+      src: 'HbA1c Jul 2022'
+    }, {
+      d: "Jan'25",
+      v: 6.2,
+      boxId: '2161693369408',
+      src: 'Full Body HEAL Jan 2025'
+    }, {
+      d: "Apr'25",
+      v: 6.1,
+      boxId: '2161695373696',
+      src: 'HbA1c+PSA Apr 2025'
+    }, {
+      d: "Nov'25",
+      v: 6.4,
+      boxId: '2155657530240',
+      src: 'Master Checkup Nov 2025'
+    }],
+    note: 'Pre-diabetic range (5.7-6.4%). Best: 6.0% Apr 2022. Worsening: 6.4% Nov 2025. Urgent lifestyle intervention.'
+  },
+  tsh: {
+    label: 'TSH (Thyroid)',
+    unit: 'uIU/mL',
+    refLow: 0.27,
+    refHigh: 5.35,
+    color: '#7C3AED',
+    data: [{
+      d: "Apr'22",
+      v: 6.58,
+      boxId: '2161688358566',
+      src: 'Full Checkup Redcliffe Apr 2022'
+    }, {
+      d: "Jan'25",
+      v: 5.28,
+      boxId: '2161693369408',
+      src: 'Full Body HEAL Jan 2025'
+    }, {
+      d: "Nov'25",
+      v: 6.55,
+      boxId: '2155657530240',
+      src: 'Master Checkup Nov 2025'
+    }, {
+      d: "Jan'26",
+      v: 6.31,
+      boxId: '2161697642376',
+      src: 'TSH Bioline Jan 2026'
+    }],
+    note: 'Consistently elevated despite levothyroxine: 6.58 - 5.28 - 6.55 - 6.31. Dose increase needed urgently.'
+  },
+  ldl: {
+    label: 'LDL Cholesterol',
+    unit: 'mg/dL',
+    refHigh: 100,
+    color: '#DC2626',
+    data: [{
+      d: "Apr'22",
+      v: 119,
+      boxId: '2161688358566',
+      src: 'Full Checkup Redcliffe Apr 2022'
+    }, {
+      d: "Jan'25",
+      v: 105,
+      boxId: '2161693369408',
+      src: 'Full Body HEAL Jan 2025'
+    }, {
+      d: "Nov'25",
+      v: 148,
+      boxId: '2155657530240',
+      src: 'Master Checkup Nov 2025'
+    }, {
+      d: "Feb'26",
+      v: 172,
+      boxId: '2161689467391',
+      src: 'Lipid Profile Feb 2026'
+    }],
+    note: 'WORSENING despite statin: 119 (Apr 22) - 105 (Jan 25, best) - 148 (Nov 25) - 172 (Feb 26). Urgent dose review or add ezetimibe.'
+  },
+  hb: {
+    label: 'Haemoglobin',
+    unit: 'g/dL',
+    refLow: 13.0,
+    color: '#2563EB',
+    data: [{
+      d: "Apr'22",
+      v: 12.83,
+      boxId: '2161688358566',
+      src: 'Full Checkup Redcliffe Apr 2022'
+    }, {
+      d: "Jan'25",
+      v: 13.1,
+      boxId: '2161693369408',
+      src: 'Full Body HEAL Jan 2025'
+    }, {
+      d: "Nov'25",
+      v: 13.5,
+      boxId: '2155657530240',
+      src: 'Master Checkup Nov 2025'
+    }],
+    note: 'Apr 2022: 12.83 (slightly below normal). Improved: Jan 2025: 13.1, Nov 2025: 13.5. Good trend. No anaemia now.'
+  },
+  creatinine: {
+    label: 'Creatinine (Renal)',
+    unit: 'mg/dL',
+    refHigh: 1.18,
+    color: '#0891B2',
+    data: [{
+      d: "Apr'22",
+      v: 0.6,
+      boxId: '2161688358566',
+      src: 'Full Checkup Redcliffe Apr 2022'
+    }, {
+      d: "Jan'25",
+      v: 0.77,
+      boxId: '2161693369408',
+      src: 'Full Body HEAL Jan 2025'
+    }, {
+      d: "Nov'25",
+      v: 0.73,
+      boxId: '2155657530240',
+      src: 'Master Checkup Nov 2025'
+    }],
+    note: 'Excellent kidney function throughout. eGFR 100 mL/min (Nov 2025). All readings well within range. No renal concern.'
+  }
+};
+
+// ─── DAD: Lab Data — FULL MARKERS (by category) ───────────────────────────────
+const DAD_LABS_FULL = {
+  // CARDIOVASCULAR
+  tc: {
+    label: 'Total Cholesterol',
+    unit: 'mg/dL',
+    refHigh: 200,
+    color: '#DC2626',
+    category: 'cardiovascular',
+    data: [{
+      d: "Apr'22",
+      v: 198,
+      boxId: '2161688358566'
+    }, {
+      d: "Jan'25",
+      v: 198,
+      boxId: '2161693369408'
+    }, {
+      d: "Nov'25",
+      v: 225,
+      boxId: '2155657530240'
+    }, {
+      d: "Feb'26",
+      v: 234,
+      boxId: '2161689467391'
+    }],
+    note: 'Stable 198 until late 2025. Worsening: 225 (Nov 25) - 234 (Feb 26). Target <200.'
+  },
+  hdl: {
+    label: 'HDL Cholesterol',
+    unit: 'mg/dL',
+    refLow: 40,
+    color: '#16A34A',
+    category: 'cardiovascular',
+    data: [{
+      d: "Apr'22",
+      v: 48,
+      boxId: '2161688358566'
+    }, {
+      d: "Jan'25",
+      v: 48.7,
+      boxId: '2161693369408'
+    }, {
+      d: "Nov'25",
+      v: 54,
+      boxId: '2155657530240'
+    }, {
+      d: "Feb'26",
+      v: 39,
+      boxId: '2161689467391'
+    }],
+    note: 'Feb 2026: HDL dropped to 39 (ref >40). Previously 48-54. Low HDL increases cardiac risk significantly.'
+  },
+  tg: {
+    label: 'Triglycerides',
+    unit: 'mg/dL',
+    refHigh: 150,
+    color: '#F59E0B',
+    category: 'cardiovascular',
+    data: [{
+      d: "Apr'22",
+      v: 155,
+      boxId: '2161688358566'
+    }, {
+      d: "Jan'25",
+      v: 102.74,
+      boxId: '2161693369408'
+    }, {
+      d: "Nov'25",
+      v: 123,
+      boxId: '2155657530240'
+    }, {
+      d: "Feb'26",
+      v: 117,
+      boxId: '2161689467391'
+    }],
+    note: 'Apr 2022: 155 (borderline). Since then all <130 (good control). Well controlled.'
+  },
+  // THYROID
+  t3: {
+    label: 'T3 (Triiodothyronine)',
+    unit: 'ng/dL',
+    refLow: 76.3,
+    refHigh: 220.8,
+    color: '#8B5CF6',
+    category: 'thyroid',
+    data: [{
+      d: "Apr'22",
+      v: 113.8,
+      boxId: '2161688358566',
+      src: 'Full Checkup Redcliffe Apr 2022'
+    }, {
+      d: "Nov'25",
+      v: 126,
+      boxId: '2155657530240',
+      src: 'Master Checkup Nov 2025'
+    }],
+    note: 'T3 normal on both readings despite elevated TSH. Apr 22: 113.8, Nov 25: 126 (ref 76-221 ng/dL). Peripheral conversion functioning.'
+  },
+  t4: {
+    label: 'T4 (Total Thyroxine)',
+    unit: 'ug/dL',
+    refLow: 4.5,
+    refHigh: 12.6,
+    color: '#A78BFA',
+    category: 'thyroid',
+    data: [{
+      d: "Apr'22",
+      v: 7.59,
+      boxId: '2161688358566',
+      src: 'Full Checkup Redcliffe Apr 2022'
+    }, {
+      d: "Nov'25",
+      v: 7.06,
+      boxId: '2155657530240',
+      src: 'Master Checkup Nov 2025'
+    }],
+    note: 'T4 normal on both. Apr 22: 7.59, Nov 25: 7.06 (ref 4.5-12.6). Normal T4 with elevated TSH = compensated hypothyroidism.'
+  },
+  // METABOLIC
+  vitd: {
+    label: 'Vitamin D (25-OH)',
+    unit: 'ng/mL',
+    refLow: 30,
+    color: '#16A34A',
+    category: 'metabolic',
+    data: [{
+      d: "Apr'22",
+      v: 20.78,
+      boxId: '2161688358566',
+      src: 'Full Checkup Redcliffe Apr 2022'
+    }, {
+      d: "Jan'25",
+      v: 57.8,
+      boxId: '2161693369408',
+      src: 'Full Body HEAL Jan 2025'
+    }, {
+      d: "Nov'25",
+      v: 32.1,
+      boxId: '2155657530240',
+      src: 'Master Checkup Nov 2025'
+    }],
+    note: 'Apr 2022: 20.78 (insufficient!). Jan 2025: 57.8 (sufficient — great response to supplementation). Nov 2025: 32.1 (borderline). Maintain supplement to keep >40.'
+  },
+  b12: {
+    label: 'Vitamin B12',
+    unit: 'pg/mL',
+    refLow: 197,
+    color: '#06B6D4',
+    category: 'metabolic',
+    data: [{
+      d: "Jan'25",
+      v: 689,
+      boxId: '2161693369408',
+      src: 'Full Body HEAL Jan 2025'
+    }, {
+      d: "Nov'25",
+      v: 378,
+      boxId: '2155657530240',
+      src: 'Master Checkup Nov 2025'
+    }],
+    note: 'Both within range. Jan 2025: 689, Nov 2025: 378. Declining but normal. Continue monitoring.'
+  },
+  fbs: {
+    label: 'Fasting Blood Sugar',
+    unit: 'mg/dL',
+    refHigh: 100,
+    color: '#F59E0B',
+    category: 'metabolic',
+    data: [{
+      d: "Nov'25",
+      v: 104.97,
+      boxId: '2155657530240',
+      src: 'Master Checkup Nov 2025'
+    }],
+    note: 'Nov 2025: 105 (pre-diabetic; ref <100). Consistent with HbA1c 6.4%. Diet modification and exercise essential.'
+  },
+  calcium: {
+    label: 'Calcium (Serum)',
+    unit: 'mg/dL',
+    refLow: 8.8,
+    refHigh: 10.6,
+    color: '#10B981',
+    category: 'metabolic',
+    data: [{
+      d: "Jan'25",
+      v: 9.23,
+      boxId: '2161693369408',
+      src: 'Full Body HEAL Jan 2025'
+    }, {
+      d: "Nov'25",
+      v: 8.43,
+      boxId: '2155657530240',
+      src: 'Master Checkup Nov 2025'
+    }],
+    note: 'Nov 2025: 8.43 (slightly below 8.8 reference). Ensure adequate calcium intake especially with osteoporosis. Supplement if needed.'
+  },
+  // RENAL
+  uric: {
+    label: 'Uric Acid',
+    unit: 'mg/dL',
+    refHigh: 7.3,
+    color: '#8B5CF6',
+    category: 'renal',
+    data: [{
+      d: "Apr'22",
+      v: 5.4,
+      boxId: '2161688358566'
+    }, {
+      d: "Jan'25",
+      v: 4.94,
+      boxId: '2161693369408'
+    }, {
+      d: "Nov'25",
+      v: 5.3,
+      boxId: '2155657530240'
+    }],
+    note: 'All readings normal (ref <7.3). No gout risk. Good hydration maintained.'
+  },
+  egfr: {
+    label: 'eGFR (Kidney Function)',
+    unit: 'mL/min',
+    refLow: 60,
+    color: '#0891B2',
+    category: 'renal',
+    data: [{
+      d: "Nov'25",
+      v: 100,
+      boxId: '2155657530240',
+      src: 'Master Checkup Nov 2025'
+    }],
+    note: 'Nov 2025: eGFR 100 — excellent kidney function for age 82. No renal concern.'
+  },
+  // HAEMATOLOGY
+  esr: {
+    label: 'ESR (Inflammation)',
+    unit: 'mm/hr',
+    refHigh: 15,
+    color: '#EF4444',
+    category: 'haematology',
+    data: [{
+      d: "Nov'25",
+      v: 30,
+      boxId: '2155657530240',
+      src: 'Master Checkup Nov 2025'
+    }],
+    note: 'Nov 2025: 30 (elevated, ref 0-15 for males). Could be hypothyroidism-related or post-treatment inflammation.'
+  }
+};
+
+// ─── MOM & DAD: Symptoms ──────────────────────────────────────────────────────
+const MOM_SYMPTOMS = [{
+  date: 'Feb 2026',
+  symptom: 'Red line on sclera (right eye)',
+  severity: 'mild',
+  status: 'ongoing',
+  note: 'Noted at Maxivision — possible episcleritis'
+}, {
+  date: 'Nov 2025',
+  symptom: 'Fatigue, cold intolerance, constipation',
+  severity: 'moderate',
+  status: 'resolved',
+  note: 'Thyroid relapse — TSH 7.45'
+}, {
+  date: 'Sep 2024',
+  symptom: 'Severe lower back pain radiating to left leg',
+  severity: 'severe',
+  status: 'managed',
+  note: 'L5-S1 epidural treatment — Aster Prime'
+}, {
+  date: 'May 2023',
+  symptom: 'Daily heartburn, frequent burping',
+  severity: 'moderate',
+  status: 'managed',
+  note: 'PPI started after endoscopy'
+}, {
+  date: 'Jul 2022',
+  symptom: 'Fatigue, hair thinning, pallor',
+  severity: 'moderate',
+  status: 'resolved',
+  note: 'Iron deficiency anaemia — Fe 39.3'
+}];
+const DAD_SYMPTOMS = [{
+  date: 'Nov 2025',
+  symptom: 'Urinary frequency (mild)',
+  severity: 'mild',
+  status: 'ongoing',
+  note: 'Prostate surveillance — PSA 0.11'
+}, {
+  date: 'Nov 2022',
+  symptom: 'Bone pain / joint stiffness',
+  severity: 'moderate',
+  status: 'managed',
+  note: 'Osteoporosis confirmed on DEXA'
+}];
+
+// ─── MOM & DAD: Documents ─────────────────────────────────────────────────────
 const MOM_DOCS = [{
   id: 1,
   name: 'Lipid Profile + CRP',
@@ -475,7 +1832,7 @@ const MOM_DOCS = [{
   folder: '1 Lab Reports'
 }, {
   id: 2,
-  name: 'TSH — Bioline Lab',
+  name: 'TSH Bioline',
   date: 'Jan 2026',
   year: 2026,
   type: 'Lab',
@@ -486,9 +1843,9 @@ const MOM_DOCS = [{
   folder: '1 Lab Reports'
 }, {
   id: 3,
-  name: 'Full Body Checkup (Nov 2025)',
-  date: 'Nov 2025',
-  year: 2025,
+  name: 'Full Body Checkup (Nov 2024)',
+  date: 'Nov 2024',
+  year: 2024,
   type: 'Lab',
   doctor: 'Multiple',
   condition: 'Annual Review',
@@ -567,9 +1924,9 @@ const MOM_DOCS = [{
   date: 'Jan 2025',
   year: 2025,
   type: 'Lab',
-  doctor: 'Multiple',
+  doctor: 'HEAL Health',
   condition: 'Annual Review',
-  tags: ['annual'],
+  tags: ['annual', 'tsh-good'],
   boxId: '2175283362145',
   folder: '1 Lab Reports'
 }, {
@@ -585,13 +1942,13 @@ const MOM_DOCS = [{
   folder: '1 Lab Reports'
 }, {
   id: 12,
-  name: 'Full Body Checkup — Aarthi (Jul 2023)',
+  name: 'Full Body Checkup Aarthi (Jul 2023)',
   date: 'Jul 2023',
   year: 2023,
   type: 'Lab',
   doctor: 'Aarthi Scans',
   condition: 'Annual Review',
-  tags: ['annual', 'ldl-best', 'vitd-best'],
+  tags: ['annual', 't3', 't4', 'vitd-best'],
   boxId: '2175285606396',
   folder: '1 Lab Reports'
 }, {
@@ -666,9 +2023,9 @@ const MOM_DOCS = [{
   date: 'Nov 2022',
   year: 2022,
   type: 'Lab',
-  doctor: 'Dr. A.K. Purohit',
+  doctor: 'Aster Prime',
   condition: 'Osteoporosis',
-  tags: ['dexa', 'osteoporosis', 't-score-2.9'],
+  tags: ['dexa', 'osteoporosis', 't-score'],
   boxId: '2175290759402',
   folder: '1 Lab Reports'
 }, {
@@ -679,7 +2036,7 @@ const MOM_DOCS = [{
   type: 'Lab',
   doctor: 'Aster Labs',
   condition: 'Annual Review',
-  tags: ['annual'],
+  tags: ['annual', 't3', 't4', 'vitd'],
   boxId: '2175597224462',
   folder: '1 Lab Reports'
 }, {
@@ -739,28 +2096,17 @@ const MOM_DOCS = [{
   folder: '1 Lab Reports'
 }, {
   id: 26,
-  name: 'Urine Test (Feb 2020)',
-  date: 'Feb 2020',
-  year: 2020,
-  type: 'Lab',
-  doctor: 'Lab',
-  condition: 'Urinalysis',
-  tags: ['urine'],
-  boxId: '2175285373577',
-  folder: '1 Lab Reports'
-}, {
-  id: 27,
-  name: 'Full Body Checkup Thyrocare (Jul 2019)',
+  name: 'Full Checkup Thyrocare (Jul 2019)',
   date: 'Jul 2019',
   year: 2019,
   type: 'Lab',
   doctor: 'Thyrocare',
-  condition: 'Annual Review',
-  tags: ['annual', 'thyroid'],
+  condition: 'Annual Review — Hashimotos Diagnosis',
+  tags: ['annual', 'thyroid', 'anti-tpo'],
   boxId: '2175285189103',
   folder: '1 Lab Reports'
 }, {
-  id: 28,
+  id: 27,
   name: 'Medical Reports (Jul 2019)',
   date: 'Jul 2019',
   year: 2019,
@@ -771,7 +2117,7 @@ const MOM_DOCS = [{
   boxId: '2175286249554',
   folder: '1 Lab Reports'
 }, {
-  id: 29,
+  id: 28,
   name: 'Thyroid Anti-TG Sri Sai (Jul 2019)',
   date: 'Jul 2019',
   year: 2019,
@@ -782,7 +2128,7 @@ const MOM_DOCS = [{
   boxId: '2175288626022',
   folder: '1 Lab Reports'
 }, {
-  id: 30,
+  id: 29,
   name: 'Full Body Tapadia (Aug 2019)',
   date: 'Aug 2019',
   year: 2019,
@@ -793,7 +2139,7 @@ const MOM_DOCS = [{
   boxId: '2175286274361',
   folder: '1 Lab Reports'
 }, {
-  id: 31,
+  id: 30,
   name: 'Blood Tests Sri Sai (Feb 2019)',
   date: 'Feb 2019',
   year: 2019,
@@ -804,7 +2150,7 @@ const MOM_DOCS = [{
   boxId: '2175282241346',
   folder: '1 Lab Reports'
 }, {
-  id: 32,
+  id: 31,
   name: 'Full Checkup Maxcure (Mar 2018)',
   date: 'Mar 2018',
   year: 2018,
@@ -815,18 +2161,7 @@ const MOM_DOCS = [{
   boxId: '2175285558327',
   folder: '1 Lab Reports'
 }, {
-  id: 33,
-  name: 'Urine & Stool Test (Nov 2018)',
-  date: 'Nov 2018',
-  year: 2018,
-  type: 'Lab',
-  doctor: 'CC Shroff',
-  condition: 'Urinalysis/Stool',
-  tags: ['urine', 'stool'],
-  boxId: '2175281687539',
-  folder: '1 Lab Reports'
-}, {
-  id: 34,
+  id: 32,
   name: 'Full Body CC Shroff (Jan 2016)',
   date: 'Jan 2016',
   year: 2016,
@@ -837,40 +2172,7 @@ const MOM_DOCS = [{
   boxId: '2175280890985',
   folder: '1 Lab Reports'
 }, {
-  id: 35,
-  name: 'CBP Urine CC Shroff (Oct 2015)',
-  date: 'Oct 2015',
-  year: 2015,
-  type: 'Lab',
-  doctor: 'CC Shroff',
-  condition: 'CBC / Urinalysis',
-  tags: ['cbc', 'urine'],
-  boxId: '2175599440753',
-  folder: '1 Lab Reports'
-}, {
-  id: 36,
-  name: 'CBP Red Cross (Sep 2015)',
-  date: 'Sep 2015',
-  year: 2015,
-  type: 'Lab',
-  doctor: 'Red Cross',
-  condition: 'CBC',
-  tags: ['cbc'],
-  boxId: '2175602493353',
-  folder: '1 Lab Reports'
-}, {
-  id: 37,
-  name: 'Lipid Red Cross (Sep 2015)',
-  date: 'Sep 2015',
-  year: 2015,
-  type: 'Lab',
-  doctor: 'Red Cross',
-  condition: 'Lipids — BEST LDL',
-  tags: ['lipids', 'ldl-best'],
-  boxId: '2175592408503',
-  folder: '1 Lab Reports'
-}, {
-  id: 38,
+  id: 33,
   name: 'Full Body CC Shroff (Jan 2015)',
   date: 'Jan 2015',
   year: 2015,
@@ -881,7 +2183,18 @@ const MOM_DOCS = [{
   boxId: '2175600861238',
   folder: '1 Lab Reports'
 }, {
-  id: 39,
+  id: 34,
+  name: 'Lipid Red Cross (Sep 2015)',
+  date: 'Sep 2015',
+  year: 2015,
+  type: 'Lab',
+  doctor: 'Red Cross',
+  condition: 'Lipids',
+  tags: ['lipids'],
+  boxId: '2175592408503',
+  folder: '1 Lab Reports'
+}, {
+  id: 35,
   name: 'Medical Test (Oct 2013)',
   date: 'Oct 2013',
   year: 2013,
@@ -892,29 +2205,18 @@ const MOM_DOCS = [{
   boxId: '2175282212449',
   folder: '1 Lab Reports'
 }, {
-  id: 40,
-  name: 'Medical Test (Apr 2013)',
-  date: 'Apr 2013',
-  year: 2013,
-  type: 'Lab',
-  doctor: 'CC Shroff',
-  condition: 'Annual Review',
-  tags: ['annual'],
-  boxId: '2175285563730',
-  folder: '1 Lab Reports'
-}, {
-  id: 41,
+  id: 36,
   name: 'MRI Lumbo-Sacral Spine (Sep 2024)',
   date: 'Sep 2024',
   year: 2024,
   type: 'Imaging',
   doctor: 'Aarthi Scans',
   condition: 'L5-S1 WORSENED',
-  tags: ['mri', 'spine', 'urgent', 'l5-s1'],
+  tags: ['mri', 'spine', 'urgent'],
   boxId: '2175287103606',
   folder: '2 Imaging'
 }, {
-  id: 42,
+  id: 37,
   name: 'Prenuvo Whole Body MRI (Jan 2024)',
   date: 'Jan 2024',
   year: 2024,
@@ -925,128 +2227,40 @@ const MOM_DOCS = [{
   boxId: '2175282330389',
   folder: '2 Imaging'
 }, {
-  id: 43,
+  id: 38,
   name: 'CT Coronary Angio + 2D Echo (Jun 2023)',
   date: 'Jun 2023',
   year: 2023,
   type: 'Cardiac',
-  doctor: 'Dr. Sravan (MedPlus)',
-  condition: 'Cardiology — Calcium Score 0',
-  tags: ['ca-score-0', 'echo', 'ef-64'],
+  doctor: 'Dr. Sravan',
+  condition: 'Calcium Score 0',
+  tags: ['ca-score-0', 'echo'],
   boxId: '2175286003036',
   folder: '2 Imaging'
 }, {
-  id: 44,
-  name: 'MRI Lumbo-Sacral Spine (May 2023)',
-  date: 'May 2023',
-  year: 2023,
-  type: 'Imaging',
-  doctor: 'MedPlus',
-  condition: 'L5-S1 Moderate',
-  tags: ['mri', 'spine', 'l5-s1'],
-  boxId: '2175288862963',
-  folder: '2 Imaging'
-}, {
-  id: 45,
+  id: 39,
   name: 'Endoscopy Report (May 2023)',
   date: 'May 2023',
   year: 2023,
   type: 'Procedure',
   doctor: 'Dr. Milind K.',
-  condition: 'Hiatus Hernia + Gastritis Grade A',
-  tags: ['endoscopy', 'gerd', 'gastritis'],
+  condition: 'Hiatus Hernia + Gastritis',
+  tags: ['endoscopy', 'gerd'],
   boxId: '2175282649934',
   folder: '2 Imaging'
 }, {
-  id: 46,
-  name: 'Abdomen & Pelvis USG (Jul 2023)',
-  date: 'Jul 2023',
-  year: 2023,
-  type: 'Imaging',
-  doctor: 'Aarthi Scans',
-  condition: 'Uterus / Fibroids',
-  tags: ['usg', 'pelvis', 'pap', 'nilm'],
-  boxId: '2175286167781',
-  folder: '2 Imaging'
-}, {
-  id: 47,
-  name: 'Mammogram BIRADS-I (Jul 2023)',
-  date: 'Jul 2023',
-  year: 2023,
-  type: 'Imaging',
-  doctor: 'Aarthi Scans',
-  condition: 'Oncology Screening — Normal',
-  tags: ['mammogram', 'birads-1', 'normal'],
-  boxId: '2175286053240',
-  folder: '2 Imaging'
-}, {
-  id: 48,
+  id: 40,
   name: 'Exercise Stress Test — NEGATIVE (Nov 2022)',
   date: 'Nov 2022',
   year: 2022,
   type: 'Cardiac',
   doctor: 'Dr. C. Raghu',
-  condition: 'Cardiac — No Ischaemia',
+  condition: 'No Ischaemia',
   tags: ['stress-test', 'negative', 'normal'],
   boxId: '2175285553610',
   folder: '2 Imaging'
 }, {
-  id: 49,
-  name: 'USG Abdomen + 2D Echo (Nov 2022)',
-  date: 'Nov 2022',
-  year: 2022,
-  type: 'Imaging',
-  doctor: 'Aster',
-  condition: 'Abdomen + Cardiac',
-  tags: ['usg', '2d-echo'],
-  boxId: '2175288930329',
-  folder: '2 Imaging'
-}, {
-  id: 50,
-  name: 'MRI Scan P1 (Sep 2024)',
-  date: 'Sep 2024',
-  year: 2024,
-  type: 'Imaging',
-  doctor: 'Aarthi Scans',
-  condition: 'Lumbar Spine',
-  tags: ['mri', 'spine'],
-  boxId: '2175281925341',
-  folder: '2 Imaging'
-}, {
-  id: 51,
-  name: 'MRI Sacral Spine (Sep 2024)',
-  date: 'Sep 2024',
-  year: 2024,
-  type: 'Imaging',
-  doctor: 'Aarthi Scans',
-  condition: 'Lumbar Spine',
-  tags: ['mri', 'spine'],
-  boxId: '2175286196796',
-  folder: '2 Imaging'
-}, {
-  id: 52,
-  name: 'Chest X-Ray Aarthi (Jul 2023)',
-  date: 'Jul 2023',
-  year: 2023,
-  type: 'Imaging',
-  doctor: 'Aarthi Scans',
-  condition: 'Chest — Normal',
-  tags: ['xray', 'chest', 'normal'],
-  boxId: '2175284639490',
-  folder: '2 Imaging'
-}, {
-  id: 53,
-  name: 'ECG Aarthi (Jul 2023)',
-  date: 'Jul 2023',
-  year: 2023,
-  type: 'Imaging',
-  doctor: 'Aarthi Scans',
-  condition: 'Cardiac — Normal',
-  tags: ['ecg', 'normal'],
-  boxId: '2175282526922',
-  folder: '2 Imaging'
-}, {
-  id: 54,
+  id: 41,
   name: 'Eye Checkup Maxivision (Feb 2026)',
   date: 'Feb 2026',
   year: 2026,
@@ -1057,81 +2271,15 @@ const MOM_DOCS = [{
   boxId: '2175281560115',
   folder: '3 Prescriptions'
 }, {
-  id: 55,
-  name: 'Arya Gastro Prescription (May 2023)',
-  date: 'May 2023',
-  year: 2023,
-  type: 'Prescription',
-  doctor: 'Dr. Milind K.',
-  condition: 'GERD / Gastritis',
-  tags: ['gerd', 'ppi'],
-  boxId: '2175282001775',
-  folder: '3 Prescriptions'
-}, {
-  id: 56,
-  name: 'Ortho Consultation (Feb 2023)',
-  date: 'Feb 2023',
-  year: 2023,
-  type: 'Consult',
-  doctor: 'Dr. Radhakrishna',
-  condition: 'Orthopaedic / Spine',
-  tags: ['ortho', 'spine'],
-  boxId: '2175282578315',
-  folder: '3 Prescriptions'
-}, {
-  id: 57,
-  name: 'Cardio Consultation Medicover (Feb 2020)',
-  date: 'Feb 2020',
-  year: 2020,
-  type: 'Consult',
-  doctor: 'Medicover Cardiology',
-  condition: 'Cardiology',
-  tags: ['cardiology'],
-  boxId: '2175281435615',
-  folder: '3 Prescriptions'
-}, {
-  id: 58,
-  name: 'Gleneagles Consultation (Jul 2019)',
-  date: 'Jul 2019',
-  year: 2019,
-  type: 'Consult',
-  doctor: 'Gleneagles Hospital',
-  condition: 'Thyroid Consultation',
-  tags: ['thyroid'],
-  boxId: '2175278214568',
-  folder: '3 Prescriptions'
-}, {
-  id: 59,
-  name: 'Cataract Bills & Prescriptions (Feb 2020)',
-  date: 'Feb 2020',
-  year: 2020,
-  type: 'Prescription',
-  doctor: 'Tanvi Eye Centre',
-  condition: 'Cataract Surgery',
-  tags: ['cataract', 'eye'],
-  boxId: '2175276531882',
-  folder: '3 Prescriptions'
-}, {
-  id: 60,
+  id: 42,
   name: 'Discharge Summary Aster Prime (Sep 2024)',
   date: 'Sep 2024',
   year: 2024,
   type: 'Hospital',
   doctor: 'Dr. A.K. Purohit',
   condition: 'L5-S1 PIVD — Epidural',
-  tags: ['admission', 'epidural', 'l5-s1'],
+  tags: ['admission', 'epidural'],
   boxId: '2175289391684',
-  folder: '4 Hospital Visits'
-}, {
-  id: 61,
-  name: 'Cataract Surgery — Tanvi (Feb 2020)',
-  date: 'Feb 2020',
-  year: 2020,
-  type: 'Hospital',
-  doctor: 'Tanvi Eye Centre',
-  condition: 'Bilateral Cataract Surgery',
-  tags: ['surgery', 'cataract'],
-  boxId: '2175283660551',
   folder: '4 Hospital Visits'
 }];
 const DAD_DOCS = [{
@@ -1140,9 +2288,9 @@ const DAD_DOCS = [{
   date: 'Feb 2026',
   year: 2026,
   type: 'Lab',
-  doctor: 'Lab',
-  condition: 'Lipids',
-  tags: ['lipids'],
+  doctor: 'Sai Baba Hospital',
+  condition: 'Lipids — WORSENING',
+  tags: ['lipids', 'ldl-high'],
   boxId: '2161689467391',
   folder: '1 Lab Tests'
 }, {
@@ -1151,354 +2299,90 @@ const DAD_DOCS = [{
   date: 'Jan 2026',
   year: 2026,
   type: 'Lab',
-  doctor: 'Lab',
+  doctor: 'Bioline Labs',
   condition: 'Thyroid',
-  tags: ['tsh'],
+  tags: ['tsh', 'elevated'],
   boxId: '2161697642376',
   folder: '1 Lab Tests'
 }, {
   id: 3,
-  name: 'Urine Analysis (Sep 2025)',
-  date: 'Sep 2025',
-  year: 2025,
-  type: 'Lab',
-  doctor: 'Lab',
-  condition: 'Urinalysis',
-  tags: ['urine'],
-  boxId: '2161684645208',
-  folder: '1 Lab Tests'
-}, {
-  id: 4,
-  name: 'Full Body Checkup (Nov 2025)',
+  name: 'Master Checkup (Nov 2025)',
   date: 'Nov 2025',
   year: 2025,
   type: 'Lab',
-  doctor: 'Multiple',
-  condition: 'Annual Review',
-  tags: ['annual'],
+  doctor: 'Thyrocare',
+  condition: 'Annual — Comprehensive',
+  tags: ['annual', 'psa', 'hba1c', 'tsh', 'lipids'],
   boxId: '2155657530240',
   folder: '1 Lab Tests'
 }, {
+  id: 4,
+  name: 'HbA1c + PSA (Apr 2025)',
+  date: 'Apr 2025',
+  year: 2025,
+  type: 'Lab',
+  doctor: 'Sai Baba Hospital',
+  condition: 'Glycaemia + Prostate',
+  tags: ['hba1c', 'psa'],
+  boxId: '2161695373696',
+  folder: '1 Lab Tests'
+}, {
   id: 5,
-  name: 'Full Body Checkup (Jan 2025)',
+  name: 'Full Body HEAL (Jan 2025)',
   date: 'Jan 2025',
   year: 2025,
   type: 'Lab',
-  doctor: 'Multiple',
-  condition: 'Annual Review',
-  tags: ['annual'],
+  doctor: 'HEAL Health',
+  condition: 'Annual — Comprehensive',
+  tags: ['annual', 'psa', 'tsh', 'vitd'],
   boxId: '2161693369408',
   folder: '1 Lab Tests'
 }, {
   id: 6,
-  name: 'HbA1c & Liver Function (Apr 2025)',
-  date: 'Apr 2025',
-  year: 2025,
-  type: 'Lab',
-  doctor: 'Lab',
-  condition: 'Glycaemia/Liver',
-  tags: ['hba1c', 'lft'],
-  boxId: '2161695373696',
-  folder: '1 Lab Tests'
-}, {
-  id: 7,
-  name: 'Adobe Scan (Mar 2026)',
-  date: 'Mar 2026',
-  year: 2026,
-  type: 'Lab',
-  doctor: 'Lab',
-  condition: 'Recent Reports',
-  tags: ['recent'],
-  boxId: '2161695791307',
-  folder: '1 Lab Tests'
-}, {
-  id: 8,
-  name: 'CBP & IGE (Nov 2024)',
-  date: 'Nov 2024',
-  year: 2024,
-  type: 'Lab',
-  doctor: 'Lab',
-  condition: 'CBC/Allergy',
-  tags: ['cbc', 'ige'],
-  boxId: '2161693609395',
-  folder: '1 Lab Tests'
-}, {
-  id: 9,
-  name: 'Blood Tests (Sep 2024)',
-  date: 'Sep 2024',
-  year: 2024,
-  type: 'Lab',
-  doctor: 'Lab',
-  condition: 'Comprehensive',
-  tags: ['comprehensive'],
-  boxId: '2155657600653',
-  folder: '1 Lab Tests'
-}, {
-  id: 10,
-  name: 'CBP (Jul 2024)',
-  date: 'Jul 2024',
-  year: 2024,
-  type: 'Lab',
-  doctor: 'Lab',
-  condition: 'CBC',
-  tags: ['cbc'],
-  boxId: '2161696443661',
-  folder: '1 Lab Tests'
-}, {
-  id: 11,
-  name: 'Magnesium (Aug 2024)',
-  date: 'Aug 2024',
-  year: 2024,
-  type: 'Lab',
-  doctor: 'Lab',
-  condition: 'Electrolytes',
-  tags: ['magnesium'],
-  boxId: '2155668609362',
-  folder: '1 Lab Tests'
-}, {
-  id: 12,
   name: 'PSA (Jul 2023)',
   date: 'Jul 2023',
   year: 2023,
   type: 'Lab',
-  doctor: 'Lab',
-  condition: 'Prostate Surveillance',
-  tags: ['psa', 'surveillance'],
+  doctor: 'Lucid Diagnostics',
+  condition: 'Prostate — Excellent Nadir',
+  tags: ['psa', 'nadir'],
   boxId: '2161690562007',
   folder: '1 Lab Tests'
 }, {
-  id: 13,
+  id: 7,
   name: 'PSA (Apr 2023)',
   date: 'Apr 2023',
   year: 2023,
   type: 'Lab',
-  doctor: 'Lab',
-  condition: 'Prostate',
+  doctor: 'Lucid Diagnostics',
+  condition: 'Prostate Surveillance',
   tags: ['psa'],
   boxId: '2161694466595',
   folder: '1 Lab Tests'
 }, {
-  id: 14,
-  name: 'Creatinine & Uric Acid (May 2023)',
-  date: 'May 2023',
-  year: 2023,
-  type: 'Lab',
-  doctor: 'Lab',
-  condition: 'Renal',
-  tags: ['creatinine', 'uric-acid'],
-  boxId: '2161691678387',
-  folder: '1 Lab Tests'
-}, {
-  id: 15,
-  name: 'Lipid & Serum (Feb 2023)',
-  date: 'Feb 2023',
-  year: 2023,
-  type: 'Lab',
-  doctor: 'Lab',
-  condition: 'Lipids',
-  tags: ['lipids'],
-  boxId: '2155654926159',
-  folder: '1 Lab Tests'
-}, {
-  id: 16,
-  name: 'PSA + Serum (Jul 2023)',
-  date: 'Jul 2023',
-  year: 2023,
-  type: 'Lab',
-  doctor: 'Lab',
-  condition: 'Prostate/Metabolic',
-  tags: ['psa', 'serum'],
-  boxId: '2155665532547',
-  folder: '1 Lab Tests'
-}, {
-  id: 17,
-  name: 'PSA (Oct 2022)',
-  date: 'Oct 2022',
-  year: 2022,
-  type: 'Lab',
-  doctor: 'Lab',
-  condition: 'Prostate',
-  tags: ['psa'],
-  boxId: '2161685893646',
-  folder: '1 Lab Tests'
-}, {
-  id: 18,
+  id: 8,
   name: 'PSA (Apr 2022)',
   date: 'Apr 2022',
   year: 2022,
   type: 'Lab',
-  doctor: 'Lab',
+  doctor: 'Vijaya Diagnostic',
   condition: 'Prostate',
   tags: ['psa'],
   boxId: '2161693401513',
   folder: '1 Lab Tests'
 }, {
-  id: 19,
-  name: 'PSA (Jan 2022)',
-  date: 'Jan 2022',
-  year: 2022,
-  type: 'Lab',
-  doctor: 'Lab',
-  condition: 'Prostate',
-  tags: ['psa'],
-  boxId: '2155668863607',
-  folder: '1 Lab Tests'
-}, {
-  id: 20,
-  name: 'HbA1c (Jan 2022)',
-  date: 'Jan 2022',
-  year: 2022,
-  type: 'Lab',
-  doctor: 'Lab',
-  condition: 'Glycaemia',
-  tags: ['hba1c'],
-  boxId: '2155663012641',
-  folder: '1 Lab Tests'
-}, {
-  id: 21,
-  name: 'Complete Checkup (Nov 2022)',
-  date: 'Nov 2022',
-  year: 2022,
-  type: 'Lab',
-  doctor: 'Multiple',
-  condition: 'Annual Review',
-  tags: ['annual'],
-  boxId: '2161693972317',
-  folder: '1 Lab Tests'
-}, {
-  id: 22,
+  id: 9,
   name: 'Complete Checkup (Apr 2022)',
   date: 'Apr 2022',
   year: 2022,
   type: 'Lab',
-  doctor: 'Multiple',
-  condition: 'Annual Review',
-  tags: ['annual'],
+  doctor: 'Redcliffe Labs',
+  condition: 'Annual — Comprehensive',
+  tags: ['annual', 't3', 't4', 'tsh'],
   boxId: '2161688358566',
   folder: '1 Lab Tests'
 }, {
-  id: 23,
-  name: 'Bone Density DEXA (Nov 2022)',
-  date: 'Nov 2022',
-  year: 2022,
-  type: 'Lab',
-  doctor: 'Lab',
-  condition: 'Osteoporosis',
-  tags: ['dexa', 'bone-density'],
-  boxId: '2161696621506',
-  folder: '1 Lab Tests'
-}, {
-  id: 24,
-  name: 'HbA1c (Jul 2022)',
-  date: 'Jul 2022',
-  year: 2022,
-  type: 'Lab',
-  doctor: 'Lab',
-  condition: 'Glycaemia',
-  tags: ['hba1c'],
-  boxId: '2161694949093',
-  folder: '1 Lab Tests'
-}, {
-  id: 25,
-  name: 'Full Body (Oct 2021)',
-  date: 'Oct 2021',
-  year: 2021,
-  type: 'Lab',
-  doctor: 'Multiple',
-  condition: 'Annual Review',
-  tags: ['annual'],
-  boxId: '2155658807923',
-  folder: '1 Lab Tests'
-}, {
-  id: 26,
-  name: 'Medical Reports (Feb 2020)',
-  date: 'Feb 2020',
-  year: 2020,
-  type: 'Lab',
-  doctor: 'Lab',
-  condition: 'Annual Review',
-  tags: ['annual'],
-  boxId: '2155658519009',
-  folder: '1 Lab Tests'
-}, {
-  id: 27,
-  name: 'HbA1c Medicover (Feb 2020)',
-  date: 'Feb 2020',
-  year: 2020,
-  type: 'Lab',
-  doctor: 'Medicover',
-  condition: 'Glycaemia',
-  tags: ['hba1c'],
-  boxId: '2155657967741',
-  folder: '1 Lab Tests'
-}, {
-  id: 28,
-  name: 'PSA CC Shroff (Mar 2019)',
-  date: 'Mar 2019',
-  year: 2019,
-  type: 'Lab',
-  doctor: 'CC Shroff',
-  condition: 'Prostate — First Elevated PSA',
-  tags: ['psa', 'elevated', 'first'],
-  boxId: '2155666527856',
-  folder: '1 Lab Tests'
-}, {
-  id: 29,
-  name: 'Sai Lab Lipid Profile (Jun 2019)',
-  date: 'Jun 2019',
-  year: 2019,
-  type: 'Lab',
-  doctor: 'Sai Lab',
-  condition: 'Lipids',
-  tags: ['lipids'],
-  boxId: '2155661900784',
-  folder: '1 Lab Tests'
-}, {
-  id: 30,
-  name: 'Medical Test (Jan 2016)',
-  date: 'Jan 2016',
-  year: 2016,
-  type: 'Lab',
-  doctor: 'Lab',
-  condition: 'Annual Review',
-  tags: ['annual'],
-  boxId: '2155666628911',
-  folder: '1 Lab Tests'
-}, {
-  id: 31,
-  name: 'Medical Test (Nov 2013)',
-  date: 'Nov 2013',
-  year: 2013,
-  type: 'Lab',
-  doctor: 'Lab',
-  condition: 'Annual',
-  tags: ['annual'],
-  boxId: '2155659020878',
-  folder: '1 Lab Tests'
-}, {
-  id: 32,
-  name: 'Exercise Stress Test',
-  date: '2022',
-  year: 2022,
-  type: 'Cardiac',
-  doctor: 'Cardiologist',
-  condition: 'Cardiac Stress Test',
-  tags: ['stress-test'],
-  boxId: '2161697409010',
-  folder: '1 Lab Tests'
-}, {
-  id: 33,
-  name: '2D Echo Doppler (Nov 2022)',
-  date: 'Nov 2022',
-  year: 2022,
-  type: 'Cardiac',
-  doctor: 'Lab',
-  condition: 'EF 52%',
-  tags: ['2d-echo', 'ef-52'],
-  boxId: '2161687168164',
-  folder: '1 Lab Tests'
-}, {
-  id: 34,
+  id: 10,
   name: 'CT Coronary Angiogram (Jun 2023)',
   date: 'Jun 2023',
   year: 2023,
@@ -1509,73 +2393,7 @@ const DAD_DOCS = [{
   boxId: '2155662320751',
   folder: '2 Imaging'
 }, {
-  id: 35,
-  name: '2D Echo (Jun 2023)',
-  date: 'Jun 2023',
-  year: 2023,
-  type: 'Cardiac',
-  doctor: 'Lab',
-  condition: 'EF Assessment',
-  tags: ['2d-echo'],
-  boxId: '2155657336358',
-  folder: '2 Imaging'
-}, {
-  id: 36,
-  name: 'ECG (Dec 2022)',
-  date: 'Dec 2022',
-  year: 2022,
-  type: 'Cardiac',
-  doctor: 'Lab',
-  condition: 'Cardiac',
-  tags: ['ecg'],
-  boxId: '2155668075914',
-  folder: '2 Imaging'
-}, {
-  id: 37,
-  name: 'Ultrasound Abdomen CC Shroff (Mar 2019)',
-  date: 'Mar 2019',
-  year: 2019,
-  type: 'Imaging',
-  doctor: 'CC Shroff',
-  condition: 'Abdomen',
-  tags: ['usg', 'abdomen'],
-  boxId: '2155662340154',
-  folder: '2 Imaging'
-}, {
-  id: 38,
-  name: 'Leg X-Ray (Feb 2023)',
-  date: 'Feb 2023',
-  year: 2023,
-  type: 'Imaging',
-  doctor: 'Lab',
-  condition: 'Leg/Bone',
-  tags: ['xray', 'leg'],
-  boxId: '2155661272708',
-  folder: '2 Imaging'
-}, {
-  id: 39,
-  name: 'MRI Dorsal Spine',
-  date: '2022',
-  year: 2022,
-  type: 'Imaging',
-  doctor: 'Lab',
-  condition: 'Spine',
-  tags: ['mri', 'spine', 'dorsal'],
-  boxId: '2155656445230',
-  folder: '2 Imaging'
-}, {
-  id: 40,
-  name: 'MRI Pelvis (2019)',
-  date: '2019',
-  year: 2019,
-  type: 'Imaging',
-  doctor: 'Lab',
-  condition: 'Pelvis/Prostate',
-  tags: ['mri', 'pelvis', 'prostate'],
-  boxId: '2155660557596',
-  folder: '2 Imaging'
-}, {
-  id: 41,
+  id: 11,
   name: 'PET Scan (Jun 2019)',
   date: 'Jun 2019',
   year: 2019,
@@ -1586,579 +2404,19 @@ const DAD_DOCS = [{
   boxId: '2155663597221',
   folder: '5 Prostate'
 }, {
-  id: 42,
+  id: 12,
   name: 'Histopathology (Biopsy)',
   date: '2019',
   year: 2019,
   type: 'Lab',
   doctor: 'Pathologist',
-  condition: 'Prostate Biopsy — Gleason Score',
+  condition: 'Prostate Biopsy — Gleason 3+3=6',
   tags: ['biopsy', 'histopathology', 'gleason'],
   boxId: '2155658607889',
   folder: '5 Prostate'
-}, {
-  id: 43,
-  name: 'Medical Reports June 2019 (Combined)',
-  date: 'Jun 2019',
-  year: 2019,
-  type: 'Hospital',
-  doctor: 'Multiple',
-  condition: 'Prostate Cancer — Full Workup',
-  tags: ['prostate', 'combined'],
-  boxId: '2155657852550',
-  folder: '5 Prostate'
-}, {
-  id: 44,
-  name: 'Cardio Angiogram Report (Jun 2023)',
-  date: 'Jun 2023',
-  year: 2023,
-  type: 'Hospital',
-  doctor: 'Cardiologist',
-  condition: 'CAD — Angiogram',
-  tags: ['angiogram', 'cad'],
-  boxId: '2155663122130',
-  folder: '5 Prostate'
-}, {
-  id: 45,
-  name: 'Discharge Summary (Jun 2023)',
-  date: 'Jun 2023',
-  year: 2023,
-  type: 'Hospital',
-  doctor: 'Hospital',
-  condition: 'CAD Discharge',
-  tags: ['discharge', 'cad'],
-  boxId: '2155660719712',
-  folder: '5 Prostate'
-}, {
-  id: 46,
-  name: 'Dr. Sravan Prescription (Jun 2023)',
-  date: 'Jun 2023',
-  year: 2023,
-  type: 'Prescription',
-  doctor: 'Dr. Sravan',
-  condition: 'Post-Angiogram Care',
-  tags: ['prescription', 'post-angio'],
-  boxId: '2155659932429',
-  folder: '5 Prostate'
-}, {
-  id: 47,
-  name: 'Dr. Sumeet Sinha Prescription (Jun 2023)',
-  date: 'Jun 2023',
-  year: 2023,
-  type: 'Prescription',
-  doctor: 'Dr. Sumeet Sinha',
-  condition: 'Post-Angiogram',
-  tags: ['prescription', 'cardiology'],
-  boxId: '2155662100142',
-  folder: '5 Prostate'
-}, {
-  id: 48,
-  name: 'Vijaya PET CT Report 1',
-  date: '2019',
-  year: 2019,
-  type: 'Imaging',
-  doctor: 'Nuclear Medicine',
-  condition: 'PET CT — Prostate',
-  tags: ['pet-ct', 'prostate'],
-  boxId: '2155669010210',
-  folder: '5 Prostate'
-}, {
-  id: 49,
-  name: 'Vijaya PET CT Report 2',
-  date: '2019',
-  year: 2019,
-  type: 'Imaging',
-  doctor: 'Nuclear Medicine',
-  condition: 'PET CT — Prostate',
-  tags: ['pet-ct', 'prostate'],
-  boxId: '2155658471798',
-  folder: '5 Prostate'
-}, {
-  id: 50,
-  name: 'HbA1c + Lipid Profile pre-Angio (Jun 2023)',
-  date: 'Jun 2023',
-  year: 2023,
-  type: 'Lab',
-  doctor: 'Lab',
-  condition: 'Pre-Angio Labs',
-  tags: ['hba1c', 'lipids', 'pre-angio'],
-  boxId: '2155657364834',
-  folder: '5 Prostate'
-}, {
-  id: 51,
-  name: 'Discharge Summary — Angiogram (Jun 2023)',
-  date: 'Jun 2023',
-  year: 2023,
-  type: 'Hospital',
-  doctor: 'Hospital',
-  condition: 'CAD — Angiogram',
-  tags: ['discharge', 'angiogram'],
-  boxId: '2155660502182',
-  folder: '4 Hospital Visits'
-}, {
-  id: 52,
-  name: 'Dental Notes — Area Dental',
-  date: '2019',
-  year: 2019,
-  type: 'Prescription',
-  doctor: 'Area Dental',
-  condition: 'Dental',
-  tags: ['dental'],
-  boxId: '2155659227926',
-  folder: '3 Prescriptions'
-}, {
-  id: 53,
-  name: 'Dr. Vyas Narayan Rao Prescription',
-  date: '2019',
-  year: 2019,
-  type: 'Prescription',
-  doctor: 'Dr. Vyas Narayan Rao',
-  condition: 'General',
-  tags: ['prescription'],
-  boxId: '2155659138183',
-  folder: '3 Prescriptions'
 }];
-const MOM_LABS_KEY = {
-  tsh: {
-    label: 'TSH (Thyroid)',
-    unit: 'μIU/mL',
-    refLow: 0.27,
-    refHigh: 5.35,
-    color: '#7C3AED',
-    data: [{
-      d: "Apr'13",
-      v: 3.27
-    }, {
-      d: "Jan'15",
-      v: 3.53
-    }, {
-      d: "Jan'16",
-      v: 3.92
-    }, {
-      d: "Mar'18",
-      v: 2.65
-    }, {
-      d: "Jul'19",
-      v: 24.41
-    }, {
-      d: "Feb'20",
-      v: 2.51
-    }, {
-      d: "Sep'21",
-      v: 6.23
-    }, {
-      d: "Nov'22",
-      v: 1.94
-    }, {
-      d: "May'23",
-      v: 5.39
-    }, {
-      d: "Jul'23",
-      v: 2.87
-    }, {
-      d: "Sep'24",
-      v: 4.66
-    }, {
-      d: "Jan'25",
-      v: 3.12
-    }, {
-      d: "Nov'25",
-      v: 7.45
-    }, {
-      d: "Jan'26",
-      v: 3.89
-    }],
-    note: "Hashimoto's — overt Jul 2019 (24.41↑↑). TSH 1.94✓ on DEXA day. Latest: 3.89✓"
-  },
-  ldl: {
-    label: 'LDL Cholesterol',
-    unit: 'mg/dL',
-    refHigh: 130,
-    color: '#DC2626',
-    data: [{
-      d: "Jan'15",
-      v: 207
-    }, {
-      d: "Sep'15",
-      v: 104
-    }, {
-      d: "Jan'16",
-      v: 194
-    }, {
-      d: "Mar'18",
-      v: 150
-    }, {
-      d: "Jul'19",
-      v: 189
-    }, {
-      d: "Feb'20",
-      v: 145
-    }, {
-      d: "Sep'21",
-      v: 137
-    }, {
-      d: "May'23",
-      v: 87.57
-    }, {
-      d: "Jul'23",
-      v: 106
-    }, {
-      d: "Sep'24",
-      v: 163
-    }, {
-      d: "Jan'25",
-      v: 118.5
-    }, {
-      d: "Nov'25",
-      v: 174
-    }, {
-      d: "Feb'26",
-      v: 181
-    }],
-    note: 'WORST: 207↑↑ (Jan 2015). BEST: 87.57✓ (May 2023). Current: 181↑↑. STATIN NEVER STARTED.'
-  },
-  hba1c: {
-    label: 'HbA1c',
-    unit: '%',
-    refHigh: 5.7,
-    color: '#D97706',
-    data: [{
-      d: "Mar'18",
-      v: 5.8
-    }, {
-      d: "Nov'22",
-      v: 5.1
-    }, {
-      d: "Jul'22",
-      v: 5.5
-    }, {
-      d: "Jul'23",
-      v: 5.3
-    }, {
-      d: "Sep'24",
-      v: 5.5
-    }, {
-      d: "Jan'25",
-      v: 5.0
-    }, {
-      d: "Nov'25",
-      v: 5.2
-    }],
-    note: 'Best: 5.0%✓ (Jan 2025). Consistently non-diabetic range throughout 11 years.'
-  },
-  vitd: {
-    label: 'Vitamin D',
-    unit: 'ng/mL',
-    refLow: 30,
-    color: '#16A34A',
-    data: [{
-      d: "Jul'19",
-      v: 16.08
-    }, {
-      d: "Nov'22",
-      v: 30.3
-    }, {
-      d: "Jul'22",
-      v: 42.4
-    }, {
-      d: "Jul'23",
-      v: 51.19
-    }, {
-      d: "Sep'24",
-      v: 30.6
-    }, {
-      d: "Jan'25",
-      v: 42.3
-    }, {
-      d: "Nov'25",
-      v: 26.2
-    }],
-    note: 'BEST: 51.19 (Jul 2023). Current: 26.2↓ (Nov 2025 — insufficient). Target ≥40.'
-  },
-  hb: {
-    label: 'Haemoglobin',
-    unit: 'g/dL',
-    refLow: 12.0,
-    color: '#2563EB',
-    data: [{
-      d: "Oct'13",
-      v: 12.5
-    }, {
-      d: "Jan'15",
-      v: 12.9
-    }, {
-      d: "Jan'16",
-      v: 12.0
-    }, {
-      d: "Mar'18",
-      v: 12.1
-    }, {
-      d: "Aug'19",
-      v: 11.5
-    }, {
-      d: "Feb'20",
-      v: 12.2
-    }, {
-      d: "Sep'21",
-      v: 11.8
-    }, {
-      d: "Jul'22",
-      v: 11.5
-    }, {
-      d: "May'23",
-      v: 11.2
-    }, {
-      d: "Jul'23",
-      v: 13.0
-    }, {
-      d: "Sep'24",
-      v: 11.8
-    }, {
-      d: "Nov'25",
-      v: 13.1
-    }],
-    note: 'Recurring mild anaemia. Iron deficiency Jul 2022. Normalised Nov 2025.'
-  },
-  creatinine: {
-    label: 'Creatinine',
-    unit: 'mg/dL',
-    refHigh: 1.02,
-    color: '#0891B2',
-    data: [{
-      d: "Jan'15",
-      v: 0.9
-    }, {
-      d: "Jan'16",
-      v: 0.7
-    }, {
-      d: "Mar'18",
-      v: 1.0
-    }, {
-      d: "Jul'19",
-      v: 0.64
-    }, {
-      d: "Feb'20",
-      v: 0.9
-    }, {
-      d: "Sep'21",
-      v: 0.6
-    }, {
-      d: "Jul'22",
-      v: 0.67
-    }, {
-      d: "May'23",
-      v: 0.67
-    }, {
-      d: "Jul'23",
-      v: 0.7
-    }, {
-      d: "Sep'24",
-      v: 0.66
-    }, {
-      d: "Nov'25",
-      v: 0.62
-    }],
-    note: 'Excellent kidney function. eGFR 100 mL/min (Nov 2025). No concern.'
-  }
-};
-const MOM_LABS_FULL = {
-  tc: {
-    label: 'Total Cholesterol',
-    unit: 'mg/dL',
-    refHigh: 200,
-    color: '#DC2626',
-    data: [{
-      d: "Jan'15",
-      v: 309
-    }, {
-      d: "Sep'15",
-      v: 170
-    }, {
-      d: "Jan'16",
-      v: 270
-    }, {
-      d: "Jul'19",
-      v: 271
-    }, {
-      d: "Nov'25",
-      v: 263
-    }, {
-      d: "Feb'26",
-      v: 259
-    }],
-    note: 'Consistently elevated. Target <200 mg/dL.'
-  },
-  hdl: {
-    label: 'HDL Cholesterol',
-    unit: 'mg/dL',
-    refLow: 45,
-    color: '#16A34A',
-    data: [{
-      d: "Jan'15",
-      v: 36
-    }, {
-      d: "Sep'15",
-      v: 36
-    }, {
-      d: "Jan'16",
-      v: 40
-    }, {
-      d: "Jul'19",
-      v: 57
-    }, {
-      d: "May'23",
-      v: 54.7
-    }, {
-      d: "Nov'25",
-      v: 51
-    }, {
-      d: "Feb'26",
-      v: 37
-    }],
-    note: 'Current: 37↓↓ (Feb 2026). HDL <45 increases cardiac risk.'
-  },
-  tg: {
-    label: 'Triglycerides',
-    unit: 'mg/dL',
-    refHigh: 150,
-    color: '#F59E0B',
-    data: [{
-      d: "Jan'15",
-      v: 328
-    }, {
-      d: "Sep'15",
-      v: 150
-    }, {
-      d: "Jan'16",
-      v: 179
-    }, {
-      d: "Jul'19",
-      v: 212
-    }, {
-      d: "May'23",
-      v: 159
-    }, {
-      d: "Nov'25",
-      v: 295
-    }, {
-      d: "Feb'26",
-      v: 207
-    }],
-    note: 'WORST: 328↑↑ (Jan 2015). Current: 207↑↑. Target <150.'
-  },
-  crp: {
-    label: 'CRP (Inflammation)',
-    unit: 'mg/dL',
-    refHigh: 0.5,
-    color: '#EF4444',
-    data: [{
-      d: "Apr'13",
-      v: 0.13
-    }, {
-      d: "Mar'18",
-      v: 0.3
-    }, {
-      d: "May'23",
-      v: 1.2
-    }, {
-      d: "Feb'26",
-      v: 6.7
-    }],
-    note: 'Current: 6.7↑ (Feb 2026) — active inflammation. Correlates with untreated dyslipidaemia.'
-  },
-  tpo: {
-    label: 'Anti-TPO',
-    unit: 'IU/mL',
-    refHigh: 60,
-    color: '#7C3AED',
-    data: [{
-      d: "Jul'19",
-      v: 92.22
-    }, {
-      d: "Feb'23",
-      v: 42
-    }],
-    note: "Confirmed Hashimoto's (Jul 2019: 92.22↑↑). Declining with treatment."
-  },
-  b12: {
-    label: 'Vitamin B12',
-    unit: 'pg/mL',
-    refLow: 200,
-    color: '#06B6D4',
-    data: [{
-      d: "Mar'18",
-      v: 312
-    }, {
-      d: "Jul'19",
-      v: 285
-    }, {
-      d: "Feb'23",
-      v: 1595
-    }, {
-      d: "Jan'25",
-      v: 389
-    }, {
-      d: "Nov'25",
-      v: 715
-    }],
-    note: 'Feb 2023 spike 1595↑ (likely supplement). Currently 715✓.'
-  },
-  mg: {
-    label: 'Magnesium',
-    unit: 'mg/dL',
-    refLow: 1.9,
-    color: '#10B981',
-    data: [{
-      d: "Aug'24",
-      v: 1.72
-    }],
-    note: '1.72↓ (Aug 2024). Below normal range 1.90-3.10. Supplement needed.'
-  }
-};
-const MOM_SYMPTOMS = [{
-  date: 'Feb 2026',
-  symptom: 'Red line on sclera (right eye)',
-  severity: 'mild',
-  status: 'ongoing',
-  note: 'Noted at Maxivision — possible episcleritis'
-}, {
-  date: 'Nov 2025',
-  symptom: 'Fatigue, cold intolerance, constipation',
-  severity: 'moderate',
-  status: 'resolved',
-  note: 'Thyroid relapse — TSH 7.45'
-}, {
-  date: 'Sep 2024',
-  symptom: 'Severe lower back pain radiating to left leg',
-  severity: 'severe',
-  status: 'managed',
-  note: 'L5-S1 epidural treatment — Aster Prime'
-}, {
-  date: 'May 2023',
-  symptom: 'Daily heartburn, frequent burping',
-  severity: 'moderate',
-  status: 'managed',
-  note: 'PPI started after endoscopy'
-}, {
-  date: 'Jul 2022',
-  symptom: 'Fatigue, hair thinning, pallor',
-  severity: 'moderate',
-  status: 'resolved',
-  note: 'Iron deficiency anaemia — Fe 39.3↓'
-}];
-const DAD_SYMPTOMS = [{
-  date: 'Jan 2025',
-  symptom: 'Urinary frequency (mild)',
-  severity: 'mild',
-  status: 'ongoing',
-  note: 'PSA 4.8 — prostate surveillance'
-}, {
-  date: 'Nov 2022',
-  symptom: 'Bone pain / joint stiffness',
-  severity: 'moderate',
-  status: 'managed',
-  note: 'Osteoporosis confirmed on DEXA'
-}];
+
+// ─── PATIENTS ARRAY ───────────────────────────────────────────────────────────
 const PATIENTS = [{
   id: 'P001',
   name: 'Asha Devi Vijaywargiay',
@@ -2176,7 +2434,7 @@ const PATIENTS = [{
   symptoms: MOM_SYMPTOMS,
   labsKey: MOM_LABS_KEY,
   labsFull: MOM_LABS_FULL,
-  summary: 'TSH 3.89 | LDL 181↑↑ | HbA1c 5.2% | Vit D 26.2↓ | CRP 6.7↑',
+  summary: 'TSH 3.89 | LDL 181 | HbA1c 5.2% | VitD 26.2 | CRP 6.7',
   lastVisit: 'Feb 2026',
   photo: null,
   boxFolders: {
@@ -2200,285 +2458,10 @@ const PATIENTS = [{
   timeline: DAD_TIMELINE,
   documents: DAD_DOCS,
   symptoms: DAD_SYMPTOMS,
-  labsKey: {
-    psa: {
-      label: 'PSA (Post-Treatment Nadir)',
-      unit: 'ng/mL',
-      refHigh: 4.0,
-      color: '#16A34A',
-      data: [{
-        d: "Apr'22",
-        v: 0.0447
-      }, {
-        d: "Apr'23",
-        v: 0.015
-      }, {
-        d: "Jul'23",
-        v: 0.042
-      }, {
-        d: "Apr'25",
-        v: 0.128
-      }, {
-        d: "Nov'25",
-        v: 0.11
-      }],
-      note: 'EXCELLENT post-treatment response. All values 0.01-0.13 ng/mL (threshold: 4.0). Slight rise Apr 2025 (0.128) but still excellent. Continue 6-monthly surveillance.'
-    },
-    hba1c: {
-      label: 'HbA1c (Glycaemia)',
-      unit: '%',
-      refHigh: 5.7,
-      color: '#D97706',
-      data: [{
-        d: "Feb'20",
-        v: 6.5
-      }, {
-        d: "Apr'22",
-        v: 6.0
-      }, {
-        d: "Jul'22",
-        v: 6.8
-      }, {
-        d: "Jan'25",
-        v: 6.2
-      }, {
-        d: "Apr'25",
-        v: 6.1
-      }, {
-        d: "Nov'25",
-        v: 6.4
-      }],
-      note: 'Pre-diabetic range (5.7-6.4%). Best: 6.0% Apr 2022. Worsening recently: 6.4% Nov 2025. 6 data points spanning 5 years. Urgent lifestyle intervention.'
-    },
-    tsh: {
-      label: 'TSH (Thyroid)',
-      unit: 'uIU/mL',
-      refLow: 0.27,
-      refHigh: 5.35,
-      color: '#7C3AED',
-      data: [{
-        d: "Apr'22",
-        v: 6.58
-      }, {
-        d: "Jan'25",
-        v: 5.28
-      }, {
-        d: "Nov'25",
-        v: 6.55
-      }, {
-        d: "Jan'26",
-        v: 6.31
-      }],
-      note: 'Consistently elevated despite levothyroxine: 6.58 (Apr 2022), 5.28 (Jan 2025), 6.55 (Nov 2025), 6.31 (Jan 2026). Dose increase needed urgently.'
-    },
-    ldl: {
-      label: 'LDL Cholesterol',
-      unit: 'mg/dL',
-      refHigh: 100,
-      color: '#DC2626',
-      data: [{
-        d: "Apr'22",
-        v: 119
-      }, {
-        d: "Jan'25",
-        v: 105
-      }, {
-        d: "Nov'25",
-        v: 148
-      }, {
-        d: "Feb'26",
-        v: 172
-      }],
-      note: 'WORSENING despite statin: 119 (Apr 22) - 105 (Jan 25, best) - 148 (Nov 25) - 172 (Feb 26). Urgent dose review or switch to ezetimibe.'
-    },
-    hb: {
-      label: 'Haemoglobin',
-      unit: 'g/dL',
-      refLow: 13.0,
-      color: '#2563EB',
-      data: [{
-        d: "Apr'22",
-        v: 12.83
-      }, {
-        d: "Jan'25",
-        v: 13.1
-      }, {
-        d: "Nov'25",
-        v: 13.5
-      }],
-      note: 'Apr 2022: 12.83 (slightly below normal). Improved: Jan 2025: 13.1, Nov 2025: 13.5. Good trend.'
-    },
-    creatinine: {
-      label: 'Creatinine (Renal)',
-      unit: 'mg/dL',
-      refHigh: 1.18,
-      color: '#0891B2',
-      data: [{
-        d: "Apr'22",
-        v: 0.6
-      }, {
-        d: "Jan'25",
-        v: 0.77
-      }, {
-        d: "Nov'25",
-        v: 0.73
-      }],
-      note: 'Excellent kidney function throughout. eGFR 100 mL/min (Nov 2025). All readings well within range. No renal concern.'
-    }
-  },
-  labsFull: {
-    tc: {
-      label: 'Total Cholesterol',
-      unit: 'mg/dL',
-      refHigh: 200,
-      color: '#DC2626',
-      data: [{
-        d: "Apr'22",
-        v: 198
-      }, {
-        d: "Jan'25",
-        v: 198
-      }, {
-        d: "Nov'25",
-        v: 225
-      }, {
-        d: "Feb'26",
-        v: 234
-      }],
-      note: 'Stable until late 2025. Worsening: 198 (Apr/Jan) - 225 (Nov 25) - 234 (Feb 26). Target <200.'
-    },
-    hdl: {
-      label: 'HDL Cholesterol',
-      unit: 'mg/dL',
-      refLow: 40,
-      color: '#16A34A',
-      data: [{
-        d: "Apr'22",
-        v: 48
-      }, {
-        d: "Jan'25",
-        v: 48.7
-      }, {
-        d: "Nov'25",
-        v: 54
-      }, {
-        d: "Feb'26",
-        v: 39
-      }],
-      note: 'Good until Feb 2026: HDL dropped sharply to 39 (ref >40). Previously 48-54. Low HDL increases cardiac risk.'
-    },
-    tg: {
-      label: 'Triglycerides',
-      unit: 'mg/dL',
-      refHigh: 150,
-      color: '#F59E0B',
-      data: [{
-        d: "Apr'22",
-        v: 155
-      }, {
-        d: "Jan'25",
-        v: 102.74
-      }, {
-        d: "Nov'25",
-        v: 123
-      }, {
-        d: "Feb'26",
-        v: 117
-      }],
-      note: 'Apr 2022: 155 (borderline). Improved and stable since. Recent: 102-123. Good control.'
-    },
-    t3: {
-      label: 'T3 (Triiodothyronine)',
-      unit: 'ng/dL',
-      refLow: 76.3,
-      refHigh: 220.8,
-      color: '#8B5CF6',
-      data: [{
-        d: "Apr'22",
-        v: 113.8
-      }, {
-        d: "Nov'25",
-        v: 126
-      }],
-      note: 'T3 normal on both readings despite elevated TSH. Apr 2022: 113.8, Nov 2025: 126. Both within normal range.'
-    },
-    t4: {
-      label: 'T4 (Total Thyroxine)',
-      unit: 'ug/dL',
-      refLow: 4.5,
-      refHigh: 12.6,
-      color: '#A78BFA',
-      data: [{
-        d: "Apr'22",
-        v: 7.59
-      }, {
-        d: "Nov'25",
-        v: 7.06
-      }],
-      note: 'T4 normal on both readings. Apr 2022: 7.59, Nov 2025: 7.06. Normal T4 with elevated TSH indicates subclinical/compensated hypothyroidism.'
-    },
-    vitd: {
-      label: 'Vitamin D (25-OH)',
-      unit: 'ng/mL',
-      refLow: 30,
-      color: '#16A34A',
-      data: [{
-        d: "Apr'22",
-        v: 20.78
-      }, {
-        d: "Jan'25",
-        v: 57.8
-      }, {
-        d: "Nov'25",
-        v: 32.1
-      }],
-      note: 'Apr 2022: 20.78 (insufficient - <30). Jan 2025: 57.8 (sufficient - good response to supplementation). Nov 2025: 32.1 (borderline). Maintain 40+ ng/mL.'
-    },
-    b12: {
-      label: 'Vitamin B12',
-      unit: 'pg/mL',
-      refLow: 197,
-      color: '#06B6D4',
-      data: [{
-        d: "Jan'25",
-        v: 689
-      }, {
-        d: "Nov'25",
-        v: 378
-      }],
-      note: 'Both within range. Jan 2025: 689, Nov 2025: 378. Declining but normal. Continue monitoring.'
-    },
-    fbs: {
-      label: 'Fasting Blood Sugar',
-      unit: 'mg/dL',
-      refHigh: 100,
-      color: '#F59E0B',
-      data: [{
-        d: "Nov'25",
-        v: 104.97
-      }],
-      note: 'Nov 2025: 105 (pre-diabetic; ref <100). Consistent with HbA1c 6.4%. Diet modification and exercise essential.'
-    },
-    uric: {
-      label: 'Uric Acid',
-      unit: 'mg/dL',
-      refHigh: 7.3,
-      color: '#8B5CF6',
-      data: [{
-        d: "Apr'22",
-        v: 5.4
-      }, {
-        d: "Jan'25",
-        v: 4.94
-      }, {
-        d: "Nov'25",
-        v: 5.3
-      }],
-      note: 'All readings normal. Apr 2022: 5.4, Jan 2025: 4.94, Nov 2025: 5.3. Gout risk low.'
-    }
-  },
-  summary: 'PSA 0.11✓ (nadir) | HbA1c 6.4%↑ | TSH 6.31↑↑ | LDL 172↑↑ | Hb 13.5✓',
-  lastVisit: 'Jan 2025',
+  labsKey: DAD_LABS_KEY,
+  labsFull: DAD_LABS_FULL,
+  summary: 'PSA 0.11 (nadir) | HbA1c 6.4% | TSH 6.31 | LDL 172 | Hb 13.5',
+  lastVisit: 'Feb 2026',
   photo: null,
   boxFolders: {
     lab: '369528428881',
@@ -2487,6 +2470,8 @@ const PATIENTS = [{
     hospital: '369528640568'
   }
 }];
+
+// ─── UI CONSTANTS ─────────────────────────────────────────────────────────────
 const SEV_COLORS = {
   urgent: '#DC2626',
   high: '#D97706',
@@ -2524,6 +2509,34 @@ const DOC_ICONS = {
   Procedure: '⚕',
   Consult: '👨‍⚕️',
   Prescription: '💊'
+};
+
+// Category labels for Full Markers grouping
+const LAB_CATEGORIES = {
+  cardiovascular: {
+    label: '❤️ Cardiovascular',
+    color: '#DC2626'
+  },
+  thyroid: {
+    label: '🦋 Thyroid',
+    color: '#7C3AED'
+  },
+  metabolic: {
+    label: '⚗️ Metabolic',
+    color: '#D97706'
+  },
+  renal: {
+    label: '🫘 Renal',
+    color: '#0891B2'
+  },
+  hepatic: {
+    label: '🩺 Hepatic',
+    color: '#D97706'
+  },
+  haematology: {
+    label: '🔬 Haematology',
+    color: '#EF4444'
+  }
 };
 
 // ─── UTILITIES ────────────────────────────────────────────────────────────────
@@ -2591,14 +2604,29 @@ function MiniChart({
   refHigh,
   color
 }) {
-  const ref = useRef(null);
+  const canvasRef = useRef(null);
   const ch = useRef(null);
   useEffect(() => {
-    if (!ref.current || !data?.length) return;
+    if (!canvasRef.current || !data?.length) return;
     if (ch.current) ch.current.destroy();
     const vals = data.map(d => d.v);
     const ptColors = vals.map(v => refHigh && v > refHigh ? '#EF4444' : refLow && v < refLow ? '#F59E0B' : '#16A34A');
-    ch.current = new Chart(ref.current.getContext('2d'), {
+    const refLine = refHigh ? [{
+      type: 'line',
+      yMin: refHigh,
+      yMax: refHigh,
+      borderColor: '#EF444444',
+      borderWidth: 1,
+      borderDash: [4, 4],
+      label: {
+        content: `Ref ${refHigh}`,
+        display: true,
+        font: {
+          size: 8
+        }
+      }
+    }] : [];
+    ch.current = new Chart(canvasRef.current.getContext('2d'), {
       type: 'line',
       data: {
         labels: data.map(d => d.d),
@@ -2611,8 +2639,8 @@ function MiniChart({
           pointBackgroundColor: ptColors,
           pointBorderColor: '#fff',
           pointBorderWidth: 1.5,
-          pointRadius: 4,
-          pointHoverRadius: 6,
+          pointRadius: 5,
+          pointHoverRadius: 8,
           tension: .3,
           fill: true
         }]
@@ -2620,6 +2648,14 @@ function MiniChart({
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        // Click on data point → open Box source document
+        onClick: (evt, elements) => {
+          if (elements.length > 0) {
+            const idx = elements[0].index;
+            const pt = data[idx];
+            if (pt?.boxId) window.open('https://app.box.com/file/' + pt.boxId, '_blank');
+          }
+        },
         plugins: {
           legend: {
             display: false
@@ -2630,8 +2666,27 @@ function MiniChart({
             borderWidth: 1,
             titleColor: '#94A3B8',
             bodyColor: '#F1F5F9',
+            padding: 10,
             callbacks: {
-              label: c => `${c.dataset.label}: ${c.parsed.y.toFixed(2)} ${unit}`
+              title: ctx => {
+                const pt = data[ctx[0].dataIndex];
+                return label + ' — ' + (pt?.d || ctx[0].label);
+              },
+              label: ctx => {
+                const v = ctx.parsed.y;
+                const pt = data[ctx.dataIndex];
+                const hi = refHigh && v > refHigh ? ' ↑ HIGH' : '';
+                const lo = refLow && v < refLow ? ' ↓ LOW' : '';
+                const ok = !hi && !lo ? ' ✓' : '';
+                return ` ${v.toFixed(2)} ${unit}${hi || lo || ok}`;
+              },
+              afterLabel: ctx => {
+                const pt = data[ctx.dataIndex];
+                const ref = refHigh ? `Ref: ${refLow ? refLow + ' – ' : '< '}${refHigh} ${unit}` : '';
+                const src = pt?.boxId ? '📂 Click point to open source →' : '';
+                const parts = [ref, src].filter(Boolean);
+                return parts.length ? parts.join('   ') : undefined;
+              }
             }
           }
         },
@@ -2667,6 +2722,14 @@ function MiniChart({
         }
       }
     });
+    // Change cursor on hover over points
+    canvasRef.current.addEventListener('mousemove', evt => {
+      const pts = ch.current?.getElementsAtEventForMode(evt, 'nearest', {
+        intersect: true
+      }, true) || [];
+      const pt = pts[0] ? data[pts[0].index] : null;
+      canvasRef.current.style.cursor = pt?.boxId ? 'pointer' : 'default';
+    });
     return () => {
       if (ch.current) ch.current.destroy();
     };
@@ -2677,7 +2740,7 @@ function MiniChart({
       height: 160
     }
   }, /*#__PURE__*/React.createElement("canvas", {
-    ref: ref
+    ref: canvasRef
   }));
 }
 
@@ -3345,7 +3408,7 @@ function OverviewTab({
 
   // Load AI summary from backend on mount (server-side persistence)
   useEffect(() => {
-    const bkUrl = (localStorage.getItem('sbk_backend_url') || '').replace(/\/$/, '');
+    const bkUrl = (localStorage.getItem('sbk_backend_url') || DEFAULT_BACKEND_URL).replace(/\/$/, '');
     if (!bkUrl) return;
     fetch(`${bkUrl}/api/ai-data/${patient.id}`).then(r => r.ok ? r.json() : null).then(d => {
       if (d?.ai_summary?.data) {
@@ -3360,7 +3423,7 @@ function OverviewTab({
     setErr('');
     setAi(null);
     // Always use backend (server-side Claude key — no CORS, no API key needed in browser)
-    const bkUrl = (localStorage.getItem('sbk_backend_url') || '').replace(/\/$/, '');
+    const bkUrl = (localStorage.getItem('sbk_backend_url') || DEFAULT_BACKEND_URL).replace(/\/$/, '');
     if (!bkUrl) {
       setErr('Backend URL not configured. Click ⚙ Settings (bottom-right) and enter your Render Backend URL (e.g. https://sbkhealth-api.onrender.com).');
       setLd(false);
@@ -3834,12 +3897,75 @@ function LabTrendsTab({
 }) {
   const [view, setView] = useState('key');
   const [active, setActive] = useState(null);
-  const labs = view === 'key' ? patient.labsKey || {} : patient.labsFull || {};
+  const [extraLabs, setExtraLabs] = useState({}); // AI-extracted data from backend
+
+  // Fetch AI-extracted lab values from backend and merge with hardcoded data
+  useEffect(() => {
+    const bkUrl = (localStorage.getItem('sbk_backend_url') || DEFAULT_BACKEND_URL).replace(/\/$/, '');
+    if (!bkUrl) return;
+    fetch(`${bkUrl}/api/patients/${patient.id}/extracted-labs`).then(r => r.ok ? r.json() : null).then(d => {
+      if (!d?.labs?.length) return;
+      // Group by test_key, build chart data arrays
+      const grouped = {};
+      d.labs.forEach(row => {
+        const key = row.test_key || row.test_name.toLowerCase().replace(/[^a-z0-9]/g, '_');
+        if (!grouped[key]) grouped[key] = {
+          label: row.test_name,
+          unit: row.unit || '',
+          color: '#6366F1',
+          refLow: row.ref_low,
+          refHigh: row.ref_high,
+          data: [],
+          fromDB: true
+        };
+        grouped[key].data.push({
+          d: row.test_date ? row.test_date.substring(0, 7).replace('-', "'") : '?',
+          v: parseFloat(row.value),
+          boxId: row.box_file_id,
+          src: row.lab_name || ''
+        });
+      });
+      setExtraLabs(grouped);
+    }).catch(() => {});
+  }, [patient.id]);
+
+  // Merge: hardcoded data as base, append any new DB points not already present
+  const mergeLabs = base => {
+    const merged = {
+      ...base
+    };
+    Object.entries(extraLabs).forEach(([key, extracted]) => {
+      if (merged[key]) {
+        // Append new data points (dedup by date string)
+        const existingDates = new Set(merged[key].data.map(p => p.d));
+        const newPts = extracted.data.filter(p => !existingDates.has(p.d));
+        if (newPts.length) {
+          merged[key] = {
+            ...merged[key],
+            data: [...merged[key].data, ...newPts].sort((a, b) => a.d.localeCompare(b.d))
+          };
+        }
+      } else {
+        // Entirely new marker from extraction
+        merged[key] = extracted;
+      }
+    });
+    return merged;
+  };
+  const baseLabs = view === 'key' ? patient.labsKey || {} : patient.labsFull || {};
+  const labs = mergeLabs(baseLabs);
   useEffect(() => {
     const keys = Object.keys(labs);
     if (keys.length > 0) setActive(keys[0]);
   }, [view]);
   const cur = active && labs[active];
+  // Group full markers by category
+  const grouped = view === 'full' ? Object.entries(labs).reduce((acc, [k, v]) => {
+    const cat = v.category || 'other';
+    if (!acc[cat]) acc[cat] = [];
+    acc[cat].push([k, v]);
+    return acc;
+  }, {}) : null;
   return /*#__PURE__*/React.createElement("div", {
     className: "fade"
   }, /*#__PURE__*/React.createElement("div", {
@@ -3855,9 +3981,12 @@ function LabTrendsTab({
       borderRadius: 7,
       overflow: 'hidden'
     }
-  }, [['key', 'Key Markers'], ['full', 'Full Markers']].map(([v, l]) => /*#__PURE__*/React.createElement("button", {
+  }, [['key', 'Key Markers'], ['full', 'Full Markers (by Category)']].map(([v, l]) => /*#__PURE__*/React.createElement("button", {
     key: v,
-    onClick: () => setView(v),
+    onClick: () => {
+      setView(v);
+      setActive(null);
+    },
     style: {
       padding: '6px 14px',
       fontSize: 12,
@@ -3874,7 +4003,48 @@ function LabTrendsTab({
       textAlign: 'center',
       padding: 20
     }
-  }, "No lab data available."), Object.keys(labs).length > 0 && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+  }, "No lab data available."), Object.keys(labs).length > 0 && /*#__PURE__*/React.createElement(React.Fragment, null, view === 'full' && grouped && Object.entries(grouped).map(([cat, markers]) => {
+    const catInfo = LAB_CATEGORIES[cat] || {
+      label: cat,
+      color: '#64748B'
+    };
+    return /*#__PURE__*/React.createElement("div", {
+      key: cat,
+      style: {
+        marginBottom: 10
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 10,
+        fontWeight: 700,
+        color: catInfo.color,
+        letterSpacing: '.5px',
+        marginBottom: 5,
+        paddingLeft: 2
+      }
+    }, catInfo.label), /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: 'flex',
+        gap: 5,
+        flexWrap: 'wrap',
+        marginBottom: 2
+      }
+    }, markers.map(([k, v]) => /*#__PURE__*/React.createElement("button", {
+      key: k,
+      onClick: () => setActive(k),
+      style: {
+        padding: '4px 10px',
+        fontSize: 11,
+        fontWeight: 500,
+        border: '1px solid',
+        borderRadius: 6,
+        cursor: 'pointer',
+        background: active === k ? v.color + '12' : 'var(--bg2)',
+        color: active === k ? v.color : 'var(--text2)',
+        borderColor: active === k ? v.color : 'var(--border)'
+      }
+    }, v.label))));
+  }), view === 'key' && /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'flex',
       gap: 6,
@@ -4708,7 +4878,7 @@ function UploadModal({
   onAdded
 }) {
   // FIX 1: bkUrl at component scope so done-screen can use it
-  const bkUrl = (localStorage.getItem('sbk_backend_url') || '').replace(/\/$/, '');
+  const bkUrl = (localStorage.getItem('sbk_backend_url') || DEFAULT_BACKEND_URL).replace(/\/$/, '');
   const [file, setFile] = useState(null);
   const [dt, setDt] = useState('Lab');
   const [dr, setDr] = useState('');
@@ -5863,7 +6033,7 @@ function PatientPage({
         localStorage.setItem('sbk_photo_' + patient.id, photoData);
       } catch (ex) {}
       // Also save to cloud via backend (cross-device sync)
-      const bkUrl = (localStorage.getItem('sbk_backend_url') || '').replace(/\/$/, '');
+      const bkUrl = (localStorage.getItem('sbk_backend_url') || DEFAULT_BACKEND_URL).replace(/\/$/, '');
       if (bkUrl) {
         try {
           await fetch(`${bkUrl}/api/patients/${patient.id}/photo`, {
@@ -6051,7 +6221,19 @@ function PatientPage({
       fontSize: 12
     },
     onClick: () => setShowEdit(true)
-  }, "\u270F\uFE0F Edit"))), /*#__PURE__*/React.createElement("div", {
+  }, "\u270F\uFE0F Edit"), /*#__PURE__*/React.createElement(SyncFromBoxButton, {
+    patient: patient,
+    isAdmin: isAdmin,
+    onSyncComplete: () => {
+      // Reload AI summary and narrative from backend after sync
+      const bkUrl2 = (localStorage.getItem('sbk_backend_url') || DEFAULT_BACKEND_URL).replace(/\/$/, '');
+      if (bkUrl2) {
+        fetch(`${bkUrl2}/api/ai-data/${patient.id}`).then(r => r.ok ? r.json() : null).then(d => {
+          if (d?.ai_summary?.data) console.log('AI summary reloaded after sync');
+        }).catch(() => {});
+      }
+    }
+  }))), /*#__PURE__*/React.createElement("div", {
     className: "tab-bar"
   }, tabs.map(t => /*#__PURE__*/React.createElement("button", {
     key: t.id,
@@ -6167,7 +6349,7 @@ function App() {
   // Load photos from backend cloud (cross-device sync) on mount
   useEffect(() => {
     if (!user) return;
-    const bkUrl = (localStorage.getItem('sbk_backend_url') || '').replace(/\/$/, '');
+    const bkUrl = (localStorage.getItem('sbk_backend_url') || DEFAULT_BACKEND_URL).replace(/\/$/, '');
     if (!bkUrl) return;
     PATIENTS.forEach(async p => {
       try {
@@ -6225,7 +6407,7 @@ function NarrativeTab({
 
   // Load narrative from backend on mount (server-side persistence)
   useEffect(() => {
-    const bkUrl = (localStorage.getItem('sbk_backend_url') || '').replace(/\/$/, '');
+    const bkUrl = (localStorage.getItem('sbk_backend_url') || DEFAULT_BACKEND_URL).replace(/\/$/, '');
     if (!bkUrl) return;
     fetch(`${bkUrl}/api/ai-data/${patient.id}`).then(r => r.ok ? r.json() : null).then(d => {
       if (d?.narrative?.data) {
@@ -6269,7 +6451,7 @@ function NarrativeTab({
   const refresh = async () => {
     setLd(true);
     setErr('');
-    const bkUrl = (localStorage.getItem('sbk_backend_url') || '').replace(/\/$/, '');
+    const bkUrl = (localStorage.getItem('sbk_backend_url') || DEFAULT_BACKEND_URL).replace(/\/$/, '');
     if (!bkUrl) {
       setErr('Set Render Backend URL in ⚙ Settings to generate AI narrative.');
       setLd(false);
@@ -6345,7 +6527,7 @@ Return ONLY a JSON object (no markdown, no code fences):
         });
         setNarrative(result);
         // Save narrative to backend database (server-side, cross-device)
-        const bkUrlSave = (localStorage.getItem('sbk_backend_url') || '').replace(/\/$/, '');
+        const bkUrlSave = (localStorage.getItem('sbk_backend_url') || DEFAULT_BACKEND_URL).replace(/\/$/, '');
         if (bkUrlSave) {
           try {
             await fetch(`${bkUrlSave}/api/ai-data/${patient.id}/narrative`, {
@@ -6369,7 +6551,7 @@ Return ONLY a JSON object (no markdown, no code fences):
     const def = getDefault();
     setNarrative(def);
     // Try to save even local-generated narrative to backend
-    const bkUrlFb = (localStorage.getItem('sbk_backend_url') || '').replace(/\/$/, '');
+    const bkUrlFb = (localStorage.getItem('sbk_backend_url') || DEFAULT_BACKEND_URL).replace(/\/$/, '');
     if (bkUrlFb) {
       try {
         await fetch(`${bkUrlFb}/api/ai-data/${patient.id}/narrative`, {
@@ -6443,7 +6625,7 @@ Return ONLY a JSON object (no markdown, no code fences):
     onClick: async () => {
       const def = getDefault();
       setNarrative(def);
-      const bkUrl2 = (localStorage.getItem('sbk_backend_url') || '').replace(/\/$/, '');
+      const bkUrl2 = (localStorage.getItem('sbk_backend_url') || DEFAULT_BACKEND_URL).replace(/\/$/, '');
       if (bkUrl2) {
         try {
           await fetch(`${bkUrl2}/api/ai-data/${patient.id}/narrative`, {
@@ -6734,6 +6916,230 @@ Return ONLY a JSON object (no markdown, no code fences):
       margin: '6px 0 0'
     }
   }, "+", patient.documents.length - 8, " more documents in the Documents tab"))));
+}
+
+// ─── SYNC FROM BOX ────────────────────────────────────────────────────────────
+function SyncFromBoxButton({
+  patient,
+  isAdmin,
+  onSyncComplete
+}) {
+  const [jobId, setJobId] = useState(null);
+  const [prog, setProg] = useState(null);
+  const [open, setOpen] = useState(false);
+  const pollRef = useRef(null);
+  const bkUrl = (localStorage.getItem('sbk_backend_url') || DEFAULT_BACKEND_URL).replace(/\/$/, '');
+  const startSync = async () => {
+    if (!bkUrl) {
+      alert('Set Render Backend URL in ⚙ Settings first.');
+      return;
+    }
+    setOpen(true);
+    setProg({
+      status: 'running',
+      message: 'Starting sync…',
+      found: 0,
+      new: 0,
+      processed: 0,
+      lab_values: 0,
+      errors: []
+    });
+    try {
+      const r = await fetch(`${bkUrl}/api/patients/${patient.id}/sync`, {
+        method: 'POST'
+      });
+      if (!r.ok) {
+        const e = await r.json();
+        setProg({
+          status: 'error',
+          message: e.detail || 'Failed to start sync'
+        });
+        return;
+      }
+      const {
+        job_id
+      } = await r.json();
+      setJobId(job_id);
+      // Poll for progress every 2 seconds
+      pollRef.current = setInterval(async () => {
+        try {
+          const sr = await fetch(`${bkUrl}/api/sync/${job_id}`);
+          if (!sr.ok) return;
+          const data = await sr.json();
+          setProg(data);
+          if (data.status === 'complete' || data.status === 'error') {
+            clearInterval(pollRef.current);
+          }
+        } catch (_) {}
+      }, 2000);
+    } catch (ex) {
+      setProg({
+        status: 'error',
+        message: `Could not reach backend: ${ex.message}`
+      });
+    }
+  };
+  useEffect(() => () => clearInterval(pollRef.current), []);
+  if (!isAdmin) return null;
+  const isRunning = prog?.status === 'running';
+  const isDone = prog?.status === 'complete';
+  const isError = prog?.status === 'error';
+  return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("button", {
+    className: "btn",
+    onClick: startSync,
+    disabled: isRunning,
+    title: "Scan Box folders for new files and extract lab values with AI",
+    style: {
+      fontSize: 11,
+      color: 'var(--blue)',
+      borderColor: '#BFDBFE',
+      background: 'var(--blue-light)'
+    }
+  }, isRunning ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("span", {
+    className: "spinner"
+  }), "Syncing\u2026") : '🔄 Sync from Box'), open && /*#__PURE__*/React.createElement("div", {
+    className: "modal-bg",
+    onClick: () => {
+      if (!isRunning) setOpen(false);
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "modal fade",
+    onClick: e => e.stopPropagation(),
+    style: {
+      maxWidth: 500
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginBottom: 16
+    }
+  }, /*#__PURE__*/React.createElement("h3", {
+    className: "serif",
+    style: {
+      fontSize: 17,
+      color: 'var(--text)'
+    }
+  }, "\uD83D\uDD04 Sync from Box"), !isRunning && /*#__PURE__*/React.createElement("button", {
+    className: "btn-ghost",
+    onClick: () => setOpen(false)
+  }, "\u2715")), prog && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'grid',
+      gridTemplateColumns: '1fr 1fr 1fr',
+      gap: 10,
+      marginBottom: 14
+    }
+  }, [['Files Found', prog.found, null], ['New Files', prog.new, prog.found], ['Processed', prog.processed, prog.new || 1]].map(([l, v, max]) => /*#__PURE__*/React.createElement("div", {
+    key: l,
+    style: {
+      textAlign: 'center',
+      padding: '10px',
+      background: 'var(--bg3)',
+      borderRadius: 7
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 20,
+      fontWeight: 700,
+      color: 'var(--blue)',
+      fontFamily: "'Fira Code',monospace"
+    }
+  }, v || 0), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 10,
+      color: 'var(--text3)'
+    }
+  }, l), max > 0 && /*#__PURE__*/React.createElement("div", {
+    style: {
+      height: 3,
+      background: 'var(--border)',
+      borderRadius: 2,
+      marginTop: 5
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      height: 3,
+      background: 'var(--blue)',
+      borderRadius: 2,
+      width: `${Math.min(100, (v || 0) / max * 100)}%`,
+      transition: 'width .5s'
+    }
+  }))))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: '10px 14px',
+      borderRadius: 8,
+      marginBottom: 12,
+      fontSize: 12,
+      lineHeight: 1.6,
+      background: isError ? 'var(--red-light)' : isDone ? 'var(--green-light)' : 'var(--blue-light)',
+      color: isError ? 'var(--red)' : isDone ? 'var(--green)' : 'var(--text2)',
+      border: `1px solid ${isError ? '#FECACA' : isDone ? '#BBF7D0' : '#BFDBFE'}`
+    }
+  }, isRunning && /*#__PURE__*/React.createElement("span", {
+    className: "spinner",
+    style: {
+      marginRight: 6
+    }
+  }), prog.message), prog.lab_values > 0 && /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: '8px 14px',
+      background: 'var(--green-light)',
+      border: '1px solid #BBF7D0',
+      borderRadius: 7,
+      fontSize: 11,
+      color: 'var(--green)',
+      marginBottom: 12
+    }
+  }, "\uD83E\uDDEA ", prog.lab_values, " lab values extracted and stored. Clinical summary auto-updated."), prog.errors?.length > 0 && /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginBottom: 12
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 10,
+      color: 'var(--text3)',
+      fontWeight: 600,
+      marginBottom: 4
+    }
+  }, "WARNINGS (", prog.errors.length, ")"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      maxHeight: 80,
+      overflowY: 'auto',
+      fontSize: 10,
+      color: 'var(--text3)'
+    }
+  }, prog.errors.map((e, i) => /*#__PURE__*/React.createElement("div", {
+    key: i,
+    style: {
+      padding: '2px 0'
+    }
+  }, e)))), isDone && /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 11,
+      color: 'var(--text3)',
+      marginBottom: 10
+    }
+  }, "AI summary has been regenerated from new data. Charts will show new data points immediately. Narrative will reflect new findings on next open."), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 8,
+      justifyContent: 'flex-end'
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    className: "btn",
+    onClick: () => {
+      setOpen(false);
+      if (onSyncComplete) onSyncComplete();
+    }
+  }, "Update & Close"), /*#__PURE__*/React.createElement("button", {
+    className: "btn-primary",
+    style: {
+      fontSize: 12
+    },
+    onClick: () => window.location.reload()
+  }, "Full Refresh")))))));
 }
 </script>
 </body></html>
