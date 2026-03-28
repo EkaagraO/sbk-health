@@ -676,6 +676,200 @@ async def ai_refresh(pid: str):
     finally:
         await conn.close()
 
+
+# ── Box Sync Pipeline ─────────────────────────────────────────────────────────
+# Lists all Box folders for a patient, finds files not yet extracted,
+# downloads each, runs Claude AI extraction, updates DB and regenerates summary.
+# Progress tracked in-memory (safe for Render single-worker).
+
+import uuid as _uuid
+
+_sync_jobs: dict = {}  # job_id → progress dict
+
+# Box folder IDs for each patient (both patients hardcoded)
+PATIENT_BOX_FOLDERS = {
+    "P001": {
+        "Lab":          "372768683500",
+        "Imaging":      "372769252193",
+        "Prescription": "372768863251",
+        "Hospital":     "372769787402",
+    },
+    "P002": {
+        "Lab":          "369528428881",
+        "Imaging":      "369526874258",
+        "Prescription": "369526443865",
+        "Hospital":     "369528640568",
+    },
+}
+
+# File extensions worth sending to Claude for extraction
+EXTRACTABLE_EXTS = {".pdf", ".jpg", ".jpeg", ".png"}
+
+
+@app.post("/api/patients/{pid}/sync")
+async def sync_from_box(pid: str, bg: BackgroundTasks):
+    """Start a Box sync job. Returns job_id immediately; poll /api/sync/{job_id} for progress."""
+    if not BOX_CLIENT_ID or not BOX_CLIENT_SECRET:
+        raise HTTPException(503, "Box OAuth not configured — add BOX_CLIENT_ID and BOX_CLIENT_SECRET to Render env vars, then visit /api/box/auth")
+    if pid not in PATIENT_BOX_FOLDERS:
+        raise HTTPException(404, f"Unknown patient: {pid}")
+
+    job_id = str(_uuid.uuid4())[:8]
+    _sync_jobs[job_id] = {
+        "status": "running", "pid": pid,
+        "found": 0, "new": 0, "processed": 0,
+        "lab_values": 0, "errors": [],
+        "current_file": "",
+        "message": "Starting sync…",
+    }
+    bg.add_task(_run_sync, pid, job_id)
+    return {"job_id": job_id}
+
+
+@app.get("/api/sync/{job_id}")
+async def sync_job_status(job_id: str):
+    """Poll this endpoint to get live sync progress."""
+    return _sync_jobs.get(job_id, {"status": "not_found"})
+
+
+async def _box_list_folder(folder_id: str, token: str) -> list:
+    """Return list of file dicts from a Box folder."""
+    items = []
+    offset = 0
+    while True:
+        async with httpx.AsyncClient(timeout=30) as client:
+            r = await client.get(
+                f"https://api.box.com/2.0/folders/{folder_id}/items",
+                headers={"Authorization": f"Bearer {token}"},
+                params={"limit": 1000, "offset": offset,
+                        "fields": "id,name,size,type,content_created_at"})
+        if r.status_code != 200:
+            break
+        data = r.json()
+        for item in data.get("entries", []):
+            if item.get("type") == "file":
+                name = item.get("name", "")
+                ext  = os.path.splitext(name)[1].lower()
+                if ext in EXTRACTABLE_EXTS and not name.startswith("desktop"):
+                    items.append({
+                        "file_id":    item["id"],
+                        "name":       name,
+                        "size":       item.get("size", 0),
+                        "created_at": item.get("content_created_at"),
+                    })
+        if len(data.get("entries", [])) < 1000:
+            break
+        offset += 1000
+    return items
+
+
+async def _run_sync(pid: str, job_id: str):
+    """Background task: full Box sync for one patient."""
+    prog = _sync_jobs[job_id]
+    try:
+        # ── 1. Discover all Box files ─────────────────────────────────────────
+        token      = await box_get_token()
+        all_files  = []
+        folders    = PATIENT_BOX_FOLDERS[pid]
+
+        for folder_type, folder_id in folders.items():
+            prog["message"] = f"Scanning {folder_type} folder in Box…"
+            try:
+                files = await _box_list_folder(folder_id, token)
+                for f in files:
+                    f["folder_type"] = folder_type
+                all_files.extend(files)
+            except Exception as e:
+                prog["errors"].append(f"Scan error ({folder_type}): {str(e)[:80]}")
+
+        prog["found"]   = len(all_files)
+        prog["message"] = f"Found {len(all_files)} files. Checking which are new…"
+
+        # ── 2. Filter out already-processed files ─────────────────────────────
+        processed_ids: set = set()
+        if DATABASE_URL:
+            conn = await db()
+            try:
+                rows = await conn.fetch(
+                    "SELECT DISTINCT box_file_id FROM extracted_lab_values WHERE patient_key=$1",
+                    pid)
+                processed_ids = {r["box_file_id"] for r in rows}
+            finally:
+                await conn.close()
+
+        new_files = [f for f in all_files if f["file_id"] not in processed_ids]
+        prog["new"]     = len(new_files)
+        prog["message"] = f"Found {len(new_files)} new files to process…"
+
+        if not new_files:
+            prog["status"]  = "complete"
+            prog["message"] = "✅ Already up to date — no new files found in Box."
+            return
+
+        # ── 3. Process each new file ──────────────────────────────────────────
+        total_lab_values = 0
+        for i, f in enumerate(new_files):
+            prog["processed"]    = i + 1
+            prog["current_file"] = f["name"]
+            prog["message"]      = f"Processing {i+1}/{len(new_files)}: {f['name'][:50]}…"
+
+            if f["size"] > 40 * 1024 * 1024:
+                prog["errors"].append(f"Skipped (too large): {f['name']}")
+                continue
+
+            try:
+                content = await box_download(f["file_id"])
+                before  = await _count_extracted(pid)
+                await extract_and_store(pid, f["file_id"], f["name"], content)
+                after   = await _count_extracted(pid)
+                total_lab_values += max(0, after - before)
+            except Exception as e:
+                prog["errors"].append(f"Error on {f['name'][:40]}: {str(e)[:80]}")
+                log.warning(f"Sync extraction error for {f['name']}: {e}")
+
+        prog["lab_values"] = total_lab_values
+
+        # ── 4. Regenerate AI summary + narrative ──────────────────────────────
+        if total_lab_values > 0 and ANTHROPIC_KEY:
+            prog["message"] = "Regenerating AI summary and narrative with new data…"
+            try:
+                conn = await db()
+                try:
+                    await auto_regenerate_summary(pid, conn)
+                    # Also regenerate narrative
+                    await auto_regenerate_narrative(pid, conn)
+                finally:
+                    await conn.close()
+            except Exception as e:
+                prog["errors"].append(f"AI regen error: {str(e)[:80]}")
+
+        prog["status"]  = "complete"
+        prog["message"] = (
+            f"✅ Sync complete! Processed {len(new_files)} new files, "
+            f"extracted {total_lab_values} lab values. "
+            f"AI summary updated. Click Refresh on Clinical Summary to see changes."
+        )
+        if prog["errors"]:
+            prog["message"] += f" ({len(prog['errors'])} warnings — see errors list)"
+
+    except Exception as e:
+        prog["status"]  = "error"
+        prog["message"] = f"Sync failed: {str(e)}"
+        log.error(f"Sync failed for {pid}: {e}")
+
+
+async def _count_extracted(pid: str) -> int:
+    """Count extracted lab values for a patient."""
+    if not DATABASE_URL:
+        return 0
+    conn = await db()
+    try:
+        row = await conn.fetchrow(
+            "SELECT COUNT(*) as n FROM extracted_lab_values WHERE patient_key=$1", pid)
+        return row["n"] if row else 0
+    finally:
+        await conn.close()
+
 # ── Box OAuth 2.0 token management ──────────────────────────────────────────
 # Works with personal Box accounts — no Enterprise plan needed.
 
@@ -927,6 +1121,31 @@ Extract EVERY numeric test result visible in the document."""
         log.error(f"AI extraction failed for {filename}: {e}")
 
 
+
+
+async def auto_regenerate_narrative(patient_key: str, conn):
+    """After sync, regenerate narrative from latest extracted data."""
+    try:
+        # Build a simple narrative from extracted data
+        rows = await conn.fetch(
+            """SELECT test_name, value, unit, test_date, lab_name
+               FROM extracted_lab_values WHERE patient_key=$1
+               ORDER BY test_date DESC, created_at DESC LIMIT 20""", patient_key)
+        if not rows:
+            return
+        summary_text = ", ".join(
+            f"{r['test_name']} {r['value']}{r['unit'] or ''} ({r['test_date'] or 'recent'})"
+            for r in rows[:10])
+        # Store basic narrative update timestamp
+        await conn.execute(
+            """INSERT INTO patient_ai_data (patient_key, narrative_ts, updated_at)
+               VALUES ($1, NOW(), NOW())
+               ON CONFLICT (patient_key) DO UPDATE
+               SET narrative_ts=NOW(), updated_at=NOW()""",
+            patient_key)
+        log.info(f"Narrative timestamp updated for {patient_key}")
+    except Exception as e:
+        log.error(f"Narrative regen failed: {e}")
 async def auto_regenerate_summary(patient_key: str, conn):
     """After new lab data extracted, regenerate and persist AI summary."""
     try:
