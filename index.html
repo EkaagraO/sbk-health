@@ -3338,24 +3338,22 @@ function OverviewTab({
   isAdmin,
   setTab
 }) {
-  const [ai, setAi] = useState(() => {
-    try {
-      const s = localStorage.getItem('sbk_ai_' + patient.id);
-      return s ? JSON.parse(s).data : null;
-    } catch (e) {
-      return null;
-    }
-  });
-  const [aiTs, setAiTs] = useState(() => {
-    try {
-      const s = localStorage.getItem('sbk_ai_' + patient.id);
-      return s ? JSON.parse(s).ts : null;
-    } catch (e) {
-      return null;
-    }
-  });
+  const [ai, setAi] = useState(null);
+  const [aiTs, setAiTs] = useState(null);
   const [ld, setLd] = useState(false);
   const [err, setErr] = useState('');
+
+  // Load AI summary from backend on mount (server-side persistence)
+  useEffect(() => {
+    const bkUrl = (localStorage.getItem('sbk_backend_url') || '').replace(/\/$/, '');
+    if (!bkUrl) return;
+    fetch(`${bkUrl}/api/ai-data/${patient.id}`).then(r => r.ok ? r.json() : null).then(d => {
+      if (d?.ai_summary?.data) {
+        setAi(d.ai_summary.data);
+        setAiTs(d.ai_summary.ts || '');
+      }
+    }).catch(() => {});
+  }, [patient.id]);
   const [selCond, setSelCond] = useState(null);
   const refresh = useCallback(async () => {
     setLd(true);
@@ -3396,11 +3394,18 @@ function OverviewTab({
           timeStyle: 'short'
         });
         setAiTs(ts);
+        // Save to backend database (server-side, cross-device persistent)
         try {
-          localStorage.setItem('sbk_ai_' + patient.id, JSON.stringify({
-            data: aiData,
-            ts
-          }));
+          await fetch(`${bkUrl}/api/ai-data/${patient.id}/summary`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              data: aiData,
+              ts
+            })
+          });
         } catch (_) {}
         setLd(false);
         return;
@@ -6129,17 +6134,23 @@ function NarrativeTab({
   patient,
   isAdmin
 }) {
-  const STORAGE_KEY = 'sbk_narrative_' + patient.id;
-  const [narrative, setNarrative] = useState(() => {
-    try {
-      const s = localStorage.getItem(STORAGE_KEY);
-      return s ? JSON.parse(s) : null;
-    } catch (e) {
-      return null;
-    }
-  });
+  const [narrative, setNarrative] = useState(null);
   const [ld, setLd] = useState(false);
   const [err, setErr] = useState('');
+
+  // Load narrative from backend on mount (server-side persistence)
+  useEffect(() => {
+    const bkUrl = (localStorage.getItem('sbk_backend_url') || '').replace(/\/$/, '');
+    if (!bkUrl) return;
+    fetch(`${bkUrl}/api/ai-data/${patient.id}`).then(r => r.ok ? r.json() : null).then(d => {
+      if (d?.narrative?.data) {
+        setNarrative({
+          ...d.narrative.data,
+          ts: d.narrative.ts || ''
+        });
+      }
+    }).catch(() => {});
+  }, [patient.id]);
 
   // Build a default narrative from current data if none saved
   const getDefault = () => {
@@ -6248,9 +6259,22 @@ Return ONLY a JSON object (no markdown, no code fences):
           timeStyle: 'short'
         });
         setNarrative(result);
-        try {
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(result));
-        } catch (_) {}
+        // Save narrative to backend database (server-side, cross-device)
+        const bkUrlSave = (localStorage.getItem('sbk_backend_url') || '').replace(/\/$/, '');
+        if (bkUrlSave) {
+          try {
+            await fetch(`${bkUrlSave}/api/ai-data/${patient.id}/narrative`, {
+              method: 'PUT',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                data: result,
+                ts: result.ts || ''
+              })
+            });
+          } catch (_) {}
+        }
         setLd(false);
         return;
       }
@@ -6259,9 +6283,22 @@ Return ONLY a JSON object (no markdown, no code fences):
     // Build default narrative from data
     const def = getDefault();
     setNarrative(def);
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(def));
-    } catch (_) {}
+    // Try to save even local-generated narrative to backend
+    const bkUrlFb = (localStorage.getItem('sbk_backend_url') || '').replace(/\/$/, '');
+    if (bkUrlFb) {
+      try {
+        await fetch(`${bkUrlFb}/api/ai-data/${patient.id}/narrative`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            data: def,
+            ts: def.ts || ''
+          })
+        });
+      } catch (_) {}
+    }
     setErr('Backend unreachable — generated narrative from local data. Connect backend for AI-enhanced version.');
     setLd(false);
   };
@@ -6318,12 +6355,24 @@ Return ONLY a JSON object (no markdown, no code fences):
     }
   }, /*#__PURE__*/React.createElement("button", {
     className: "btn",
-    onClick: () => {
+    onClick: async () => {
       const def = getDefault();
       setNarrative(def);
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(def));
-      } catch (_) {}
+      const bkUrl2 = (localStorage.getItem('sbk_backend_url') || '').replace(/\/$/, '');
+      if (bkUrl2) {
+        try {
+          await fetch(`${bkUrl2}/api/ai-data/${patient.id}/narrative`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              data: def,
+              ts: def.ts || ''
+            })
+          });
+        } catch (_) {}
+      }
     },
     style: {
       fontSize: 11
