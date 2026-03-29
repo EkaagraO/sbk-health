@@ -5026,7 +5026,7 @@ function OverviewTab({
         } catch (_) {}
       }
     }).catch(() => {});
-  }, [patient.id]);
+  }, [patient.id, window._sbkSyncTs]);
   const [selCond, setSelCond] = useState(null);
   const refresh = useCallback(async () => {
     setLd(true);
@@ -7834,13 +7834,54 @@ function PatientPage({
   }, "\u270F\uFE0F Edit"), /*#__PURE__*/React.createElement(SyncFromBoxButton, {
     patient: patient,
     isAdmin: isAdmin,
-    onSyncComplete: () => {
-      // Reload AI summary and narrative from backend after sync
+    onSyncComplete: async () => {
+      // After sync: call refresh-summary with full patient context → updates summary + narrative
       const bkUrl2 = (localStorage.getItem('sbk_backend_url') || DEFAULT_BACKEND_URL).replace(/\/$/, '');
-      if (bkUrl2) {
-        fetch(`${bkUrl2}/api/ai-data/${patient.id}`).then(r => r.ok ? r.json() : null).then(d => {
-          if (d?.ai_summary?.data) console.log('AI summary reloaded after sync');
-        }).catch(() => {});
+      if (!bkUrl2) return;
+      try {
+        // Build compact patient context to send to backend for Claude to summarise
+        const ctx = {
+          name: patient.name,
+          age: patient.age,
+          gender: patient.gender,
+          bg: patient.bg,
+          conditions: patient.conditions.map(c => ({
+            name: c.name,
+            sev: c.sev,
+            findings: c.findings,
+            action: c.action
+          })),
+          timeline: patient.timeline.slice(0, 10).map(t => ({
+            date: t.date,
+            title: t.title,
+            detail: t.detail
+          })),
+          labsSummary: Object.entries(patient.labsKey).map(([k, v]) => ({
+            marker: v.label,
+            unit: v.unit,
+            latest: v.data[v.data.length - 1],
+            worst: v.data.reduce((a, b) => Math.abs(b.v - (v.refHigh || v.refLow || 0)) > Math.abs(a.v - (v.refHigh || v.refLow || 0)) ? b : a, v.data[0]),
+            trend: v.data.length > 1 ? v.data[v.data.length - 1].v > v.data[v.data.length - 2].v ? 'worsening' : 'improving' : 'stable'
+          }))
+        };
+        await fetch(`${bkUrl2}/api/patients/${patient.id}/refresh-summary`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            patient_data: ctx
+          })
+        });
+        // Now reload the fresh summary/narrative from DB
+        const r = await fetch(`${bkUrl2}/api/ai-data/${patient.id}`);
+        if (r.ok) {
+          const d = await r.json();
+          // Signal to child tabs via URL param change (force re-mount of overview)
+          window._sbkSyncTs = Date.now();
+        }
+      } catch (ex) {
+        console.warn('Post-sync refresh failed:', ex);
       }
     }
   }))), /*#__PURE__*/React.createElement("div", {
@@ -8731,19 +8772,20 @@ function SyncFromBoxButton({
       color: 'var(--text3)',
       marginBottom: 10
     }
-  }, "AI summary has been regenerated from new data. Charts will show new data points immediately. Narrative will reflect new findings on next open."), /*#__PURE__*/React.createElement("div", {
+  }, prog.lab_values > 0 ? `✅ ${prog.lab_values} new lab values extracted. Click "Update & Refresh App" to regenerate AI Summary + Narrative and reload all sections.` : '✅ Sync complete. Click "Update & Refresh App" to refresh all sections.'), /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'flex',
       gap: 8,
       justifyContent: 'flex-end'
     }
   }, /*#__PURE__*/React.createElement("button", {
-    className: "btn",
-    onClick: () => {
+    className: "btn-primary",
+    onClick: async () => {
       setOpen(false);
-      if (onSyncComplete) onSyncComplete();
+      if (onSyncComplete) await onSyncComplete();
+      window.location.reload(); // reload to show fresh data
     }
-  }, "Update & Close"), /*#__PURE__*/React.createElement("button", {
+  }, "\u2705 Update & Refresh App"), /*#__PURE__*/React.createElement("button", {
     className: "btn-primary",
     style: {
       fontSize: 12
