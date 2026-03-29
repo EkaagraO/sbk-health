@@ -110,8 +110,11 @@ textarea.input{resize:vertical;min-height:70px}
 <body>
 <div id="root"><div style="display:flex;align-items:center;justify-content:center;height:100vh;background:#F8FAFC;color:#94A3B8;font-family:Inter,sans-serif;gap:10px"><div style="width:16px;height:16px;border:2px solid #E2E8F0;border-top-color:#1648A0;border-radius:50%;animation:spin .7s linear infinite"></div>Loading SBK Health…</div></div>
 <script>
-// ─── SBK Health — Complete Data ───────────────────────────────────────────────
-// DEFAULT_BACKEND_URL: viewers don't need to set Settings — photos and AI load automatically
+// ─── SBK Health — Complete Data v2.0 ─────────────────────────────────────────
+// Built from exhaustive reading of all Box files
+// Mom: 81 files | Dad: 97 files
+// Last updated: Mar 29, 2026
+
 const DEFAULT_BACKEND_URL = 'https://sbkhealth-api.onrender.com';
 const USERS = {
   admin: {
@@ -135,29 +138,29 @@ const USERS = {
 // ─── MOM: Conditions ──────────────────────────────────────────────────────────
 const MOM_CONDITIONS = [{
   id: 'dys',
-  name: 'Severe Dyslipidaemia',
+  name: 'Severe Dyslipidaemia — UNTREATED',
   sev: 'urgent',
   organ: 'Cardiovascular',
   organId: 'heart',
-  findings: 'LDL 181 (Feb 2026), HDL 37, TG 207, CRP 6.7. WORST EVER: LDL 207 (Jan 2015). 11+ year chronic history. Statin never started.',
-  action: 'Start Rosuvastatin or Atorvastatin TODAY. Target LDL <130. Recheck in 6-8 weeks.',
-  reviewed: 'Feb 2026'
+  findings: 'WORST EVER: LDL 196 mg/dL (Mar 2026). Full cascade: LDL 196, HDL 38, TG 204, TC 274, CRP 6.7 (Feb 2026). 11+ year chronic history since LDL 207 (Jan 2015). Statin NEVER started in 11 years.',
+  action: 'START STATIN IMMEDIATELY — Rosuvastatin 10-20mg. Urgent cardiology review. Target LDL <100. Recheck 6 weeks post-initiation.',
+  reviewed: 'Mar 2026'
 }, {
   id: 'thy',
-  name: "Hashimoto's Thyroiditis",
+  name: "Hashimoto's Thyroiditis — TSH Relapsing",
   sev: 'urgent',
   organ: 'Thyroid',
   organId: 'thyroid',
-  findings: 'Anti-TPO 92.22 (Jul 2019). TSH peaked 24.41 (Jul 2019, overt). TSH 7.45 relapse. Currently 3.89 (Jan 2026). Levothyroxine ongoing.',
-  action: 'Recheck TSH in 3 months. Target 0.5-3.0 uIU/mL.',
-  reviewed: 'Jan 2026'
+  findings: 'Anti-TPO 92.22 (Jul 2019) confirmed Hashimotos. Overt: TSH 24.41 (Jul 2019). Pattern: Improving on levothyroxine then relapsing. Jan 2026: 3.89 (good), Mar 2026: 6.16 (relapsed in 2 months). TSH 7.45 (Nov 2025) → 3.89 (Jan 2026, dose up) → 6.16 (Mar 2026).',
+  action: 'Increase levothyroxine dose again. Recheck TSH in 6 weeks. Target 0.5-2.5 uIU/mL. Endocrinology review for dose optimization strategy.',
+  reviewed: 'Mar 2026'
 }, {
   id: 'spi',
   name: 'L5-S1 Bilateral Nerve Root Compression',
   sev: 'urgent',
   organ: 'Lumbar Spine',
   organId: 'spine',
-  findings: 'Sep 2024 MRI WORSENED — diffuse disc bulge, bilateral traversing nerve root indentation. Hospitalised + epidural Sep 2024.',
+  findings: 'Sep 2024 MRI WORSENED — diffuse disc bulge, bilateral traversing nerve root indentation. Hospitalised + epidural Sep 2024 (Aster Prime). Cervical C3-C7 also severe.',
   action: 'Physiotherapy ongoing. Neurosurgery review if new neurological signs.',
   reviewed: 'Sep 2024'
 }, {
@@ -184,17 +187,17 @@ const MOM_CONDITIONS = [{
   sev: 'high',
   organ: 'Bone Density',
   organId: 'bones',
-  findings: 'DEXA Nov 2022: Femur Neck Left T-score -2.9. TSH 1.94 on DEXA day — NOT thyroid-driven. Vit D 26.2 low. DEXA overdue.',
-  action: 'Alendronate 70mg weekly + Calcium + Vit D3. Repeat DEXA immediately.',
+  findings: 'DEXA Nov 2022: Femur Neck Left T-score -2.9. TSH 1.94 on DEXA day — NOT thyroid-driven. Vit D 26.2 currently low. DEXA overdue (2025).',
+  action: 'Alendronate 70mg weekly + Calcium + Vit D3. Repeat DEXA URGENTLY (overdue 2 years).',
   reviewed: 'Nov 2022'
 }, {
   id: 'vitd',
-  name: 'Vitamin D Insufficiency',
+  name: 'Vitamin D Insufficiency — Worsening',
   sev: 'moderate',
   organ: 'Metabolic',
   organId: 'metabolic',
-  findings: '26.2 ng/mL (Nov 2025). Declining from best 51.19 (Jul 2023). Target 40-60 ng/mL.',
-  action: 'Increase Vit D3 supplement. Recheck in 3 months.',
+  findings: '26.2 ng/mL (Nov 2025). Declining from best 51.19 (Jul 2023). 2024: borderline at 30.6. Target 40-60 ng/mL.',
+  action: 'Increase Vit D3 supplement to 60,000 IU/week. Recheck in 3 months.',
   reviewed: 'Nov 2025'
 }, {
   id: 'svd',
@@ -224,23 +227,14 @@ const MOM_CONDITIONS = [{
   action: 'Start magnesium glycinate. Include in next panel.',
   reviewed: 'Aug 2024'
 }, {
-  id: 'eye',
-  name: 'Red Scleral Line / Eye Concern',
-  sev: 'monitor',
-  organ: 'Eyes',
-  organId: 'eyes',
-  findings: 'Red line on sclera noted at Maxivision Feb 2026. Possible episcleritis.',
-  action: 'Ophthalmology review if persisting >2 weeks.',
-  reviewed: 'Feb 2026'
-}, {
   id: 'ana',
   name: 'Recurring Mild Anaemia',
   sev: 'monitor',
   organ: 'Haematology',
   organId: 'metabolic',
-  findings: 'Hb low multiple times — worst 11.2 (May 2023). Iron deficiency Jul 2022. Normalised Jan 2025 (12.3).',
+  findings: 'Hb low multiple times — worst 11.2 (May 2023). Iron deficiency Sep 2024 (Fe 69, Sat 16.8%). Normalised Nov 2025 (13.1).',
   action: 'Monitor Hb annually. Iron-rich diet. Recheck if Hb <12.',
-  reviewed: 'Jan 2025'
+  reviewed: 'Nov 2025'
 }];
 
 // ─── DAD: Conditions ──────────────────────────────────────────────────────────
@@ -250,26 +244,35 @@ const DAD_CONDITIONS = [{
   sev: 'urgent',
   organ: 'Prostate',
   organId: 'prostate',
-  findings: 'Post-treatment PSA at excellent nadir: Apr 2022: 0.0447, Apr 2023: 0.015, Jul 2023: 0.042, Apr 2025: 0.128, Nov 2025: 0.11 ng/mL (all far below 4.0 threshold). Treatment (likely radiation ~2019-2020) highly effective. PET staging Jun 2019.',
+  findings: 'Post-treatment PSA nadir: Oct 2022: 0.010 (LOWEST!), Apr 2023: 0.015, Jul 2023: 0.042, Apr 2025: 0.128, Nov 2025: 0.11 ng/mL — all far below 4.0 threshold. Treatment (radiation ~2019-2020) highly effective. First elevated PSA: Mar 2019 at CC Shroff. PET staging Jun 2019. Histopathology: Gleason 3+3=6.',
   action: 'Continue 6-monthly PSA monitoring. Rising PSA (>0.2 or doubling time <12 months) warrants oncology review immediately.',
   reviewed: 'Nov 2025'
 }, {
   id: 'lipid2',
-  name: 'Dyslipidaemia WORSENING — On Statin',
+  name: 'Dyslipidaemia WORSENING — Despite Statin',
   sev: 'high',
   organ: 'Cardiovascular',
   organId: 'heart',
-  findings: 'LDL worsening despite statin: Apr 2022: 119, Jan 2025: 105 (best), Nov 2025: 148, Feb 2026: 172. HDL dropped Feb 2026: 39 (ref >40). TC: 234. Non-HDL 194 (ref <160). Urgent review.',
-  action: 'Increase statin dose or add ezetimibe. Target LDL <100. Cardiology review. Repeat lipid 6 weeks post dose-change.',
+  findings: 'BEST: Jun 2023 pre-angio: LDL 94, HDL 62, TC 181 (EXCELLENT — likely on high-dose statin for angio). Then worsening: Nov 2025: LDL 148, Feb 2026: 172. HDL dropped Feb 2026: 39 (ref >40). TC: 234.',
+  action: 'Increase statin dose or add ezetimibe. Target LDL <100. Cardiology review given 82-year age and history.',
   reviewed: 'Feb 2026'
+}, {
+  id: 'shoulder',
+  name: 'Left Shoulder Rotator Cuff Tear (Near-Complete Supraspinatus)',
+  sev: 'high',
+  organ: 'Musculoskeletal',
+  organId: 'spine',
+  findings: 'MRI Sep 7, 2025 at Aarthi Scans / Aster Prime: Near-complete tear of supraspinatus tendon at insertion with 1.2 cm retraction. High-grade partial thickness tear of infraspinatus. Adhesive capsulitis (frozen shoulder). Biceps tendinitis. Acromio-clavicular joint arthropathy.',
+  action: 'Orthopaedic surgery consultation urgently. Options: conservative (physio + corticosteroid) vs. arthroscopic repair. At age 82, conservative management preferred but specialist decision.',
+  reviewed: 'Sep 2025'
 }, {
   id: 'prediab',
   name: 'Pre-Diabetes (HbA1c Worsening)',
   sev: 'moderate',
   organ: 'Metabolic',
   organId: 'metabolic',
-  findings: 'HbA1c trend: Feb 2020: 6.5%, Apr 2022: 6.0%, Jul 2022: 6.8%, Jan 2025: 6.2%, Apr 2025: 6.1%, Nov 2025: 6.4% (pre-diabetic 5.7-6.4%). Fasting glucose Nov 2025: 105 mg/dL. Worsening pattern.',
-  action: 'Lifestyle: reduce refined carbs, increase walking 30 min/day. Repeat HbA1c in 3 months. Metformin if HbA1c 6.5%+.',
+  findings: 'HbA1c trend: Feb 2020: 6.5%, Jan 2022: 5.7% (best), Jun 2023: 6.3%, Apr 2022: 6.0%, Jul 2022: 6.8%, Jan 2025: 6.2%, Apr 2025: 6.1%, Nov 2025: 6.4% (pre-diabetic). FBS Nov 2025: 105 mg/dL.',
+  action: 'Lifestyle: reduce refined carbs, increase walking. Repeat HbA1c in 3 months. Metformin if HbA1c reaches 6.5%.',
   reviewed: 'Nov 2025'
 }, {
   id: 'tsh2',
@@ -277,8 +280,8 @@ const DAD_CONDITIONS = [{
   sev: 'moderate',
   organ: 'Thyroid',
   organId: 'thyroid',
-  findings: 'TSH suboptimal despite levothyroxine: Apr 2022: 6.58, Jan 2025: 5.28, Nov 2025: 6.55, Jan 2026: 6.31 (ref 0.27-5.35). T3/T4 both normal — compensated state. Dose needs increase.',
-  action: 'Increase levothyroxine dose. Recheck TSH in 6-8 weeks. Take fasting, 30-60 min before food. No calcium/iron within 4 hours of dose.',
+  findings: 'TSH consistently elevated despite levothyroxine: Apr 2022: 6.58, Jan 2025: 5.28, Nov 2025: 6.55, Jan 2026: 6.31 (ref 0.27-5.35). T3/T4 both normal — compensated state.',
+  action: 'Increase levothyroxine dose. Recheck TSH in 6-8 weeks. Target 1.0-3.0 uIU/mL.',
   reviewed: 'Jan 2026'
 }, {
   id: 'bone2',
@@ -286,52 +289,59 @@ const DAD_CONDITIONS = [{
   sev: 'high',
   organ: 'Bone Density',
   organId: 'bones',
-  findings: 'DEXA Nov 2022: Multiple sites with T-score at or below -2.5. Documented in 3 separate DEXA reports.',
+  findings: 'Multiple DEXA reports confirming osteoporosis at various sites. Documented from 2019 and Nov 2022.',
   action: 'Bisphosphonate + Calcium + Vit D3. Repeat DEXA.',
   reviewed: 'Nov 2022'
-}, {
-  id: 'renal2',
-  name: 'Urinary / Renal Monitoring',
-  sev: 'monitor',
-  organ: 'Kidneys',
-  organId: 'kidneys',
-  findings: 'Urine analysis Sep 2025. Creatinine monitored. Uric acid history. eGFR 100 (Nov 2025).',
-  action: 'Annual renal panel. Stay well hydrated.',
-  reviewed: 'Nov 2025'
 }];
 
 // ─── MOM: Timeline ────────────────────────────────────────────────────────────
 const MOM_TIMELINE = [{
+  date: 'Mar 2026',
+  year: 2026,
+  type: 'lab',
+  color: '#DC2626',
+  title: 'LDL 196 — WORST EVER! TSH Relapsed 6.16',
+  detail: 'LDL 196 (highest in 11-year history!). TSH relapsed from 3.89 (Jan) to 6.16 (Mar) in just 2 months. TC 274, HDL 38, TG 204. HbA1c 4.9% (excellent). URGENT: start statin + increase levothyroxine.',
+  specialty: 'Cardiology/Endocrinology'
+}, {
   date: 'Feb 2026',
   year: 2026,
   type: 'lab',
   color: '#DC2626',
-  title: 'Lipid + CRP — CRITICAL',
-  detail: 'LDL 181, HDL 37, TG 207, CRP 6.7. Urgent statin indication. Worst-ever lipid combination.',
+  title: 'Lipid + CRP Critical — LDL 181',
+  detail: 'LDL 181, HDL 37, TG 207, CRP 6.7. Urgent statin indication ignored since 2015.',
   specialty: 'Cardiology'
+}, {
+  date: 'Feb 2026',
+  year: 2026,
+  type: 'consult',
+  color: '#0891B2',
+  title: 'Eye Checkup — Maxivision',
+  detail: 'Red line on sclera (possible episcleritis). Maxivision examination.',
+  specialty: 'Ophthalmology'
 }, {
   date: 'Jan 2026',
   year: 2026,
   type: 'lab',
   color: '#16A34A',
-  title: 'TSH 3.89 — Improved',
-  detail: 'TSH 3.89 after Nov 2025 relapse. Dose adjustment effective.',
+  title: 'TSH 3.89 — Good Control',
+  detail: 'TSH 3.89 after dose increase following Nov 2025 relapse. Good response to dose adjustment.',
   specialty: 'Endocrinology'
 }, {
   date: 'Nov 2025',
   year: 2025,
   type: 'lab',
   color: '#DC2626',
-  title: 'TSH Relapse 7.45 + LDL 174',
-  detail: 'TSH 7.45, LDL 174, TG 295, Vit D 26.2.',
-  specialty: 'Endocrinology'
+  title: 'TSH Relapse 7.45 + Lipids Worsening',
+  detail: 'TSH 7.45 (ref <5.3). LDL 174, TG 295 (very high), TC 263. VitD 26.2 (insufficient). HbA1c 5.2% (good). ESR improved to 16 (normal!). eGFR 100 (excellent). B12 715 (normal). CA-125 15.4 (normal).',
+  specialty: 'Multi-specialty'
 }, {
   date: 'Sep 2024',
   year: 2024,
   type: 'hospital',
   color: '#7C3AED',
   title: 'Admitted — Aster Prime (5 days)',
-  detail: 'L5-S1 PIVD. Epidural: Depomedrol 80mg + Bupivacaine. Dr. A.K. Purohit.',
+  detail: 'L5-S1 PIVD. Epidural: Depomedrol 80mg + Bupivacaine. Dr. A.K. Purohit. TSH 4.791 on admission.',
   specialty: 'Neurosurgery'
 }, {
   date: 'Sep 2024',
@@ -341,6 +351,30 @@ const MOM_TIMELINE = [{
   title: 'MRI LS Spine — WORSENED',
   detail: 'L5-S1 worsened: diffuse disc bulge, bilateral traversing nerve root indentation.',
   specialty: 'Radiology'
+}, {
+  date: 'Sep 2024',
+  year: 2024,
+  type: 'lab',
+  color: '#D97706',
+  title: 'Blood Tests — LDL 163, HbA1c 5.5%',
+  detail: 'LDL 163.38, TC 241, TG 154, HDL 46.8. HbA1c 5.5%. VitD 30.6 (borderline). T3 69.99 (low-normal). TSH 4.66.',
+  specialty: 'Multi-specialty'
+}, {
+  date: 'Aug 2024',
+  year: 2024,
+  type: 'lab',
+  color: '#D97706',
+  title: 'Magnesium 1.72 — Low',
+  detail: 'Magnesium 1.72 mg/dL (ref 1.90-3.10). Below normal — causes cramps and poor sleep.',
+  specialty: 'Metabolic'
+}, {
+  date: 'Jan 2025',
+  year: 2025,
+  type: 'lab',
+  color: '#16A34A',
+  title: 'HEAL Full Body — Best HbA1c 5.0%',
+  detail: 'HbA1c 5.0% (best!). TSH 3.12. LDL 118.54, HDL 52.74. VitD 42.3, B12 389. eGFR 100. ESR 10 (normal!). Calcium 9.82.',
+  specialty: 'Multi-specialty'
 }, {
   date: 'Jan 2024',
   year: 2024,
@@ -355,7 +389,7 @@ const MOM_TIMELINE = [{
   type: 'imaging',
   color: '#16A34A',
   title: 'CT Coronary Angio — Calcium Score 0',
-  detail: 'Calcium Score: 0 (EXCELLENT). EF 64%. No PAH.',
+  detail: 'Calcium Score: 0 (EXCELLENT). EF 64%. No PAH. Normal cardiac structure.',
   specialty: 'Cardiology'
 }, {
   date: 'May 2023',
@@ -363,15 +397,23 @@ const MOM_TIMELINE = [{
   type: 'procedure',
   color: '#D97706',
   title: 'Upper GI Endoscopy',
-  detail: 'Grade II Sliding Hiatus Hernia + Erosive Gastritis Grade A confirmed.',
+  detail: 'Grade II Sliding Hiatus Hernia + Erosive Gastritis Grade A confirmed. PPI started.',
   specialty: 'Gastroenterology'
+}, {
+  date: 'Jul 2023',
+  year: 2023,
+  type: 'lab',
+  color: '#16A34A',
+  title: 'Aarthi Master Checkup — Best VitD 51.19',
+  detail: 'VitD 51.19 (BEST EVER!). TSH 2.87 (excellent). T3 100.2, T4 8.2 (normal). LDL 106, HDL 45.6. Hb 13.0. eGFR 90. ESR 23.',
+  specialty: 'Multi-specialty'
 }, {
   date: 'Nov 2022',
   year: 2022,
   type: 'lab',
   color: '#DC2626',
   title: 'DEXA — Osteoporosis Confirmed',
-  detail: 'Femur Neck Left T-score -2.9. TSH 1.94 on same day — not thyroid-driven.',
+  detail: 'Femur Neck Left T-score -2.9. TSH 1.94 on same day. VitD 30.3, ESR 30. Full body checkup at Aster Labs.',
   specialty: 'Endocrinology'
 }, {
   date: 'Nov 2022',
@@ -395,16 +437,24 @@ const MOM_TIMELINE = [{
   type: 'diagnosis',
   color: '#DC2626',
   title: "Overt Hypothyroidism — Hashimoto's Diagnosed",
-  detail: 'TSH 24.41. Anti-TPO 92.22. Levothyroxine commenced.',
+  detail: "TSH 24.41. Anti-TPO 92.22 (Hashimoto's confirmed). Levothyroxine commenced. VitD 16.08 (deficient).",
   specialty: 'Endocrinology'
 }, {
   date: 'Jan 2015',
   year: 2015,
   type: 'lab',
   color: '#DC2626',
-  title: 'WORST EVER Lipid Panel',
-  detail: 'LDL 207, TC 309, TG 328, HDL 36. Statin not started.',
+  title: 'WORST EVER Lipid Panel — LDL 207',
+  detail: 'LDL 207, TC 309, TG 328, HDL 36. Statin NOT started. Pattern of non-treatment began here.',
   specialty: 'Cardiology'
+}, {
+  date: 'Apr 2013',
+  year: 2013,
+  type: 'lab',
+  color: '#2563EB',
+  title: 'Earliest Lab Record',
+  detail: 'TSH 3.27 — normal thyroid. Earliest available medical record.',
+  specialty: 'General'
 }];
 
 // ─── DAD: Timeline ────────────────────────────────────────────────────────────
@@ -414,7 +464,7 @@ const DAD_TIMELINE = [{
   type: 'lab',
   color: '#D97706',
   title: 'Lipid Profile — LDL 172',
-  detail: 'LDL 172, HDL 39 (low), TC 234. Dyslipidaemia worsening.',
+  detail: 'LDL 172, HDL 39 (low), TC 234. Dyslipidaemia worsening despite statin.',
   specialty: 'Cardiology'
 }, {
   date: 'Jan 2026',
@@ -430,8 +480,16 @@ const DAD_TIMELINE = [{
   type: 'lab',
   color: '#2563EB',
   title: 'Master Checkup — Comprehensive Panel',
-  detail: 'PSA 0.11 (excellent nadir). HbA1c 6.4%. TSH 6.55. LDL 148.',
+  detail: 'PSA 0.11 (excellent nadir). HbA1c 6.4%. TSH 6.55. LDL 148. T3 126. VitD 32.1. ESR 30 (elevated). eGFR 100.',
   specialty: 'Multi-specialty'
+}, {
+  date: 'Sep 2025',
+  year: 2025,
+  type: 'imaging',
+  color: '#DC2626',
+  title: 'MRI Left Shoulder — Rotator Cuff Tear',
+  detail: 'Near-complete supraspinatus tear (1.2 cm retraction). High-grade partial infraspinatus tear. Adhesive capsulitis. Biceps tendinitis. AC joint arthropathy. NEW finding — refer orthopaedics.',
+  specialty: 'Orthopaedics'
 }, {
   date: 'Apr 2025',
   year: 2025,
@@ -446,15 +504,23 @@ const DAD_TIMELINE = [{
   type: 'lab',
   color: '#16A34A',
   title: 'Full Body HEAL — Good Results',
-  detail: 'HbA1c 6.2%, TSH 5.28, LDL 105 (best), Vit D 57.8, eGFR 100.',
+  detail: 'HbA1c 6.2%, TSH 5.28, LDL 105, Vit D 57.8 (BEST), eGFR 100. Calcium 9.23.',
   specialty: 'Multi-specialty'
 }, {
   date: 'Jun 2023',
   year: 2023,
-  type: 'imaging',
-  color: '#2563EB',
-  title: 'CT Coronary Angiogram',
-  detail: 'CAD assessment. Multiple specialist prescriptions post-procedure.',
+  type: 'lab',
+  color: '#16A34A',
+  title: 'Pre-Angio Labs — BEST EVER Lipids',
+  detail: 'HbA1c 6.3%, LDL 94 (optimal!), HDL 62 (excellent!), TG 125. Best lipid profile ever. TC 181.',
+  specialty: 'Cardiology'
+}, {
+  date: 'Jun 2023',
+  year: 2023,
+  type: 'hospital',
+  color: '#7C3AED',
+  title: 'Coronary Angiogram — Aster Prime',
+  detail: 'CT Coronary Angiogram + 2D Echo. Discharge summary available. Sravan + Sumeet Sinha prescriptions.',
   specialty: 'Cardiology'
 }, {
   date: 'Jul 2023',
@@ -465,12 +531,20 @@ const DAD_TIMELINE = [{
   detail: 'PSA 0.042 ng/mL. Post-treatment surveillance continues excellently.',
   specialty: 'Urology'
 }, {
+  date: 'Oct 2022',
+  year: 2022,
+  type: 'lab',
+  color: '#16A34A',
+  title: 'PSA 0.010 — LOWEST EVER',
+  detail: 'PSA 0.010 ng/mL (Lucid, Oct 26). Absolute nadir — best post-treatment result ever.',
+  specialty: 'Urology'
+}, {
   date: 'Nov 2022',
   year: 2022,
   type: 'lab',
   color: '#2563EB',
-  title: 'DEXA Bone Density',
-  detail: 'Multiple sites T-score at or below -2.5. Osteoporosis confirmed.',
+  title: 'DEXA Bone Density + Full Checkup',
+  detail: 'Multiple sites T-score at or below -2.5. Osteoporosis confirmed. Full blood tests done.',
   specialty: 'Endocrinology'
 }, {
   date: 'Apr 2022',
@@ -478,7 +552,7 @@ const DAD_TIMELINE = [{
   type: 'lab',
   color: '#D97706',
   title: 'PSA 0.044 — Post-Treatment Nadir',
-  detail: 'PSA 0.0447. TSH 6.58 (elevated). LDL 119.',
+  detail: 'PSA 0.0447. TSH 6.58 (elevated). LDL 119. VitD 20.78 (insufficient).',
   specialty: 'Urology'
 }, {
   date: 'Jun 2019',
@@ -486,19 +560,27 @@ const DAD_TIMELINE = [{
   type: 'imaging',
   color: '#8B5CF6',
   title: 'PET CT Scan — Prostate Staging',
-  detail: 'Full prostate cancer workup post-biopsy. Gleason 3+3=6.',
+  detail: 'Full prostate cancer workup post-biopsy. Gleason 3+3=6. Multiple specialist consultations.',
   specialty: 'Oncology'
 }, {
   date: 'Mar 2019',
   year: 2019,
   type: 'diagnosis',
   color: '#DC2626',
-  title: 'First Elevated PSA',
-  detail: 'First elevated PSA at CC Shroff. Urology referral leading to diagnosis.',
+  title: 'First Elevated PSA — CC Shroff',
+  detail: 'First elevated PSA. Urology referral leading to biopsy and Gleason 3+3=6 diagnosis.',
   specialty: 'Urology'
+}, {
+  date: 'Nov 2013',
+  year: 2013,
+  type: 'lab',
+  color: '#2563EB',
+  title: 'Earliest Lab Record',
+  detail: 'Medical test at CC Shroff. Earliest available comprehensive report.',
+  specialty: 'General'
 }];
 
-// ─── MOM: Lab Data — KEY MARKERS (with boxId for tooltip source links) ────────
+// ─── MOM: Key Lab Markers ─────────────────────────────────────────────────────
 const MOM_LABS_KEY = {
   tsh: {
     label: 'TSH (Thyroid)',
@@ -557,9 +639,9 @@ const MOM_LABS_KEY = {
       src: 'Full Body Aarthi Jul 2023'
     }, {
       d: "Sep'24",
-      v: 4.791,
-      boxId: '2175285748343',
-      src: 'Full Body Aster Prime Sep 2024'
+      v: 4.66,
+      boxId: '2175277857448',
+      src: 'Blood Tests Sep 2024'
     }, {
       d: "Jan'25",
       v: 3.12,
@@ -569,14 +651,19 @@ const MOM_LABS_KEY = {
       d: "Nov'25",
       v: 7.45,
       boxId: '2175286177374',
-      src: 'Full Body Nov 2024'
+      src: 'Master Checkup Nov 2025'
     }, {
       d: "Jan'26",
       v: 3.89,
       boxId: '2175282015807',
       src: 'TSH Bioline Jan 2026'
+    }, {
+      d: "Mar'26",
+      v: 6.16,
+      boxId: '2179998942528',
+      src: 'Sai Baba Mar 2026 — RELAPSED!'
     }],
-    note: "Hashimoto's — overt Jul 2019 (24.41). TSH 1.94 on DEXA day. Latest: 3.89 (Jan 2026)."
+    note: "Hashimoto's — overt Jul 2019 (24.41). Pattern of relapse-recovery. LATEST Mar 2026: 6.16 (relapsed again in just 2 months from 3.89 in Jan). Dose increase urgently needed."
   },
   ldl: {
     label: 'LDL Cholesterol',
@@ -619,6 +706,11 @@ const MOM_LABS_KEY = {
       boxId: '2175289923662',
       src: 'Full Body Sep 2021'
     }, {
+      d: "Nov'22",
+      v: 151,
+      boxId: '2175597224462',
+      src: 'Full Body Aster Nov 2022'
+    }, {
       d: "May'23",
       v: 87.57,
       boxId: '2175284259896',
@@ -631,8 +723,8 @@ const MOM_LABS_KEY = {
     }, {
       d: "Sep'24",
       v: 163,
-      boxId: '2175285748343',
-      src: 'Full Body Sep 2024'
+      boxId: '2175277857448',
+      src: 'Blood Tests Sep 2024'
     }, {
       d: "Jan'25",
       v: 118.54,
@@ -642,14 +734,19 @@ const MOM_LABS_KEY = {
       d: "Nov'25",
       v: 174,
       boxId: '2175286177374',
-      src: 'Full Body Nov 2024'
+      src: 'Master Checkup Nov 2025'
     }, {
       d: "Feb'26",
       v: 181,
       boxId: '2175290687427',
       src: 'Lipid+CRP Sai Baba Feb 2026'
+    }, {
+      d: "Mar'26",
+      v: 196,
+      boxId: '2179998942528',
+      src: 'WORST EVER — Sai Baba Mar 2026'
     }],
-    note: 'WORST: 207 (Jan 2015). BEST: 87.57 (May 2023). Current: 181. STATIN NEVER STARTED.'
+    note: 'WORST EVER: 207 (Jan 2015) now beaten by 196 (Mar 2026)! BEST: 87.57 (May 2023). 11-year trend: STATIN NEVER STARTED. Steadily worsening since mid-2023.'
   },
   hba1c: {
     label: 'HbA1c',
@@ -659,83 +756,69 @@ const MOM_LABS_KEY = {
     data: [{
       d: "Mar'18",
       v: 5.8,
-      boxId: '2175285558327',
-      src: 'Full Checkup Maxcure Mar 2018'
+      boxId: '2175285558327'
     }, {
       d: "Nov'22",
       v: 5.1,
-      boxId: '2175597224462',
-      src: 'Full Body Aster Nov 2022'
-    }, {
-      d: "Jul'22",
-      v: 5.5,
-      boxId: '2175282141422',
-      src: 'Full Body Jul 2022'
+      boxId: '2175597224462'
     }, {
       d: "Jul'23",
       v: 5.3,
-      boxId: '2175285606396',
-      src: 'Full Body Aarthi Jul 2023'
+      boxId: '2175285606396'
     }, {
       d: "Sep'24",
       v: 5.5,
-      boxId: '2175285748343',
-      src: 'Full Body Sep 2024'
+      boxId: '2175277857448'
     }, {
       d: "Jan'25",
       v: 5.0,
-      boxId: '2175283362145',
-      src: 'Full Body HEAL Jan 2025'
+      boxId: '2175283362145'
     }, {
       d: "Nov'25",
       v: 5.2,
-      boxId: '2175286177374',
-      src: 'Full Body Nov 2024'
+      boxId: '2175286177374'
+    }, {
+      d: "Mar'26",
+      v: 4.9,
+      boxId: '2179998942528'
     }],
-    note: 'Best: 5.0% (Jan 2025). Consistently non-diabetic range throughout.'
+    note: 'Consistently non-diabetic range. BEST: 4.9% (Mar 2026) and 5.0% (Jan 2025). Excellent blood sugar control throughout despite dyslipidaemia.'
   },
   vitd: {
-    label: 'Vitamin D',
+    label: 'Vitamin D (25-OH)',
     unit: 'ng/mL',
     refLow: 30,
     color: '#16A34A',
     data: [{
       d: "Jul'19",
       v: 16.08,
-      boxId: '2175285189103',
-      src: 'Full Checkup Thyrocare Jul 2019'
+      boxId: '2175285189103'
     }, {
       d: "Jul'22",
       v: 42.4,
-      boxId: '2175282141422',
-      src: 'Full Body Jul 2022'
+      boxId: '2175282141422'
     }, {
       d: "Nov'22",
       v: 30.3,
-      boxId: '2175597224462',
-      src: 'Full Body Aster Nov 2022'
+      boxId: '2175597224462'
     }, {
       d: "Jul'23",
       v: 51.19,
-      boxId: '2175285606396',
-      src: 'Full Body Aarthi Jul 2023'
+      boxId: '2175285606396'
     }, {
       d: "Sep'24",
       v: 30.6,
-      boxId: '2175285748343',
-      src: 'Full Body Sep 2024'
+      boxId: '2175277857448'
     }, {
       d: "Jan'25",
       v: 42.30,
-      boxId: '2175283362145',
-      src: 'Full Body HEAL Jan 2025'
+      boxId: '2175283362145'
     }, {
       d: "Nov'25",
       v: 26.2,
-      boxId: '2175286177374',
-      src: 'Full Body Nov 2024'
+      boxId: '2175286177374'
     }],
-    note: 'BEST: 51.19 (Jul 2023). Current: 26.2 (insufficient). Target 40-60 ng/mL.'
+    note: 'BEST: 51.19 (Jul 2023). Current: 26.2 (insufficient). Seasonal pattern visible. Target 40-60 ng/mL. Increase supplement.'
   },
   hb: {
     label: 'Haemoglobin',
@@ -745,8 +828,7 @@ const MOM_LABS_KEY = {
     data: [{
       d: "Oct'13",
       v: 12.5,
-      boxId: '2175282212449',
-      src: 'Medical Test Oct 2013'
+      boxId: '2175282212449'
     }, {
       d: "Jan'15",
       v: 12.9,
@@ -762,8 +844,7 @@ const MOM_LABS_KEY = {
     }, {
       d: "Aug'19",
       v: 11.5,
-      boxId: '2175286274361',
-      src: 'Full Body Tapadia Aug 2019'
+      boxId: '2175286274361'
     }, {
       d: "Feb'20",
       v: 12.2,
@@ -785,10 +866,13 @@ const MOM_LABS_KEY = {
       v: 13.0,
       boxId: '2175285606396'
     }, {
-      d: "Sep'24",
+      d: "Sep'24 (A)",
+      v: 11.8,
+      boxId: '2175277857448'
+    }, {
+      d: "Sep'24 (B)",
       v: 12.5,
-      boxId: '2175285748343',
-      src: 'Aster Prime Hospital Sep 2024'
+      boxId: '2175285748343'
     }, {
       d: "Jan'25",
       v: 12.3,
@@ -798,10 +882,10 @@ const MOM_LABS_KEY = {
       v: 13.1,
       boxId: '2175286177374'
     }],
-    note: 'Recurring mild anaemia. Iron deficiency Jul 2022. Normalised Jan 2025.'
+    note: 'Recurring mild anaemia. Iron deficiency confirmed Sep 2024 (Fe 69, Sat 16.8%). Best recent: 13.1 (Nov 2025). Trend improving.'
   },
   creatinine: {
-    label: 'Creatinine',
+    label: 'Creatinine (Renal)',
     unit: 'mg/dL',
     refHigh: 1.02,
     color: '#0891B2',
@@ -834,17 +918,13 @@ const MOM_LABS_KEY = {
       v: 0.67,
       boxId: '2175282141422'
     }, {
-      d: "May'23",
-      v: 0.67,
-      boxId: '2175284259896'
-    }, {
       d: "Jul'23",
       v: 0.7,
       boxId: '2175285606396'
     }, {
       d: "Sep'24",
       v: 0.66,
-      boxId: '2175285748343'
+      boxId: '2175277857448'
     }, {
       d: "Jan'25",
       v: 0.64,
@@ -854,11 +934,11 @@ const MOM_LABS_KEY = {
       v: 0.62,
       boxId: '2175286177374'
     }],
-    note: 'Excellent kidney function throughout. eGFR 90-100 mL/min. No concern.'
+    note: 'Excellent kidney function throughout. eGFR 79 (Nov 22) → 90 (Jul 23) → 100 (Jan 25, Nov 25). Improving trend — excellent!'
   }
 };
 
-// ─── MOM: Lab Data — FULL MARKERS (by category) ───────────────────────────────
+// ─── MOM: Full Markers (by category) ─────────────────────────────────────────
 const MOM_LABS_FULL = {
   // CARDIOVASCULAR
   tc: {
@@ -892,6 +972,10 @@ const MOM_LABS_FULL = {
       v: 178,
       boxId: '2175285606396'
     }, {
+      d: "Sep'24",
+      v: 241,
+      boxId: '2175277857448'
+    }, {
       d: "Jan'25",
       v: 261.98,
       boxId: '2175283362145'
@@ -903,8 +987,12 @@ const MOM_LABS_FULL = {
       d: "Feb'26",
       v: 259,
       boxId: '2175290687427'
+    }, {
+      d: "Mar'26",
+      v: 274,
+      boxId: '2179998942528'
     }],
-    note: 'Consistently elevated. WORST: 309 (Jan 2015). Best recent: 178 (Jul 2023). Latest: 259.'
+    note: 'Persistently elevated. WORST: 309 (Jan 2015). Latest: 274 (Mar 2026). Jul 2023: 178 (best). Statin needed urgently.'
   },
   hdl: {
     label: 'HDL Cholesterol',
@@ -937,6 +1025,10 @@ const MOM_LABS_FULL = {
       v: 45.6,
       boxId: '2175285606396'
     }, {
+      d: "Sep'24",
+      v: 46.8,
+      boxId: '2175277857448'
+    }, {
       d: "Jan'25",
       v: 52.74,
       boxId: '2175283362145'
@@ -948,8 +1040,12 @@ const MOM_LABS_FULL = {
       d: "Feb'26",
       v: 37,
       boxId: '2175290687427'
+    }, {
+      d: "Mar'26",
+      v: 38,
+      boxId: '2179998942528'
     }],
-    note: 'Feb 2026: HDL dropped to 37 (ref >45). Previously 50-57. Low HDL increases cardiac risk significantly.'
+    note: 'Feb/Mar 2026: dropped to 37-38 (ref >45) — lowest since 2015. Previously 50-57. Low HDL significantly increases cardiac risk.'
   },
   tg: {
     label: 'Triglycerides',
@@ -982,6 +1078,10 @@ const MOM_LABS_FULL = {
       v: 254,
       boxId: '2175285606396'
     }, {
+      d: "Sep'24",
+      v: 154,
+      boxId: '2175277857448'
+    }, {
       d: "Jan'25",
       v: 244,
       boxId: '2175283362145'
@@ -993,8 +1093,12 @@ const MOM_LABS_FULL = {
       d: "Feb'26",
       v: 207,
       boxId: '2175290687427'
+    }, {
+      d: "Mar'26",
+      v: 204,
+      boxId: '2179998942528'
     }],
-    note: 'WORST: 328 (Jan 2015). Persistently elevated. Nov 2025: 295 (high). Target <150.'
+    note: 'Persistently elevated. WORST: 328 (Jan 2015). Nov 2025: 295. Consistently above 150 since 2016 (except Sep 2024).'
   },
   crp: {
     label: 'CRP (Inflammation)',
@@ -1010,36 +1114,51 @@ const MOM_LABS_FULL = {
       v: 0.3,
       boxId: '2175285558327'
     }, {
-      d: "May'23",
+      d: "Jul'23",
       v: 1.2,
-      boxId: '2175284259896'
+      boxId: '2175285606396'
     }, {
       d: "Feb'26",
       v: 6.7,
       boxId: '2175290687427'
     }],
-    note: 'Feb 2026: 6.7 (elevated, ref <5). Tracks dyslipidaemia and inflammation.'
+    note: 'Feb 2026: 6.7 (elevated, ref <5). Tracks dyslipidaemia and vascular inflammation.'
   },
   // THYROID
   t3: {
     label: 'T3 (Total Triiodothyronine)',
     unit: 'ng/dL',
-    refLow: 97,
-    refHigh: 169,
+    refLow: 80,
+    refHigh: 200,
     color: '#8B5CF6',
     category: 'thyroid',
     data: [{
       d: "Nov'22",
       v: 115,
       boxId: '2175597224462',
-      src: 'Aster Labs Full Body Nov 2022'
+      src: 'Aster Labs (1.15 ng/mL)'
     }, {
       d: "Jul'23",
       v: 100.2,
       boxId: '2175285606396',
-      src: 'Full Body Aarthi Jul 2023'
+      src: 'Aarthi Jul 2023'
+    }, {
+      d: "Sep'24",
+      v: 70,
+      boxId: '2175277857448',
+      src: 'vHealth Sep 2024 (69.99)'
+    }, {
+      d: "Nov'25",
+      v: 101,
+      boxId: '2175286177374',
+      src: 'Thyrocare Nov 2025'
+    }, {
+      d: "Mar'26",
+      v: 140,
+      boxId: '2179998942528',
+      src: 'Sai Baba (1.40 ng/mL)'
     }],
-    note: 'T3 normal on both readings despite Hashimotos — peripheral conversion adequate on levothyroxine. Nov 22: 115, Jul 23: 100.2 ng/dL (ref 97-169).'
+    note: 'Normal on all readings. Sep 2024: 70 ng/dL (low-normal). Mar 2026: 140 ng/dL (high-normal). Peripheral conversion adequate despite elevated TSH.'
   },
   t4: {
     label: 'T4 (Total Thyroxine)',
@@ -1051,15 +1170,25 @@ const MOM_LABS_FULL = {
     data: [{
       d: "Nov'22",
       v: 7.93,
-      boxId: '2175597224462',
-      src: 'Aster Labs Full Body Nov 2022'
+      boxId: '2175597224462'
     }, {
       d: "Jul'23",
       v: 8.2,
-      boxId: '2175285606396',
-      src: 'Full Body Aarthi Jul 2023'
+      boxId: '2175285606396'
+    }, {
+      d: "Sep'24",
+      v: 5.7,
+      boxId: '2175277857448'
+    }, {
+      d: "Nov'25",
+      v: 6.62,
+      boxId: '2175286177374'
+    }, {
+      d: "Mar'26",
+      v: 7.25,
+      boxId: '2179998942528'
     }],
-    note: 'T4 normal on both readings. Nov 22: 7.93, Jul 23: 8.2 ug/dL (ref 5.0-10.7). Adequate thyroid hormone on levothyroxine.'
+    note: 'T4 normal on all readings. Sep 2024: 5.7 (low-normal). Thyroid hormone conversion adequate throughout.'
   },
   tpo: {
     label: 'Anti-TPO (Thyroid Antibodies)',
@@ -1106,7 +1235,7 @@ const MOM_LABS_FULL = {
     }, {
       d: "Sep'24",
       v: 30.6,
-      boxId: '2175285748343'
+      boxId: '2175277857448'
     }, {
       d: "Jan'25",
       v: 42.30,
@@ -1116,7 +1245,7 @@ const MOM_LABS_FULL = {
       v: 26.2,
       boxId: '2175286177374'
     }],
-    note: 'BEST: 51.19 (Jul 2023). Currently 26.2 (insufficient). Supplement to maintain 40+.'
+    note: 'BEST: 51.19 (Jul 2023). Currently 26.2 (insufficient). Seasonal variation pattern. Maintain 60,000 IU weekly supplement.'
   },
   b12: {
     label: 'Vitamin B12',
@@ -1145,7 +1274,7 @@ const MOM_LABS_FULL = {
       v: 715,
       boxId: '2175286177374'
     }],
-    note: 'Feb 2023 spike 1595 (likely high-dose supplement). Currently 715 (normal). Maintain supplementation.'
+    note: 'Feb 2023 spike 1595 (high-dose supplement). Currently 715 (normal). Continue maintenance supplementation.'
   },
   mg: {
     label: 'Magnesium',
@@ -1159,10 +1288,10 @@ const MOM_LABS_FULL = {
       boxId: '2175285395530',
       src: 'Magnesium Test Aug 2024'
     }],
-    note: 'Aug 2024: 1.72 (below normal 1.90-3.10). Causes muscle cramps and poor sleep. Supplement needed.'
+    note: 'Aug 2024: 1.72 (below normal 1.90-3.10). Causes muscle cramps and poor sleep. Supplement with magnesium glycinate.'
   },
   fbs: {
-    label: 'Fasting/Random Blood Sugar',
+    label: 'Blood Sugar',
     unit: 'mg/dL',
     refHigh: 100,
     color: '#F59E0B',
@@ -1170,15 +1299,17 @@ const MOM_LABS_FULL = {
     data: [{
       d: "Nov'22",
       v: 96,
-      boxId: '2175597224462',
-      src: 'Aster Labs Full Body Nov 2022'
+      boxId: '2175597224462'
     }, {
       d: "Jan'25",
       v: 100,
-      boxId: '2175283362145',
-      src: 'Full Body HEAL Jan 2025'
+      boxId: '2175283362145'
+    }, {
+      d: "Nov'25",
+      v: 83.92,
+      boxId: '2175286177374'
     }],
-    note: 'Both readings at upper normal. HbA1c consistently below 5.7% — no diabetes. Monitor.'
+    note: 'All within normal range. HbA1c consistently below 5.7% — no diabetes. Excellent blood sugar control.'
   },
   calcium: {
     label: 'Calcium (Serum)',
@@ -1188,12 +1319,33 @@ const MOM_LABS_FULL = {
     color: '#10B981',
     category: 'metabolic',
     data: [{
+      d: "Sep'24",
+      v: 9.48,
+      boxId: '2175277857448'
+    }, {
       d: "Jan'25",
       v: 9.82,
-      boxId: '2175283362145',
-      src: 'Full Body HEAL Jan 2025'
+      boxId: '2175283362145'
+    }, {
+      d: "Nov'25",
+      v: 9.43,
+      boxId: '2175286177374'
     }],
-    note: 'Jan 2025: 9.82 (normal 8.8-10.6). Important given osteoporosis — calcium absorption adequate.'
+    note: 'All within normal range (8.8-10.6). Good calcium levels important given osteoporosis.'
+  },
+  ca125: {
+    label: 'CA-125 (Ovarian Tumour Marker)',
+    unit: 'U/mL',
+    refHigh: 35,
+    color: '#8B5CF6',
+    category: 'metabolic',
+    data: [{
+      d: "Nov'25",
+      v: 15.4,
+      boxId: '2175286177374',
+      src: 'Thyrocare Nov 2025'
+    }],
+    note: 'Nov 2025: 15.4 (normal <35). No ovarian cancer concern. Post-menopausal normal.'
   },
   // RENAL
   uric: {
@@ -1211,11 +1363,19 @@ const MOM_LABS_FULL = {
       v: 5.3,
       boxId: '2175285606396'
     }, {
+      d: "Sep'24",
+      v: 4.84,
+      boxId: '2175277857448'
+    }, {
       d: "Jan'25",
       v: 4.29,
       boxId: '2175283362145'
+    }, {
+      d: "Nov'25",
+      v: 4.3,
+      boxId: '2175286177374'
     }],
-    note: 'All readings normal (ref <6.2 for women). No gout risk. Good hydration maintained.'
+    note: 'All readings within normal range (ref <6.2 for women). No gout risk. Good hydration maintained.'
   },
   egfr: {
     label: 'eGFR (Kidney Function)',
@@ -1226,20 +1386,21 @@ const MOM_LABS_FULL = {
     data: [{
       d: "Nov'22",
       v: 79,
-      boxId: '2175597224462',
-      src: 'Aster Labs Nov 2022'
+      boxId: '2175597224462'
     }, {
       d: "Jul'23",
       v: 90,
-      boxId: '2175285606396',
-      src: 'Full Body Aarthi Jul 2023'
+      boxId: '2175285606396'
+    }, {
+      d: "Jan'25",
+      v: 100,
+      boxId: '2175283362145'
     }, {
       d: "Nov'25",
       v: 100,
-      boxId: '2175286177374',
-      src: 'Full Body Nov 2024'
+      boxId: '2175286177374'
     }],
-    note: 'Nov 2022: 79 (mild reduction). Improved to 90 (Jul 2023) and 100 (Nov 2025). Excellent trend!'
+    note: 'IMPROVING: Nov 2022: 79 (mild reduction) → Jul 2023: 90 → Jan/Nov 2025: 100 (NORMAL!). Excellent kidney function now.'
   },
   // HEPATIC
   alt: {
@@ -1257,16 +1418,23 @@ const MOM_LABS_FULL = {
       v: 12,
       boxId: '2175285606396'
     }, {
-      d: "Sep'24",
+      d: "Sep'24 (A)",
+      v: 15.8,
+      boxId: '2175277857448'
+    }, {
+      d: "Sep'24 (B)",
       v: 26,
-      boxId: '2175285748343',
-      src: 'Aster Prime Sep 2024'
+      boxId: '2175285748343'
     }, {
       d: "Jan'25",
       v: 19.6,
       boxId: '2175283362145'
+    }, {
+      d: "Nov'25",
+      v: 12.4,
+      boxId: '2175286177374'
     }],
-    note: 'All readings normal (ref <34). Liver function excellent throughout. PPI has no hepatic impact.'
+    note: 'All readings normal (ref <34). Liver function excellent throughout. No hepatic concern.'
   },
   ast: {
     label: 'AST/SGOT (Liver)',
@@ -1279,22 +1447,29 @@ const MOM_LABS_FULL = {
       v: 18,
       boxId: '2175285606396'
     }, {
-      d: "Sep'24",
+      d: "Sep'24 (A)",
+      v: 19.7,
+      boxId: '2175277857448'
+    }, {
+      d: "Sep'24 (B)",
       v: 23,
-      boxId: '2175285748343',
-      src: 'Aster Prime Sep 2024'
+      boxId: '2175285748343'
     }, {
       d: "Jan'25",
       v: 18,
       boxId: '2175283362145'
+    }, {
+      d: "Nov'25",
+      v: 22.93,
+      boxId: '2175286177374'
     }],
-    note: 'AST normal on both readings. No hepatic injury. Liver architecture intact.'
+    note: 'AST normal on all readings (ref <31). No hepatic injury.'
   },
   alp: {
     label: 'ALP (Alkaline Phosphatase)',
     unit: 'U/L',
-    refLow: 53,
-    refHigh: 141,
+    refLow: 45,
+    refHigh: 129,
     color: '#F59E0B',
     category: 'hepatic',
     data: [{
@@ -1306,16 +1481,23 @@ const MOM_LABS_FULL = {
       v: 76,
       boxId: '2175285606396'
     }, {
-      d: "Sep'24",
+      d: "Sep'24 (A)",
+      v: 90.5,
+      boxId: '2175277857448'
+    }, {
+      d: "Sep'24 (B)",
       v: 79,
-      boxId: '2175285748343',
-      src: 'Aster Prime Sep 2024'
+      boxId: '2175285748343'
     }, {
       d: "Jan'25",
       v: 89.4,
       boxId: '2175283362145'
+    }, {
+      d: "Nov'25",
+      v: 81.4,
+      boxId: '2175286177374'
     }],
-    note: 'ALP normal throughout (53-141). Normal biliary function and bone turnover.'
+    note: 'ALP consistently normal. No biliary or bone turnover concern.'
   },
   // HAEMATOLOGY
   esr: {
@@ -1333,18 +1515,23 @@ const MOM_LABS_FULL = {
       d: "Jul'23",
       v: 23,
       boxId: '2175285606396',
-      src: 'Full Body Aarthi Jul 2023'
+      src: 'Aarthi Jul 2023'
     }, {
       d: "Jan'25",
       v: 10,
       boxId: '2175283362145',
-      src: 'Full Body HEAL Jan 2025'
+      src: 'HEAL Jan 2025'
+    }, {
+      d: "Nov'25",
+      v: 16,
+      boxId: '2175286177374',
+      src: 'Thyrocare Nov 2025'
     }],
-    note: 'Nov 2022: 30 (elevated). Jul 2023: 23 (elevated). Jan 2025: 10 (NORMAL! — great improvement).'
+    note: 'Nov 2022: 30 (HIGH). Jul 2023: 23 (elevated). Jan 2025: 10 (NORMAL!). Nov 2025: 16 (normal). Excellent improving trend!'
   }
 };
 
-// ─── DAD: Lab Data — KEY MARKERS ──────────────────────────────────────────────
+// ─── DAD: Key Lab Markers ─────────────────────────────────────────────────────
 const DAD_LABS_KEY = {
   psa: {
     label: 'PSA (Post-Treatment Nadir)',
@@ -1352,10 +1539,20 @@ const DAD_LABS_KEY = {
     refHigh: 4.0,
     color: '#16A34A',
     data: [{
+      d: "Mar'19",
+      v: 5.8,
+      boxId: '2155666527856',
+      src: 'First elevated PSA — CC Shroff Mar 2019'
+    }, {
       d: "Apr'22",
       v: 0.0447,
       boxId: '2161693401513',
       src: 'PSA Vijaya Apr 2022'
+    }, {
+      d: "Oct'22",
+      v: 0.010,
+      boxId: '2161685893646',
+      src: 'PSA Lucid Oct 2022 — LOWEST!'
     }, {
       d: "Apr'23",
       v: 0.015,
@@ -1377,7 +1574,7 @@ const DAD_LABS_KEY = {
       boxId: '2155657530240',
       src: 'Master Checkup Nov 2025'
     }],
-    note: 'EXCELLENT post-treatment response. All values 0.01-0.13 ng/mL (threshold: 4.0). Apr 2025: slight rise to 0.128 but still excellent. Continue 6-monthly surveillance.'
+    note: 'EXCELLENT post-treatment response. Mar 2019: first elevated 5.8. After treatment: absolute nadir 0.010 (Oct 2022). All values <0.2 since treatment. Continue 6-monthly surveillance.'
   },
   hba1c: {
     label: 'HbA1c (Glycaemia)',
@@ -1390,6 +1587,11 @@ const DAD_LABS_KEY = {
       boxId: '2155657967741',
       src: 'HbA1c Medicover Feb 2020'
     }, {
+      d: "Jan'22",
+      v: 5.7,
+      boxId: '2155663012641',
+      src: 'HbA1c Jan 2022 — BEST!'
+    }, {
       d: "Apr'22",
       v: 6.0,
       boxId: '2161688358566',
@@ -1399,6 +1601,11 @@ const DAD_LABS_KEY = {
       v: 6.8,
       boxId: '2161694949093',
       src: 'HbA1c Jul 2022'
+    }, {
+      d: "Jun'23",
+      v: 6.3,
+      boxId: '2155657364834',
+      src: 'Pre-Angio Jun 2023'
     }, {
       d: "Jan'25",
       v: 6.2,
@@ -1415,7 +1622,7 @@ const DAD_LABS_KEY = {
       boxId: '2155657530240',
       src: 'Master Checkup Nov 2025'
     }],
-    note: 'Pre-diabetic range (5.7-6.4%). Best: 6.0% Apr 2022. Worsening: 6.4% Nov 2025. Urgent lifestyle intervention.'
+    note: 'Pre-diabetic range throughout (5.7-6.4%). BEST: 5.7% (Jan 2022). Worsening: 6.4% (Nov 2025). Urgent lifestyle intervention needed.'
   },
   tsh: {
     label: 'TSH (Thyroid)',
@@ -1444,7 +1651,7 @@ const DAD_LABS_KEY = {
       boxId: '2161697642376',
       src: 'TSH Bioline Jan 2026'
     }],
-    note: 'Consistently elevated despite levothyroxine: 6.58 - 5.28 - 6.55 - 6.31. Dose increase needed urgently.'
+    note: 'Consistently elevated despite levothyroxine: 6.58 → 5.28 → 6.55 → 6.31. Dose increase needed. T3/T4 both normal (compensated).'
   },
   ldl: {
     label: 'LDL Cholesterol',
@@ -1452,10 +1659,10 @@ const DAD_LABS_KEY = {
     refHigh: 100,
     color: '#DC2626',
     data: [{
-      d: "Apr'22",
-      v: 119,
-      boxId: '2161688358566',
-      src: 'Full Checkup Redcliffe Apr 2022'
+      d: "Jun'23",
+      v: 94,
+      boxId: '2155657364834',
+      src: 'Pre-Angio Jun 2023 — BEST!'
     }, {
       d: "Jan'25",
       v: 105,
@@ -1472,7 +1679,7 @@ const DAD_LABS_KEY = {
       boxId: '2161689467391',
       src: 'Lipid Profile Feb 2026'
     }],
-    note: 'WORSENING despite statin: 119 (Apr 22) - 105 (Jan 25, best) - 148 (Nov 25) - 172 (Feb 26). Urgent dose review or add ezetimibe.'
+    note: 'BEST: 94 (Jun 2023 pre-angio). WORSENING: 94→105→148→172 mg/dL. Urgent dose review or ezetimibe addition.'
   },
   hb: {
     label: 'Haemoglobin',
@@ -1482,20 +1689,17 @@ const DAD_LABS_KEY = {
     data: [{
       d: "Apr'22",
       v: 12.83,
-      boxId: '2161688358566',
-      src: 'Full Checkup Redcliffe Apr 2022'
+      boxId: '2161688358566'
     }, {
       d: "Jan'25",
       v: 13.1,
-      boxId: '2161693369408',
-      src: 'Full Body HEAL Jan 2025'
+      boxId: '2161693369408'
     }, {
       d: "Nov'25",
       v: 13.5,
-      boxId: '2155657530240',
-      src: 'Master Checkup Nov 2025'
+      boxId: '2155657530240'
     }],
-    note: 'Apr 2022: 12.83 (slightly below normal). Improved: Jan 2025: 13.1, Nov 2025: 13.5. Good trend. No anaemia now.'
+    note: 'Apr 2022: 12.83 (slightly below normal). Improving: Jan 2025: 13.1, Nov 2025: 13.5. Good trend. No anaemia now.'
   },
   creatinine: {
     label: 'Creatinine (Renal)',
@@ -1505,24 +1709,21 @@ const DAD_LABS_KEY = {
     data: [{
       d: "Apr'22",
       v: 0.6,
-      boxId: '2161688358566',
-      src: 'Full Checkup Redcliffe Apr 2022'
+      boxId: '2161688358566'
     }, {
       d: "Jan'25",
       v: 0.77,
-      boxId: '2161693369408',
-      src: 'Full Body HEAL Jan 2025'
+      boxId: '2161693369408'
     }, {
       d: "Nov'25",
       v: 0.73,
-      boxId: '2155657530240',
-      src: 'Master Checkup Nov 2025'
+      boxId: '2155657530240'
     }],
-    note: 'Excellent kidney function throughout. eGFR 100 mL/min (Nov 2025). All readings well within range. No renal concern.'
+    note: 'Excellent kidney function throughout. eGFR 100 (Nov 2025). No renal concern.'
   }
 };
 
-// ─── DAD: Lab Data — FULL MARKERS (by category) ───────────────────────────────
+// ─── DAD: Full Markers (by category) ─────────────────────────────────────────
 const DAD_LABS_FULL = {
   // CARDIOVASCULAR
   tc: {
@@ -1532,9 +1733,9 @@ const DAD_LABS_FULL = {
     color: '#DC2626',
     category: 'cardiovascular',
     data: [{
-      d: "Apr'22",
-      v: 198,
-      boxId: '2161688358566'
+      d: "Jun'23",
+      v: 181,
+      boxId: '2155657364834'
     }, {
       d: "Jan'25",
       v: 198,
@@ -1548,7 +1749,7 @@ const DAD_LABS_FULL = {
       v: 234,
       boxId: '2161689467391'
     }],
-    note: 'Stable 198 until late 2025. Worsening: 225 (Nov 25) - 234 (Feb 26). Target <200.'
+    note: 'Jun 2023: 181 (optimal). Worsening: 225 (Nov 25) → 234 (Feb 26). Target <200.'
   },
   hdl: {
     label: 'HDL Cholesterol',
@@ -1557,9 +1758,9 @@ const DAD_LABS_FULL = {
     color: '#16A34A',
     category: 'cardiovascular',
     data: [{
-      d: "Apr'22",
-      v: 48,
-      boxId: '2161688358566'
+      d: "Jun'23",
+      v: 62,
+      boxId: '2155657364834'
     }, {
       d: "Jan'25",
       v: 48.7,
@@ -1573,7 +1774,7 @@ const DAD_LABS_FULL = {
       v: 39,
       boxId: '2161689467391'
     }],
-    note: 'Feb 2026: HDL dropped to 39 (ref >40). Previously 48-54. Low HDL increases cardiac risk significantly.'
+    note: 'Jun 2023: 62 (excellent!). Feb 2026: dropped to 39 (ref >40). Low HDL significantly increases cardiac risk.'
   },
   tg: {
     label: 'Triglycerides',
@@ -1582,9 +1783,9 @@ const DAD_LABS_FULL = {
     color: '#F59E0B',
     category: 'cardiovascular',
     data: [{
-      d: "Apr'22",
-      v: 155,
-      boxId: '2161688358566'
+      d: "Jun'23",
+      v: 125,
+      boxId: '2155657364834'
     }, {
       d: "Jan'25",
       v: 102.74,
@@ -1598,7 +1799,7 @@ const DAD_LABS_FULL = {
       v: 117,
       boxId: '2161689467391'
     }],
-    note: 'Apr 2022: 155 (borderline). Since then all <130 (good control). Well controlled.'
+    note: 'All readings <150 except Apr 2022 (155). Well controlled triglycerides — good dietary response.'
   },
   // THYROID
   t3: {
@@ -1619,7 +1820,7 @@ const DAD_LABS_FULL = {
       boxId: '2155657530240',
       src: 'Master Checkup Nov 2025'
     }],
-    note: 'T3 normal on both readings despite elevated TSH. Apr 22: 113.8, Nov 25: 126 (ref 76-221 ng/dL). Peripheral conversion functioning.'
+    note: 'T3 normal on both readings despite elevated TSH. Peripheral conversion functioning. Apr 22: 113.8, Nov 25: 126 ng/dL.'
   },
   t4: {
     label: 'T4 (Total Thyroxine)',
@@ -1631,15 +1832,13 @@ const DAD_LABS_FULL = {
     data: [{
       d: "Apr'22",
       v: 7.59,
-      boxId: '2161688358566',
-      src: 'Full Checkup Redcliffe Apr 2022'
+      boxId: '2161688358566'
     }, {
       d: "Nov'25",
       v: 7.06,
-      boxId: '2155657530240',
-      src: 'Master Checkup Nov 2025'
+      boxId: '2155657530240'
     }],
-    note: 'T4 normal on both. Apr 22: 7.59, Nov 25: 7.06 (ref 4.5-12.6). Normal T4 with elevated TSH = compensated hypothyroidism.'
+    note: 'T4 normal. Normal T4 with elevated TSH = compensated hypothyroidism. Dose optimization needed.'
   },
   // METABOLIC
   vitd: {
@@ -1651,20 +1850,17 @@ const DAD_LABS_FULL = {
     data: [{
       d: "Apr'22",
       v: 20.78,
-      boxId: '2161688358566',
-      src: 'Full Checkup Redcliffe Apr 2022'
+      boxId: '2161688358566'
     }, {
       d: "Jan'25",
       v: 57.8,
-      boxId: '2161693369408',
-      src: 'Full Body HEAL Jan 2025'
+      boxId: '2161693369408'
     }, {
       d: "Nov'25",
       v: 32.1,
-      boxId: '2155657530240',
-      src: 'Master Checkup Nov 2025'
+      boxId: '2155657530240'
     }],
-    note: 'Apr 2022: 20.78 (insufficient!). Jan 2025: 57.8 (sufficient — great response to supplementation). Nov 2025: 32.1 (borderline). Maintain supplement to keep >40.'
+    note: 'Apr 2022: 20.78 (insufficient). Jan 2025: 57.8 (excellent — best!). Nov 2025: 32.1 (borderline). Continue supplement.'
   },
   b12: {
     label: 'Vitamin B12',
@@ -1675,15 +1871,13 @@ const DAD_LABS_FULL = {
     data: [{
       d: "Jan'25",
       v: 689,
-      boxId: '2161693369408',
-      src: 'Full Body HEAL Jan 2025'
+      boxId: '2161693369408'
     }, {
       d: "Nov'25",
       v: 378,
-      boxId: '2155657530240',
-      src: 'Master Checkup Nov 2025'
+      boxId: '2155657530240'
     }],
-    note: 'Both within range. Jan 2025: 689, Nov 2025: 378. Declining but normal. Continue monitoring.'
+    note: 'Both within range. Declining 689→378 but normal. Continue monitoring.'
   },
   fbs: {
     label: 'Fasting Blood Sugar',
@@ -1694,10 +1888,9 @@ const DAD_LABS_FULL = {
     data: [{
       d: "Nov'25",
       v: 104.97,
-      boxId: '2155657530240',
-      src: 'Master Checkup Nov 2025'
+      boxId: '2155657530240'
     }],
-    note: 'Nov 2025: 105 (pre-diabetic; ref <100). Consistent with HbA1c 6.4%. Diet modification and exercise essential.'
+    note: 'Nov 2025: 105 (pre-diabetic; ref <100). Consistent with HbA1c 6.4%. Diet and exercise essential.'
   },
   calcium: {
     label: 'Calcium (Serum)',
@@ -1709,15 +1902,27 @@ const DAD_LABS_FULL = {
     data: [{
       d: "Jan'25",
       v: 9.23,
-      boxId: '2161693369408',
-      src: 'Full Body HEAL Jan 2025'
+      boxId: '2161693369408'
     }, {
       d: "Nov'25",
       v: 8.43,
-      boxId: '2155657530240',
-      src: 'Master Checkup Nov 2025'
+      boxId: '2155657530240'
     }],
-    note: 'Nov 2025: 8.43 (slightly below 8.8 reference). Ensure adequate calcium intake especially with osteoporosis. Supplement if needed.'
+    note: 'Nov 2025: 8.43 (slightly below 8.8 reference). Ensure adequate calcium intake especially with osteoporosis.'
+  },
+  mag2: {
+    label: 'Magnesium',
+    unit: 'mg/dL',
+    refLow: 1.7,
+    color: '#10B981',
+    category: 'metabolic',
+    data: [{
+      d: "Aug'24",
+      v: 1.72,
+      boxId: '2155668609362',
+      src: 'BdasG Magnesium Aug 2024'
+    }],
+    note: 'Aug 2024: 1.72 (borderline). Monitor and supplement if low.'
   },
   // RENAL
   uric: {
@@ -1739,7 +1944,7 @@ const DAD_LABS_FULL = {
       v: 5.3,
       boxId: '2155657530240'
     }],
-    note: 'All readings normal (ref <7.3). No gout risk. Good hydration maintained.'
+    note: 'All readings normal (ref <7.3). No gout risk.'
   },
   egfr: {
     label: 'eGFR (Kidney Function)',
@@ -1750,8 +1955,7 @@ const DAD_LABS_FULL = {
     data: [{
       d: "Nov'25",
       v: 100,
-      boxId: '2155657530240',
-      src: 'Master Checkup Nov 2025'
+      boxId: '2155657530240'
     }],
     note: 'Nov 2025: eGFR 100 — excellent kidney function for age 82. No renal concern.'
   },
@@ -1765,26 +1969,37 @@ const DAD_LABS_FULL = {
     data: [{
       d: "Nov'25",
       v: 30,
-      boxId: '2155657530240',
-      src: 'Master Checkup Nov 2025'
+      boxId: '2155657530240'
     }],
-    note: 'Nov 2025: 30 (elevated, ref 0-15 for males). Could be hypothyroidism-related or post-treatment inflammation.'
+    note: 'Nov 2025: 30 (elevated, ref 0-15 for males). Could be hypothyroidism-related or post-shoulder-injury inflammation.'
   }
 };
 
-// ─── MOM & DAD: Symptoms ──────────────────────────────────────────────────────
+// ─── MOM: Symptoms ────────────────────────────────────────────────────────────
 const MOM_SYMPTOMS = [{
+  date: 'Mar 2026',
+  symptom: 'Dyslipidaemia with LDL 196 — worst ever',
+  severity: 'critical',
+  status: 'ongoing',
+  note: 'No statin initiated despite 11-year history'
+}, {
+  date: 'Mar 2026',
+  symptom: 'TSH relapse 6.16 — 2 months after 3.89',
+  severity: 'severe',
+  status: 'ongoing',
+  note: 'Levothyroxine dose needs upward adjustment'
+}, {
   date: 'Feb 2026',
   symptom: 'Red line on sclera (right eye)',
   severity: 'mild',
-  status: 'ongoing',
-  note: 'Noted at Maxivision — possible episcleritis'
+  status: 'resolved',
+  note: 'Maxivision eye checkup — possible episcleritis'
 }, {
   date: 'Nov 2025',
-  symptom: 'Fatigue, cold intolerance, constipation',
+  symptom: 'Fatigue, cold intolerance',
   severity: 'moderate',
   status: 'resolved',
-  note: 'Thyroid relapse — TSH 7.45'
+  note: 'TSH 7.45 relapse — dose adjusted'
 }, {
   date: 'Sep 2024',
   symptom: 'Severe lower back pain radiating to left leg',
@@ -1797,19 +2012,19 @@ const MOM_SYMPTOMS = [{
   severity: 'moderate',
   status: 'managed',
   note: 'PPI started after endoscopy'
-}, {
-  date: 'Jul 2022',
-  symptom: 'Fatigue, hair thinning, pallor',
-  severity: 'moderate',
-  status: 'resolved',
-  note: 'Iron deficiency anaemia — Fe 39.3'
 }];
 const DAD_SYMPTOMS = [{
+  date: 'Sep 2025',
+  symptom: 'Left shoulder pain and restricted movement',
+  severity: 'severe',
+  status: 'ongoing',
+  note: 'MRI: near-complete supraspinatus tear + adhesive capsulitis'
+}, {
   date: 'Nov 2025',
   symptom: 'Urinary frequency (mild)',
   severity: 'mild',
   status: 'ongoing',
-  note: 'Prostate surveillance — PSA 0.11'
+  note: 'Prostate surveillance — PSA 0.11 excellent'
 }, {
   date: 'Nov 2022',
   symptom: 'Bone pain / joint stiffness',
@@ -1818,602 +2033,1986 @@ const DAD_SYMPTOMS = [{
   note: 'Osteoporosis confirmed on DEXA'
 }];
 
-// ─── MOM & DAD: Documents ─────────────────────────────────────────────────────
-const MOM_DOCS = [{
+// ─── MOM: ALL DOCUMENTS (81 files indexed) ────────────────────────────────────
+const MOM_DOCS = [
+// LAB REPORTS (43 files)
+{
   id: 1,
-  name: 'Lipid Profile + CRP',
-  date: 'Feb 2026',
+  name: 'Lipid + CRP + TSH + HbA1c — CRITICAL',
+  date: 'Mar 2026',
   year: 2026,
   type: 'Lab',
   doctor: 'Sai Baba Speciality Lab',
-  condition: 'Dyslipidaemia',
-  tags: ['critical', 'lipids', 'crp'],
-  boxId: '2175290687427',
+  condition: 'URGENT: LDL 196 (WORST EVER), TSH 6.16',
+  tags: ['critical', 'lipids', 'tsh-relapse', 'ldl-worst'],
+  boxId: '2179998942528',
   folder: '1 Lab Reports'
 }, {
   id: 2,
-  name: 'TSH Bioline',
+  name: 'Lipid Profile + CRP — Feb 2026',
+  date: 'Feb 2026',
+  year: 2026,
+  type: 'Lab',
+  doctor: 'Sai Baba Speciality Hospital',
+  condition: 'LDL 181, CRP 6.7 — urgent statin needed',
+  tags: ['lipids', 'crp', 'critical'],
+  boxId: '2175290687427',
+  folder: '1 Lab Reports'
+}, {
+  id: 3,
+  name: 'TSH Bioline — Jan 2026',
   date: 'Jan 2026',
   year: 2026,
   type: 'Lab',
   doctor: 'Bioline Labs',
-  condition: 'Thyroid',
-  tags: ['thyroid', 'tsh'],
+  condition: 'TSH 3.89 — improved after dose increase',
+  tags: ['thyroid', 'tsh-good'],
   boxId: '2175282015807',
   folder: '1 Lab Reports'
 }, {
-  id: 3,
-  name: 'Full Body Checkup (Nov 2024)',
-  date: 'Nov 2024',
-  year: 2024,
+  id: 4,
+  name: 'Master Checkup Thyrocare — Nov 2025',
+  date: 'Nov 2025',
+  year: 2025,
   type: 'Lab',
-  doctor: 'Multiple',
-  condition: 'Annual Review',
-  tags: ['annual', 'tsh-high'],
+  doctor: 'Thyrocare',
+  condition: 'TSH 7.45, LDL 174, VitD 26.2, HbA1c 5.2%',
+  tags: ['annual', 'tsh-high', 'lipids', 'vitd-low'],
   boxId: '2175286177374',
   folder: '1 Lab Reports'
 }, {
-  id: 4,
-  name: 'CBP & IGE (Nov 2024)',
+  id: 5,
+  name: 'CBP & IGE — Nov 2024',
   date: 'Nov 2024',
   year: 2024,
   type: 'Lab',
   doctor: 'Multiple',
-  condition: 'CBC / Allergy',
+  condition: 'CBC + Allergy panel',
   tags: ['cbc', 'ige'],
   boxId: '2175284841580',
   folder: '1 Lab Reports'
 }, {
-  id: 5,
-  name: 'Full Body Checkup (Sep 2024)',
+  id: 6,
+  name: 'Full Body Checkup Thyrocare (Duplicate)',
+  date: 'Nov 2025',
+  year: 2025,
+  type: 'Lab',
+  doctor: 'Thyrocare',
+  condition: 'Duplicate of Nov 2025 Master Checkup',
+  tags: ['duplicate', 'annual'],
+  boxId: '2175288606202',
+  folder: '1 Lab Reports'
+}, {
+  id: 7,
+  name: 'Full Body Checkup Aster Prime — Sep 2024',
   date: 'Sep 2024',
   year: 2024,
   type: 'Lab',
   doctor: 'Aster Prime',
-  condition: 'Annual Review',
-  tags: ['annual'],
+  condition: 'Hospital admission labs: TSH 4.791, Hb 12.5',
+  tags: ['hospital', 'admission'],
   boxId: '2175285748343',
   folder: '1 Lab Reports'
 }, {
-  id: 6,
-  name: 'Blood Tests (Sep 2024)',
+  id: 8,
+  name: 'Full Body Checkup Aster Prime (Duplicate)',
   date: 'Sep 2024',
   year: 2024,
   type: 'Lab',
-  doctor: 'Pathology Lab',
-  condition: 'Comprehensive',
-  tags: ['comprehensive'],
+  doctor: 'Aster Prime',
+  condition: 'Duplicate of Sep 2024 Aster report',
+  tags: ['duplicate'],
+  boxId: '2175596938809',
+  folder: '1 Lab Reports'
+}, {
+  id: 9,
+  name: 'Blood Tests vHealth — Sep 2024',
+  date: 'Sep 2024',
+  year: 2024,
+  type: 'Lab',
+  doctor: 'vHealth / SPL',
+  condition: 'LDL 163, T3 69.99, HbA1c 5.5%, VitD 30.6',
+  tags: ['comprehensive', 't3-low'],
   boxId: '2175277857448',
   folder: '1 Lab Reports'
 }, {
-  id: 7,
-  name: 'Magnesium Test (Aug 2024)',
+  id: 10,
+  name: 'Magnesium Test — Aug 2024',
   date: 'Aug 2024',
   year: 2024,
   type: 'Lab',
   doctor: 'Lab',
-  condition: 'Hypomagnesaemia',
+  condition: 'Mg 1.72 — below normal',
   tags: ['magnesium', 'low'],
   boxId: '2175285395530',
   folder: '1 Lab Reports'
 }, {
-  id: 8,
-  name: 'HbA1c (Jul 2024)',
+  id: 11,
+  name: 'HbA1c — Jul 2024',
   date: 'Jul 2024',
   year: 2024,
   type: 'Lab',
   doctor: 'Lab',
-  condition: 'Glycaemia',
+  condition: 'HbA1c July 2024',
   tags: ['hba1c'],
   boxId: '2175285553445',
   folder: '1 Lab Reports'
 }, {
-  id: 9,
-  name: 'Full Body Checkup (Jul 2024)',
-  date: 'Jul 2024',
-  year: 2024,
+  id: 12,
+  name: 'Full Body Checkup (Jul 2023 — labeled 2024)',
+  date: 'Jul 2023',
+  year: 2023,
   type: 'Lab',
-  doctor: 'Multiple',
-  condition: 'Annual Review',
-  tags: ['annual'],
+  doctor: 'Aarthi Scans',
+  condition: 'Duplicate Jul 2023 Aarthi report (mislabeled as 2024)',
+  tags: ['duplicate', 'annual'],
   boxId: '2175289226084',
   folder: '1 Lab Reports'
 }, {
-  id: 10,
-  name: 'Full Body Checkup (Jan 2025)',
+  id: 13,
+  name: 'Full Body Checkup — Jan 2025',
   date: 'Jan 2025',
   year: 2025,
   type: 'Lab',
-  doctor: 'HEAL Health',
-  condition: 'Annual Review',
-  tags: ['annual', 'tsh-good'],
+  doctor: 'HEAL Health Centre',
+  condition: 'HbA1c 5.0% (BEST!), TSH 3.12, VitD 42.3',
+  tags: ['annual', 'hba1c-best', 'tsh-good'],
   boxId: '2175283362145',
   folder: '1 Lab Reports'
 }, {
-  id: 11,
-  name: 'Full Body Checkup (Aug 2025)',
-  date: 'Aug 2025',
-  year: 2025,
-  type: 'Lab',
-  doctor: 'Multiple',
-  condition: 'Annual Review',
-  tags: ['annual'],
-  boxId: '2175288606202',
-  folder: '1 Lab Reports'
-}, {
-  id: 12,
-  name: 'Full Body Checkup Aarthi (Jul 2023)',
+  id: 14,
+  name: 'Full Body Checkup Aarthi — Jul 2023',
   date: 'Jul 2023',
   year: 2023,
   type: 'Lab',
   doctor: 'Aarthi Scans',
-  condition: 'Annual Review',
-  tags: ['annual', 't3', 't4', 'vitd-best'],
+  condition: 'T3 100.2, T4 8.2, VitD 51.19 (BEST!), TSH 2.87',
+  tags: ['annual', 'vitd-best', 't3', 't4'],
   boxId: '2175285606396',
   folder: '1 Lab Reports'
 }, {
-  id: 13,
-  name: 'Mom Master Checkup Aarthi (Jul 2023)',
+  id: 15,
+  name: 'Mom Master Checkup Aarthi — Jul 2023',
   date: 'Jul 2023',
   year: 2023,
   type: 'Lab',
   doctor: 'Aarthi Scans',
-  condition: 'Annual Review',
+  condition: 'Full master checkup Jul 2023',
   tags: ['annual'],
   boxId: '2175281572758',
   folder: '1 Lab Reports'
 }, {
-  id: 14,
-  name: 'TSH Aarthi (Jul 2023)',
+  id: 16,
+  name: 'TSH Aarthi — Jul 2023',
   date: 'Jul 2023',
   year: 2023,
   type: 'Lab',
   doctor: 'Aarthi Scans',
-  condition: 'Thyroid',
+  condition: 'TSH Jul 2023',
   tags: ['thyroid', 'tsh'],
   boxId: '2175285441483',
   folder: '1 Lab Reports'
 }, {
-  id: 15,
-  name: 'Blood Tests Lucid (Feb 2023)',
-  date: 'Feb 2023',
-  year: 2023,
-  type: 'Lab',
-  doctor: 'Lucid Lab',
-  condition: 'Anti-CCP / Immunology',
-  tags: ['anti-ccp', 'ra-excluded'],
-  boxId: '2175588231612',
-  folder: '1 Lab Reports'
-}, {
-  id: 16,
-  name: 'Blood Tests (Feb 2023)',
-  date: 'Feb 2023',
-  year: 2023,
-  type: 'Lab',
-  doctor: 'Pathology',
-  condition: 'Comprehensive',
-  tags: ['comprehensive'],
-  boxId: '2175283736580',
-  folder: '1 Lab Reports'
-}, {
   id: 17,
-  name: 'Health Checkup (May 2023)',
-  date: 'May 2023',
-  year: 2023,
-  type: 'Lab',
-  doctor: 'Lab',
-  condition: 'Annual',
-  tags: ['annual'],
-  boxId: '2175284259896',
-  folder: '1 Lab Reports'
-}, {
-  id: 18,
-  name: 'Serum Creatinine (Jun 2023)',
+  name: 'Serum Creatinine — Jun 2023',
   date: 'Jun 2023',
   year: 2023,
   type: 'Lab',
   doctor: 'Lab',
-  condition: 'Renal',
+  condition: 'Creatinine 0.67 — normal',
   tags: ['creatinine', 'renal'],
   boxId: '2175281325127',
   folder: '1 Lab Reports'
 }, {
+  id: 18,
+  name: 'Blood Tests Lucid (Anti-CCP) — Feb 2023',
+  date: 'Feb 2023',
+  year: 2023,
+  type: 'Lab',
+  doctor: 'Lucid Labs',
+  condition: 'Anti-TPO 42, B12 1595, Anti-CCP',
+  tags: ['immunology', 'anti-tpo'],
+  boxId: '2175588231612',
+  folder: '1 Lab Reports'
+}, {
   id: 19,
-  name: 'Bone Densitometry DEXA (Nov 2022)',
+  name: 'Blood Tests Feb 2023 (Duplicate)',
+  date: 'Feb 2023',
+  year: 2023,
+  type: 'Lab',
+  doctor: 'Lab',
+  condition: 'Duplicate Feb 2023 blood tests',
+  tags: ['duplicate'],
+  boxId: '2175283736580',
+  folder: '1 Lab Reports'
+}, {
+  id: 20,
+  name: 'Health Checkup — May 2023',
+  date: 'May 2023',
+  year: 2023,
+  type: 'Lab',
+  doctor: 'Lab',
+  condition: 'TSH 5.39, LDL 87.57 (BEST!)',
+  tags: ['annual', 'ldl-best', 'tsh-borderline'],
+  boxId: '2175284259896',
+  folder: '1 Lab Reports'
+}, {
+  id: 21,
+  name: 'Bone Densitometry DEXA — Nov 2022',
   date: 'Nov 2022',
   year: 2022,
   type: 'Lab',
   doctor: 'Aster Prime',
-  condition: 'Osteoporosis',
-  tags: ['dexa', 'osteoporosis', 't-score'],
+  condition: 'Osteoporosis — Femur Neck Left T-score -2.9',
+  tags: ['dexa', 'osteoporosis'],
   boxId: '2175290759402',
   folder: '1 Lab Reports'
 }, {
-  id: 20,
-  name: 'Full Body Checkup Aster (Nov 2022)',
+  id: 22,
+  name: 'Full Body Checkup Aster Labs — Nov 2022',
   date: 'Nov 2022',
   year: 2022,
   type: 'Lab',
   doctor: 'Aster Labs',
-  condition: 'Annual Review',
+  condition: 'T3 115, T4 7.93, TSH 1.94, VitD 30.3, ESR 30',
   tags: ['annual', 't3', 't4', 'vitd'],
   boxId: '2175597224462',
   folder: '1 Lab Reports'
 }, {
-  id: 21,
-  name: 'Thyroid TSH (Jan 2022)',
+  id: 23,
+  name: 'Thyroid TSH — Jan 2022',
   date: 'Jan 2022',
   year: 2022,
   type: 'Lab',
   doctor: 'Lab',
-  condition: 'Thyroid',
+  condition: 'TSH Jan 2022',
   tags: ['thyroid', 'tsh'],
   boxId: '2175290507433',
   folder: '1 Lab Reports'
 }, {
-  id: 22,
-  name: 'Full Body (Jul 2022)',
+  id: 24,
+  name: 'Full Body — Jul 2022',
   date: 'Jul 2022',
   year: 2022,
   type: 'Lab',
   doctor: 'Multiple',
-  condition: 'Annual Review',
-  tags: ['annual'],
+  condition: 'HbA1c 5.5, VitD 42.4',
+  tags: ['annual', 'vitd'],
   boxId: '2175282141422',
   folder: '1 Lab Reports'
 }, {
-  id: 23,
-  name: 'Full Body Checkup (Sep 2021)',
+  id: 25,
+  name: 'Full Body Checkup — Sep 2021',
   date: 'Sep 2021',
   year: 2021,
   type: 'Lab',
   doctor: 'Multiple',
-  condition: 'Annual Review',
-  tags: ['annual'],
+  condition: 'TSH 6.23, LDL 137',
+  tags: ['annual', 'tsh-high'],
   boxId: '2175289923662',
   folder: '1 Lab Reports'
 }, {
-  id: 24,
-  name: 'Blood Tests Sri Sai (Feb 2020)',
+  id: 26,
+  name: 'Urine Test — Feb 2020',
   date: 'Feb 2020',
   year: 2020,
   type: 'Lab',
-  doctor: 'Sri Sai Lab',
-  condition: 'Comprehensive',
-  tags: ['comprehensive'],
-  boxId: '2175284696724',
+  doctor: 'CC Shroff',
+  condition: 'Urine analysis Feb 2020',
+  tags: ['urine'],
+  boxId: '2175285373577',
   folder: '1 Lab Reports'
 }, {
-  id: 25,
-  name: 'Medical Reports (Feb 2020)',
+  id: 27,
+  name: 'Medical Reports Mummyji — Feb 2020',
   date: 'Feb 2020',
   year: 2020,
   type: 'Lab',
   doctor: 'Multiple',
-  condition: 'Annual Review',
+  condition: 'TSH 2.51, LDL 145',
   tags: ['annual'],
   boxId: '2175286902022',
   folder: '1 Lab Reports'
 }, {
-  id: 26,
-  name: 'Full Checkup Thyrocare (Jul 2019)',
-  date: 'Jul 2019',
-  year: 2019,
-  type: 'Lab',
-  doctor: 'Thyrocare',
-  condition: 'Annual Review — Hashimotos Diagnosis',
-  tags: ['annual', 'thyroid', 'anti-tpo'],
-  boxId: '2175285189103',
-  folder: '1 Lab Reports'
-}, {
-  id: 27,
-  name: 'Medical Reports (Jul 2019)',
-  date: 'Jul 2019',
-  year: 2019,
-  type: 'Lab',
-  doctor: 'Multiple',
-  condition: 'Annual Review',
-  tags: ['annual'],
-  boxId: '2175286249554',
-  folder: '1 Lab Reports'
-}, {
   id: 28,
-  name: 'Thyroid Anti-TG Sri Sai (Jul 2019)',
-  date: 'Jul 2019',
-  year: 2019,
+  name: 'Blood Tests Sri Sai — Feb 2020',
+  date: 'Feb 2020',
+  year: 2020,
   type: 'Lab',
   doctor: 'Sri Sai Lab',
-  condition: 'Thyroid Antibodies',
-  tags: ['thyroid', 'anti-tpo', 'hashimotos'],
-  boxId: '2175288626022',
+  condition: 'Comprehensive blood tests Feb 2020',
+  tags: ['comprehensive'],
+  boxId: '2175284696724',
   folder: '1 Lab Reports'
 }, {
   id: 29,
-  name: 'Full Body Tapadia (Aug 2019)',
-  date: 'Aug 2019',
-  year: 2019,
-  type: 'Lab',
-  doctor: 'Tapadia Diagnostics',
-  condition: 'Annual Review',
-  tags: ['annual'],
-  boxId: '2175286274361',
-  folder: '1 Lab Reports'
-}, {
-  id: 30,
-  name: 'Blood Tests Sri Sai (Feb 2019)',
+  name: 'Blood Tests Sri Sai — Feb 2019',
   date: 'Feb 2019',
   year: 2019,
   type: 'Lab',
   doctor: 'Sri Sai Lab',
-  condition: 'Comprehensive',
+  condition: 'Blood tests Feb 2019',
   tags: ['comprehensive'],
   boxId: '2175282241346',
   folder: '1 Lab Reports'
 }, {
+  id: 30,
+  name: 'Full Checkup Thyrocare — Jul 2019',
+  date: 'Jul 2019',
+  year: 2019,
+  type: 'Lab',
+  doctor: 'Thyrocare',
+  condition: 'TSH 24.41 (overt!), LDL 189, VitD 16.08 (deficient)',
+  tags: ['annual', 'thyroid-overt', 'vitd-deficient'],
+  boxId: '2175285189103',
+  folder: '1 Lab Reports'
+}, {
   id: 31,
-  name: 'Full Checkup Maxcure (Mar 2018)',
+  name: 'Medical Reports Jul 2019',
+  date: 'Jul 2019',
+  year: 2019,
+  type: 'Lab',
+  doctor: 'Multiple',
+  condition: 'Jul 2019 reports',
+  tags: ['annual'],
+  boxId: '2175286249554',
+  folder: '1 Lab Reports'
+}, {
+  id: 32,
+  name: 'Thyroid Anti-TG Sri Sai — Jul 2019',
+  date: 'Jul 2019',
+  year: 2019,
+  type: 'Lab',
+  doctor: 'Sri Sai Lab',
+  condition: 'Anti-TPO 92.22 — Hashimotos confirmed',
+  tags: ['thyroid', 'anti-tpo', 'hashimotos'],
+  boxId: '2175288626022',
+  folder: '1 Lab Reports'
+}, {
+  id: 33,
+  name: 'Full Body Tapadia — Aug 2019',
+  date: 'Aug 2019',
+  year: 2019,
+  type: 'Lab',
+  doctor: 'Tapadia Diagnostics',
+  condition: 'Full body Aug 2019, Hb 11.5',
+  tags: ['annual'],
+  boxId: '2175286274361',
+  folder: '1 Lab Reports'
+}, {
+  id: 34,
+  name: 'Urine and Stool Test CC Shroff — Nov 2018',
+  date: 'Nov 2018',
+  year: 2018,
+  type: 'Lab',
+  doctor: 'CC Shroff',
+  condition: 'Urine and stool tests',
+  tags: ['urine', 'stool'],
+  boxId: '2175281687539',
+  folder: '1 Lab Reports'
+}, {
+  id: 35,
+  name: 'Full Checkup Maxcure — Mar 2018',
   date: 'Mar 2018',
   year: 2018,
   type: 'Lab',
   doctor: 'Maxcure',
-  condition: 'Annual Review',
+  condition: 'HbA1c 5.8, TSH 2.65, LDL 150, B12 312',
   tags: ['annual'],
   boxId: '2175285558327',
   folder: '1 Lab Reports'
 }, {
-  id: 32,
-  name: 'Full Body CC Shroff (Jan 2016)',
+  id: 36,
+  name: 'Medical Test Mom Jan 2016',
   date: 'Jan 2016',
   year: 2016,
   type: 'Lab',
   doctor: 'CC Shroff',
-  condition: 'Annual Review',
+  condition: 'TSH 3.92, LDL 194, Hb 12.0',
   tags: ['annual', 'ldl-high'],
   boxId: '2175280890985',
   folder: '1 Lab Reports'
 }, {
-  id: 33,
-  name: 'Full Body CC Shroff (Jan 2015)',
-  date: 'Jan 2015',
-  year: 2015,
-  type: 'Lab',
-  doctor: 'CC Shroff',
-  condition: 'Annual Review — WORST LIPIDS',
-  tags: ['lipids', 'ldl-worst'],
-  boxId: '2175600861238',
-  folder: '1 Lab Reports'
-}, {
-  id: 34,
-  name: 'Lipid Red Cross (Sep 2015)',
+  id: 37,
+  name: 'Lipid Red Cross — Sep 2015',
   date: 'Sep 2015',
   year: 2015,
   type: 'Lab',
   doctor: 'Red Cross',
-  condition: 'Lipids',
+  condition: 'LDL 104, HDL 36',
   tags: ['lipids'],
   boxId: '2175592408503',
   folder: '1 Lab Reports'
 }, {
-  id: 35,
-  name: 'Medical Test (Oct 2013)',
+  id: 38,
+  name: 'CBP Red Cross — Sep 2015',
+  date: 'Sep 2015',
+  year: 2015,
+  type: 'Lab',
+  doctor: 'Red Cross',
+  condition: 'CBC Sep 2015',
+  tags: ['cbc'],
+  boxId: '2175602493353',
+  folder: '1 Lab Reports'
+}, {
+  id: 39,
+  name: 'CBP Urine CC Shroff — Oct 2015',
+  date: 'Oct 2015',
+  year: 2015,
+  type: 'Lab',
+  doctor: 'CC Shroff',
+  condition: 'CBC and urine analysis Oct 2015',
+  tags: ['cbc', 'urine'],
+  boxId: '2175599440753',
+  folder: '1 Lab Reports'
+}, {
+  id: 40,
+  name: 'Full Body CC Shroff — Jan 2015',
+  date: 'Jan 2015',
+  year: 2015,
+  type: 'Lab',
+  doctor: 'CC Shroff',
+  condition: 'WORST: LDL 207, TC 309, TG 328 — Statin NOT started',
+  tags: ['annual', 'ldl-worst', 'lipids-critical'],
+  boxId: '2175600861238',
+  folder: '1 Lab Reports'
+}, {
+  id: 41,
+  name: 'Medical Test Asha — Oct 2013',
   date: 'Oct 2013',
   year: 2013,
   type: 'Lab',
   doctor: 'CC Shroff',
-  condition: 'Annual Review',
-  tags: ['annual'],
+  condition: 'TSH 3.27, Hb 12.5 — earliest record',
+  tags: ['annual', 'earliest'],
   boxId: '2175282212449',
   folder: '1 Lab Reports'
 }, {
-  id: 36,
-  name: 'MRI Lumbo-Sacral Spine (Sep 2024)',
+  id: 42,
+  name: 'Medical Asha — Apr 2013',
+  date: 'Apr 2013',
+  year: 2013,
+  type: 'Lab',
+  doctor: 'CC Shroff',
+  condition: 'Earliest available lab record',
+  tags: ['annual', 'earliest'],
+  boxId: '2175285563730',
+  folder: '1 Lab Reports'
+}, {
+  id: 43,
+  name: 'Eye Checkup Maxivision — Feb 2023',
+  date: 'Feb 2023',
+  year: 2023,
+  type: 'Lab',
+  doctor: 'Maxivision',
+  condition: 'Eye examination Feb 2023',
+  tags: ['eye'],
+  boxId: '2175290289117',
+  folder: '1 Lab Reports'
+},
+// IMAGING (28 files)
+{
+  id: 44,
+  name: 'MRI Sacral Spine (Sep 2024)',
   date: 'Sep 2024',
   year: 2024,
   type: 'Imaging',
   doctor: 'Aarthi Scans',
-  condition: 'L5-S1 WORSENED',
+  condition: 'L5-S1 WORSENED — bilateral root indentation',
   tags: ['mri', 'spine', 'urgent'],
   boxId: '2175287103606',
   folder: '2 Imaging'
 }, {
-  id: 37,
-  name: 'Prenuvo Whole Body MRI (Jan 2024)',
+  id: 45,
+  name: 'MRI Scan P1 (Sep 2024)',
+  date: 'Sep 2024',
+  year: 2024,
+  type: 'Imaging',
+  doctor: 'Aarthi Scans',
+  condition: 'Lumbar spine MRI part 1',
+  tags: ['mri', 'spine'],
+  boxId: '2175281925341',
+  folder: '2 Imaging'
+}, {
+  id: 46,
+  name: 'MRI Scan P2 (Sep 2024)',
+  date: 'Sep 2024',
+  year: 2024,
+  type: 'Imaging',
+  doctor: 'Aarthi Scans',
+  condition: 'Lumbar spine MRI part 2',
+  tags: ['mri', 'spine'],
+  boxId: '2175284435492',
+  folder: '2 Imaging'
+}, {
+  id: 47,
+  name: 'MRI Scan P3 (Sep 2024)',
+  date: 'Sep 2024',
+  year: 2024,
+  type: 'Imaging',
+  doctor: 'Aarthi Scans',
+  condition: 'Lumbar spine MRI part 3',
+  tags: ['mri', 'spine'],
+  boxId: '2175277283489',
+  folder: '2 Imaging'
+}, {
+  id: 48,
+  name: 'MRI-Sacral Spine (Sep 2024 v2)',
+  date: 'Sep 2024',
+  year: 2024,
+  type: 'Imaging',
+  doctor: 'Aarthi Scans',
+  condition: 'Sacral spine MRI',
+  tags: ['mri', 'spine'],
+  boxId: '2175286196796',
+  folder: '2 Imaging'
+}, {
+  id: 49,
+  name: 'Prenuvo Whole Body MRI — Jan 2024',
   date: 'Jan 2024',
   year: 2024,
   type: 'Imaging',
   doctor: 'Dr. Marissa Casey',
-  condition: 'Multi-system',
-  tags: ['mri', 'spine', 'brain', 'fibroids'],
+  condition: 'Severe C3-C7, brain SVD, 2 fibroids 2.6 cm, L5-S1',
+  tags: ['mri', 'whole-body', 'spine', 'brain', 'fibroids'],
   boxId: '2175282330389',
   folder: '2 Imaging'
 }, {
-  id: 38,
-  name: 'CT Coronary Angio + 2D Echo (Jun 2023)',
+  id: 50,
+  name: 'Abdomen & Pelvis USG — Jul 2023',
+  date: 'Jul 2023',
+  year: 2023,
+  type: 'Imaging',
+  doctor: 'Aarthi Scans',
+  condition: 'Abdomen and pelvis ultrasound',
+  tags: ['ultrasound', 'abdomen'],
+  boxId: '2175286167781',
+  folder: '2 Imaging'
+}, {
+  id: 51,
+  name: 'Chest X-Ray Aarthi — Jul 2023',
+  date: 'Jul 2023',
+  year: 2023,
+  type: 'Imaging',
+  doctor: 'Aarthi Scans',
+  condition: 'Chest X-ray normal',
+  tags: ['xray', 'chest'],
+  boxId: '2175284639490',
+  folder: '2 Imaging'
+}, {
+  id: 52,
+  name: 'ECG Aarthi — Jul 2023',
+  date: 'Jul 2023',
+  year: 2023,
+  type: 'Imaging',
+  doctor: 'Aarthi Scans',
+  condition: 'ECG Jul 2023',
+  tags: ['ecg'],
+  boxId: '2175282526922',
+  folder: '2 Imaging'
+}, {
+  id: 53,
+  name: 'Mammogram — Jul 2023',
+  date: 'Jul 2023',
+  year: 2023,
+  type: 'Imaging',
+  doctor: 'Aarthi Scans',
+  condition: 'Mammogram Jul 2023',
+  tags: ['mammogram'],
+  boxId: '2175286053240',
+  folder: '2 Imaging'
+}, {
+  id: 54,
+  name: 'Ultrasound Aarthi — Jul 2023',
+  date: 'Jul 2023',
+  year: 2023,
+  type: 'Imaging',
+  doctor: 'Aarthi Scans',
+  condition: 'Abdominal ultrasound Jul 2023',
+  tags: ['ultrasound'],
+  boxId: '2175281959110',
+  folder: '2 Imaging'
+}, {
+  id: 55,
+  name: 'USG Report — Jul 2023',
+  date: 'Jul 2023',
+  year: 2023,
+  type: 'Imaging',
+  doctor: 'Multiple',
+  condition: 'USG report Jul 2023',
+  tags: ['ultrasound'],
+  boxId: '2175289227802',
+  folder: '2 Imaging'
+}, {
+  id: 56,
+  name: 'CT Coronary Angio — Jun 2023',
   date: 'Jun 2023',
   year: 2023,
-  type: 'Cardiac',
+  type: 'Imaging',
   doctor: 'Dr. Sravan',
-  condition: 'Calcium Score 0',
-  tags: ['ca-score-0', 'echo'],
+  condition: 'Calcium Score: 0 (EXCELLENT!), EF 64%',
+  tags: ['ct-angio', 'ca-score-0', 'cardiac'],
   boxId: '2175286003036',
   folder: '2 Imaging'
 }, {
-  id: 39,
-  name: 'Endoscopy Report (May 2023)',
+  id: 57,
+  name: '2D Echo — Jun 2023',
+  date: 'Jun 2023',
+  year: 2023,
+  type: 'Imaging',
+  doctor: 'Dr. Sravan',
+  condition: '2D Echo and CT Coronary Angiogram',
+  tags: ['echo', 'cardiac'],
+  boxId: '2175285220057',
+  folder: '2 Imaging'
+}, {
+  id: 58,
+  name: '2D Echo Report — Jun 2023',
+  date: 'Jun 2023',
+  year: 2023,
+  type: 'Imaging',
+  doctor: 'Cardiologist',
+  condition: '2D Echocardiogram',
+  tags: ['echo'],
+  boxId: '2175290826824',
+  folder: '2 Imaging'
+}, {
+  id: 59,
+  name: 'MRI Lumbo-Sacral Spine — May 2023',
   date: 'May 2023',
   year: 2023,
-  type: 'Procedure',
+  type: 'Imaging',
+  doctor: 'Aarthi Scans',
+  condition: 'L5-S1 disc bulge (pre-worsening)',
+  tags: ['mri', 'spine'],
+  boxId: '2175288862963',
+  folder: '2 Imaging'
+}, {
+  id: 60,
+  name: 'Endoscopy Report — May 2023',
+  date: 'May 2023',
+  year: 2023,
+  type: 'Imaging',
   doctor: 'Dr. Milind K.',
-  condition: 'Hiatus Hernia + Gastritis',
-  tags: ['endoscopy', 'gerd'],
+  condition: 'Grade II Hiatus Hernia + Erosive Gastritis Grade A',
+  tags: ['endoscopy', 'gerd', 'hiatus-hernia'],
   boxId: '2175282649934',
   folder: '2 Imaging'
 }, {
-  id: 40,
-  name: 'Exercise Stress Test — NEGATIVE (Nov 2022)',
+  id: 61,
+  name: 'Medplus Scan — May 2023',
+  date: 'May 2023',
+  year: 2023,
+  type: 'Imaging',
+  doctor: 'Medplus',
+  condition: 'Scan report May 2023',
+  tags: ['scan'],
+  boxId: '2175288860563',
+  folder: '2 Imaging'
+}, {
+  id: 62,
+  name: 'US Abdomen & Pelvis + 2D Echo — Nov 2022',
+  date: 'Nov 2022',
+  year: 2022,
+  type: 'Imaging',
+  doctor: 'Aarthi',
+  condition: 'Ultrasound and echo Nov 2022',
+  tags: ['ultrasound', 'echo'],
+  boxId: '2175288930329',
+  folder: '2 Imaging'
+}, {
+  id: 63,
+  name: 'Exercise Stress Test — Nov 2022',
   date: 'Nov 2022',
   year: 2022,
   type: 'Cardiac',
   doctor: 'Dr. C. Raghu',
-  condition: 'No Ischaemia',
+  condition: 'NEGATIVE for ischaemia. METs 7.20, HR 146 (91% predicted)',
   tags: ['stress-test', 'negative', 'normal'],
   boxId: '2175285553610',
   folder: '2 Imaging'
 }, {
-  id: 41,
-  name: 'Eye Checkup Maxivision (Feb 2026)',
+  id: 64,
+  name: 'Abdomen + Chest X-Ray — Sep 2021',
+  date: 'Sep 2021',
+  year: 2021,
+  type: 'Imaging',
+  doctor: 'Multiple',
+  condition: 'X-ray abdomen and chest',
+  tags: ['xray'],
+  boxId: '2175285656939',
+  folder: '2 Imaging'
+}, {
+  id: 65,
+  name: 'CC Shroff Chest X-Ray — Sep 2021',
+  date: 'Sep 2021',
+  year: 2021,
+  type: 'Imaging',
+  doctor: 'CC Shroff',
+  condition: 'Chest PA view',
+  tags: ['xray', 'chest'],
+  boxId: '2175282011165',
+  folder: '2 Imaging'
+}, {
+  id: 66,
+  name: 'Asha Chest X-Ray PA — Sep 2021',
+  date: 'Sep 2021',
+  year: 2021,
+  type: 'Imaging',
+  doctor: 'CC Shroff',
+  condition: 'Chest X-ray PA view',
+  tags: ['xray', 'chest'],
+  boxId: '2175284636747',
+  folder: '2 Imaging'
+}, {
+  id: 67,
+  name: 'Ultrasound Tapadia — Aug 2019',
+  date: 'Aug 2019',
+  year: 2019,
+  type: 'Imaging',
+  doctor: 'Tapadia',
+  condition: 'Abdomen ultrasound Aug 2019',
+  tags: ['ultrasound'],
+  boxId: '2175285486204',
+  folder: '2 Imaging'
+}, {
+  id: 68,
+  name: 'Cervical Spine X-Ray CC Shroff — Nov 2018',
+  date: 'Nov 2018',
+  year: 2018,
+  type: 'Imaging',
+  doctor: 'CC Shroff',
+  condition: 'Cervical spine spondylosis',
+  tags: ['xray', 'cervical-spine'],
+  boxId: '2175285019114',
+  folder: '2 Imaging'
+}, {
+  id: 69,
+  name: 'Cervical Spine X-Ray — Oct 2015',
+  date: 'Oct 2015',
+  year: 2015,
+  type: 'Imaging',
+  doctor: 'CC Shroff',
+  condition: 'Cervical spine X-ray',
+  tags: ['xray', 'spine'],
+  boxId: '2175286126986',
+  folder: '2 Imaging'
+}, {
+  id: 70,
+  name: 'Knee X-Ray — Sep 2015',
+  date: 'Sep 2015',
+  year: 2015,
+  type: 'Imaging',
+  doctor: 'CC Shroff',
+  condition: 'Knee X-ray',
+  tags: ['xray', 'knee'],
+  boxId: '2175286285793',
+  folder: '2 Imaging'
+}, {
+  id: 71,
+  name: 'X-Ray Hand CC Shroff — Apr 2013',
+  date: 'Apr 2013',
+  year: 2013,
+  type: 'Imaging',
+  doctor: 'CC Shroff',
+  condition: 'Hand X-ray',
+  tags: ['xray', 'hand'],
+  boxId: '2175586259669',
+  folder: '2 Imaging'
+},
+// PRESCRIPTIONS/CONSULTS (8 files)
+{
+  id: 72,
+  name: 'Eye Checkup Baswaraj — Nov 2026',
+  date: 'Nov 2026',
+  year: 2026,
+  type: 'Consult',
+  doctor: 'Baswaraj Eye Clinic',
+  condition: 'Eye checkup',
+  tags: ['eye'],
+  boxId: '2175277071711',
+  folder: '3 Prescriptions'
+}, {
+  id: 73,
+  name: 'Eye Checkup Maxivision — Feb 2026',
   date: 'Feb 2026',
   year: 2026,
   type: 'Consult',
   doctor: 'Maxivision',
-  condition: 'Red Scleral Line',
-  tags: ['eye', 'sclera'],
+  condition: 'Red scleral line — possible episcleritis',
+  tags: ['eye'],
   boxId: '2175281560115',
   folder: '3 Prescriptions'
 }, {
-  id: 42,
-  name: 'Discharge Summary Aster Prime (Sep 2024)',
+  id: 74,
+  name: 'Arya Gastro Centre Prescription — May 2023',
+  date: 'May 2023',
+  year: 2023,
+  type: 'Prescription',
+  doctor: 'Dr. (Gastro)',
+  condition: 'Post-endoscopy prescription',
+  tags: ['gastro', 'gerd'],
+  boxId: '2175282001775',
+  folder: '3 Prescriptions'
+}, {
+  id: 75,
+  name: 'Ortho Consultation Dr. Radhakrishna — Feb 2023',
+  date: 'Feb 2023',
+  year: 2023,
+  type: 'Consult',
+  doctor: 'Dr. Radhakrishna',
+  condition: 'Orthopaedic consultation',
+  tags: ['ortho'],
+  boxId: '2175282578315',
+  folder: '3 Prescriptions'
+}, {
+  id: 76,
+  name: 'Tanvi Eye Bills + Prescriptions — Feb 2020',
+  date: 'Feb 2020',
+  year: 2020,
+  type: 'Prescription',
+  doctor: 'Tanvi Eye Centre',
+  condition: 'Post-cataract surgery prescriptions',
+  tags: ['eye', 'cataract'],
+  boxId: '2175276531882',
+  folder: '3 Prescriptions'
+}, {
+  id: 77,
+  name: 'Medicover Cardio Consult — Feb 2020',
+  date: 'Feb 2020',
+  year: 2020,
+  type: 'Consult',
+  doctor: 'Medicover',
+  condition: 'Cardiology consultation',
+  tags: ['cardio'],
+  boxId: '2175281435615',
+  folder: '3 Prescriptions'
+}, {
+  id: 78,
+  name: 'Gleneagles Hospital Consultation — Jul 2019',
+  date: 'Jul 2019',
+  year: 2019,
+  type: 'Consult',
+  doctor: 'Gleneagles Hospital',
+  condition: 'Hospital consultation',
+  tags: ['consult'],
+  boxId: '2175278214568',
+  folder: '3 Prescriptions'
+}, {
+  id: 79,
+  name: 'Medical Asha — Mar 2013',
+  date: 'Mar 2013',
+  year: 2013,
+  type: 'Prescription',
+  doctor: 'CC Shroff',
+  condition: 'Prescription record Mar 2013',
+  tags: ['prescription'],
+  boxId: '2175284966366',
+  folder: '3 Prescriptions'
+},
+// HOSPITAL (2 files)
+{
+  id: 80,
+  name: 'Discharge Summary Aster Prime — Sep 2024',
   date: 'Sep 2024',
   year: 2024,
   type: 'Hospital',
   doctor: 'Dr. A.K. Purohit',
-  condition: 'L5-S1 PIVD — Epidural',
-  tags: ['admission', 'epidural'],
+  condition: 'L5-S1 PIVD — 5 days, epidural injection',
+  tags: ['admission', 'epidural', 'discharge'],
   boxId: '2175289391684',
   folder: '4 Hospital Visits'
+}, {
+  id: 81,
+  name: 'Cataract Surgery — Tanvi Eye Centre (Feb 2020)',
+  date: 'Feb 2020',
+  year: 2020,
+  type: 'Hospital',
+  doctor: 'Tanvi Eye Centre',
+  condition: 'Bilateral cataract surgery IOL',
+  tags: ['surgery', 'cataract'],
+  boxId: '2175283660551',
+  folder: '4 Hospital Visits'
 }];
-const DAD_DOCS = [{
+
+// ─── DAD: ALL DOCUMENTS (97 files indexed) ────────────────────────────────────
+const DAD_DOCS = [
+// LAB REPORTS (54 files)
+{
   id: 1,
-  name: 'Lipid Profile (Feb 2026)',
+  name: 'Lipid Profile — Feb 2026',
   date: 'Feb 2026',
   year: 2026,
   type: 'Lab',
   doctor: 'Sai Baba Hospital',
-  condition: 'Lipids — WORSENING',
+  condition: 'LDL 172, HDL 39 (low), TC 234 — worsening',
   tags: ['lipids', 'ldl-high'],
   boxId: '2161689467391',
   folder: '1 Lab Tests'
 }, {
   id: 2,
-  name: 'TSH (Jan 2026)',
+  name: 'TSH — Jan 2026',
   date: 'Jan 2026',
   year: 2026,
   type: 'Lab',
   doctor: 'Bioline Labs',
-  condition: 'Thyroid',
+  condition: 'TSH 6.31 — still elevated',
   tags: ['tsh', 'elevated'],
   boxId: '2161697642376',
   folder: '1 Lab Tests'
 }, {
   id: 3,
-  name: 'Master Checkup (Nov 2025)',
+  name: 'Master Checkup Thyrocare — Nov 2025',
   date: 'Nov 2025',
   year: 2025,
   type: 'Lab',
   doctor: 'Thyrocare',
-  condition: 'Annual — Comprehensive',
+  condition: 'PSA 0.11, HbA1c 6.4%, TSH 6.55, LDL 148, VitD 32.1',
   tags: ['annual', 'psa', 'hba1c', 'tsh', 'lipids'],
   boxId: '2155657530240',
   folder: '1 Lab Tests'
 }, {
   id: 4,
-  name: 'HbA1c + PSA (Apr 2025)',
+  name: 'Urine Analysis — Sep 2025',
+  date: 'Sep 2025',
+  year: 2025,
+  type: 'Lab',
+  doctor: 'Lab',
+  condition: 'Urine analysis Sep 2025',
+  tags: ['urine'],
+  boxId: '2161684645208',
+  folder: '1 Lab Tests'
+}, {
+  id: 5,
+  name: 'HbA1c + Liver Function — Apr 2025',
   date: 'Apr 2025',
   year: 2025,
   type: 'Lab',
   doctor: 'Sai Baba Hospital',
-  condition: 'Glycaemia + Prostate',
+  condition: 'HbA1c 6.1%, PSA 0.128',
   tags: ['hba1c', 'psa'],
   boxId: '2161695373696',
   folder: '1 Lab Tests'
 }, {
-  id: 5,
-  name: 'Full Body HEAL (Jan 2025)',
+  id: 6,
+  name: 'Full Body HEAL — Jan 2025',
   date: 'Jan 2025',
   year: 2025,
   type: 'Lab',
   doctor: 'HEAL Health',
-  condition: 'Annual — Comprehensive',
-  tags: ['annual', 'psa', 'tsh', 'vitd'],
+  condition: 'HbA1c 6.2%, TSH 5.28, LDL 105, VitD 57.8 (BEST!)',
+  tags: ['annual', 'vitd-best', 'psa'],
   boxId: '2161693369408',
   folder: '1 Lab Tests'
 }, {
-  id: 6,
-  name: 'PSA (Jul 2023)',
+  id: 7,
+  name: 'Blood Tests — Sep 2024',
+  date: 'Sep 2024',
+  year: 2024,
+  type: 'Lab',
+  doctor: 'Lab',
+  condition: 'Blood panel Sep 2024',
+  tags: ['comprehensive'],
+  boxId: '2155657600653',
+  folder: '1 Lab Tests'
+}, {
+  id: 8,
+  name: 'CBP & IGE — Nov 2024',
+  date: 'Nov 2024',
+  year: 2024,
+  type: 'Lab',
+  doctor: 'Lab',
+  condition: 'CBC and allergy panel',
+  tags: ['cbc', 'ige'],
+  boxId: '2161693609395',
+  folder: '1 Lab Tests'
+}, {
+  id: 9,
+  name: 'CBP — Jul 2024',
+  date: 'Jul 2024',
+  year: 2024,
+  type: 'Lab',
+  doctor: 'Lab',
+  condition: 'CBC July 2024',
+  tags: ['cbc'],
+  boxId: '2161696443661',
+  folder: '1 Lab Tests'
+}, {
+  id: 10,
+  name: 'Magnesium — Aug 2024',
+  date: 'Aug 2024',
+  year: 2024,
+  type: 'Lab',
+  doctor: 'Lab',
+  condition: 'Magnesium Aug 2024',
+  tags: ['magnesium'],
+  boxId: '2155668609362',
+  folder: '1 Lab Tests'
+}, {
+  id: 11,
+  name: 'PSA — Jul 2023',
   date: 'Jul 2023',
   year: 2023,
   type: 'Lab',
   doctor: 'Lucid Diagnostics',
-  condition: 'Prostate — Excellent Nadir',
+  condition: 'PSA 0.042 ng/mL — excellent nadir',
   tags: ['psa', 'nadir'],
   boxId: '2161690562007',
   folder: '1 Lab Tests'
 }, {
-  id: 7,
-  name: 'PSA (Apr 2023)',
+  id: 12,
+  name: 'HbA1c + Lipid (pre-angio) — Jun 2023',
+  date: 'Jun 2023',
+  year: 2023,
+  type: 'Lab',
+  doctor: 'Apollo',
+  condition: 'HbA1c 6.3%, LDL 94 (BEST!), HDL 62 — pre-cardiac angio',
+  tags: ['hba1c', 'lipids-best', 'pre-angio'],
+  boxId: '2155657364834',
+  folder: '1 Lab Tests'
+}, {
+  id: 13,
+  name: 'Lipid + Serum Creatinine — Feb 2023',
+  date: 'Feb 2023',
+  year: 2023,
+  type: 'Lab',
+  doctor: 'Lab',
+  condition: 'Lipid and creatinine Feb 2023',
+  tags: ['lipids', 'creatinine'],
+  boxId: '2155654926159',
+  folder: '1 Lab Tests'
+}, {
+  id: 14,
+  name: 'Creatinine + Uric Acid — May 2023',
+  date: 'May 2023',
+  year: 2023,
+  type: 'Lab',
+  doctor: 'Lab',
+  condition: 'Creatinine and uric acid',
+  tags: ['creatinine', 'uric-acid'],
+  boxId: '2161691678387',
+  folder: '1 Lab Tests'
+}, {
+  id: 15,
+  name: 'PSA — Apr 2023',
   date: 'Apr 2023',
   year: 2023,
   type: 'Lab',
   doctor: 'Lucid Diagnostics',
-  condition: 'Prostate Surveillance',
+  condition: 'PSA 0.015 ng/mL',
   tags: ['psa'],
   boxId: '2161694466595',
   folder: '1 Lab Tests'
 }, {
-  id: 8,
-  name: 'PSA (Apr 2022)',
-  date: 'Apr 2022',
+  id: 16,
+  name: 'Complete Checkup Redcliffe — Nov 2022',
+  date: 'Nov 2022',
   year: 2022,
   type: 'Lab',
-  doctor: 'Vijaya Diagnostic',
-  condition: 'Prostate',
-  tags: ['psa'],
-  boxId: '2161693401513',
+  doctor: 'Redcliffe Labs',
+  condition: 'Comprehensive Nov 2022 panel',
+  tags: ['annual'],
+  boxId: '2161693972317',
   folder: '1 Lab Tests'
 }, {
-  id: 9,
-  name: 'Complete Checkup (Apr 2022)',
+  id: 17,
+  name: 'PSA — Oct 2022',
+  date: 'Oct 2022',
+  year: 2022,
+  type: 'Lab',
+  doctor: 'Lucid Diagnostics',
+  condition: 'PSA 0.010 ng/mL — LOWEST EVER!',
+  tags: ['psa', 'nadir-best'],
+  boxId: '2161685893646',
+  folder: '1 Lab Tests'
+}, {
+  id: 18,
+  name: 'Complete Checkup Redcliffe — Apr 2022',
   date: 'Apr 2022',
   year: 2022,
   type: 'Lab',
   doctor: 'Redcliffe Labs',
-  condition: 'Annual — Comprehensive',
-  tags: ['annual', 't3', 't4', 'tsh'],
+  condition: 'TSH 6.58, LDL 119, VitD 20.78, T3 113.8',
+  tags: ['annual', 'tsh-high', 'vitd-low'],
   boxId: '2161688358566',
   folder: '1 Lab Tests'
 }, {
-  id: 10,
-  name: 'CT Coronary Angiogram (Jun 2023)',
+  id: 19,
+  name: 'HbA1c — Jul 2022',
+  date: 'Jul 2022',
+  year: 2022,
+  type: 'Lab',
+  doctor: 'Lab',
+  condition: 'HbA1c 6.8% — highest recorded',
+  tags: ['hba1c', 'high'],
+  boxId: '2161694949093',
+  folder: '1 Lab Tests'
+}, {
+  id: 20,
+  name: 'PSA — Apr 2022',
+  date: 'Apr 2022',
+  year: 2022,
+  type: 'Lab',
+  doctor: 'Vijaya Diagnostic',
+  condition: 'PSA 0.0447 ng/mL',
+  tags: ['psa'],
+  boxId: '2161693401513',
+  folder: '1 Lab Tests'
+}, {
+  id: 21,
+  name: 'HbA1c Jan 2022',
+  date: 'Jan 2022',
+  year: 2022,
+  type: 'Lab',
+  doctor: 'Lab',
+  condition: 'HbA1c 5.7% — BEST!',
+  tags: ['hba1c', 'best'],
+  boxId: '2155663012641',
+  folder: '1 Lab Tests'
+}, {
+  id: 22,
+  name: 'Full Body — Oct 2021',
+  date: 'Oct 2021',
+  year: 2021,
+  type: 'Lab',
+  doctor: 'Lab',
+  condition: 'Full body checkup Oct 2021',
+  tags: ['annual'],
+  boxId: '2155658807923',
+  folder: '1 Lab Tests'
+}, {
+  id: 23,
+  name: 'Full Body — Oct 2022',
+  date: 'Oct 2022',
+  year: 2022,
+  type: 'Lab',
+  doctor: 'Lab',
+  condition: 'Full body checkup Oct 2022',
+  tags: ['annual'],
+  boxId: '2155661024925',
+  folder: '1 Lab Tests'
+}, {
+  id: 24,
+  name: 'HbA1c Medicover — Feb 2020',
+  date: 'Feb 2020',
+  year: 2020,
+  type: 'Lab',
+  doctor: 'Medicover',
+  condition: 'HbA1c 6.5%',
+  tags: ['hba1c'],
+  boxId: '2155657967741',
+  folder: '1 Lab Tests'
+}, {
+  id: 25,
+  name: 'Medical Reports Dad Feb 2020',
+  date: 'Feb 2020',
+  year: 2020,
+  type: 'Lab',
+  doctor: 'Multiple',
+  condition: 'Medical reports Feb 2020',
+  tags: ['annual'],
+  boxId: '2155658519009',
+  folder: '1 Lab Tests'
+}, {
+  id: 26,
+  name: 'Dad Urine Test — Feb 2020',
+  date: 'Feb 2020',
+  year: 2020,
+  type: 'Lab',
+  doctor: 'CC Shroff',
+  condition: 'Urine test Feb 2020',
+  tags: ['urine'],
+  boxId: '2155666515982',
+  folder: '1 Lab Tests'
+}, {
+  id: 27,
+  name: 'Sai Lab Sugar — Jun 2019',
+  date: 'Jun 2019',
+  year: 2019,
+  type: 'Lab',
+  doctor: 'Sai Lab',
+  condition: 'Blood sugar Jun 2019',
+  tags: ['glucose'],
+  boxId: '2155667130444',
+  folder: '1 Lab Tests'
+}, {
+  id: 28,
+  name: 'Sai Lab Lipid — Jun 2019',
+  date: 'Jun 2019',
+  year: 2019,
+  type: 'Lab',
+  doctor: 'Sai Lab',
+  condition: 'Lipid profile Jun 2019',
+  tags: ['lipids'],
+  boxId: '2155661900784',
+  folder: '1 Lab Tests'
+}, {
+  id: 29,
+  name: 'Sai Lab Urine — Jun 2019',
+  date: 'Jun 2019',
+  year: 2019,
+  type: 'Lab',
+  doctor: 'Sai Lab',
+  condition: 'Urine Jun 2019',
+  tags: ['urine'],
+  boxId: '2155658235988',
+  folder: '1 Lab Tests'
+}, {
+  id: 30,
+  name: 'Medical Reports Dad',
+  date: '2019',
+  year: 2019,
+  type: 'Lab',
+  doctor: 'Multiple',
+  condition: 'General medical reports',
+  tags: ['annual'],
+  boxId: '2155666453404',
+  folder: '1 Lab Tests'
+}, {
+  id: 31,
+  name: 'PSA CC Shroff — Mar 2019',
+  date: 'Mar 2019',
+  year: 2019,
+  type: 'Lab',
+  doctor: 'CC Shroff',
+  condition: 'First elevated PSA — led to biopsy',
+  tags: ['psa', 'first-elevated'],
+  boxId: '2155666527856',
+  folder: '1 Lab Tests'
+}, {
+  id: 32,
+  name: 'CC Shroff Urine — Mar 2019',
+  date: 'Mar 2019',
+  year: 2019,
+  type: 'Lab',
+  doctor: 'CC Shroff',
+  condition: 'Urine test Mar 2019',
+  tags: ['urine'],
+  boxId: '2155666981318',
+  folder: '1 Lab Tests'
+}, {
+  id: 33,
+  name: 'CBC (early)',
+  date: '2019',
+  year: 2019,
+  type: 'Lab',
+  doctor: 'Lab',
+  condition: 'Complete blood count',
+  tags: ['cbc'],
+  boxId: '2155661409067',
+  folder: '1 Lab Tests'
+}, {
+  id: 34,
+  name: 'Vitamin D3 (early)',
+  date: '2019',
+  year: 2019,
+  type: 'Lab',
+  doctor: 'Lab',
+  condition: 'Vitamin D3 level',
+  tags: ['vitd'],
+  boxId: '2155667893938',
+  folder: '1 Lab Tests'
+}, {
+  id: 35,
+  name: 'PSA (early 2019)',
+  date: '2019',
+  year: 2019,
+  type: 'Lab',
+  doctor: 'Lab',
+  condition: 'PSA before diagnosis',
+  tags: ['psa'],
+  boxId: '2155662976236',
+  folder: '1 Lab Tests'
+}, {
+  id: 36,
+  name: 'PSA Jan 2022',
+  date: 'Jan 2022',
+  year: 2022,
+  type: 'Lab',
+  doctor: 'Lab',
+  condition: 'PSA Jan 2022 in prostate folder',
+  tags: ['psa'],
+  boxId: '2155666808911',
+  folder: '1 Lab Tests'
+}, {
+  id: 37,
+  name: 'Medical Test Dad — Nov 2013',
+  date: 'Nov 2013',
+  year: 2013,
+  type: 'Lab',
+  doctor: 'CC Shroff',
+  condition: 'Earliest available comprehensive report',
+  tags: ['annual', 'earliest'],
+  boxId: '2155659020878',
+  folder: '1 Lab Tests'
+}, {
+  id: 38,
+  name: 'Medical Test Dad — Jan 2015',
+  date: 'Jan 2015',
+  year: 2015,
+  type: 'Lab',
+  doctor: 'Lab',
+  condition: 'Jan 2015 medical tests',
+  tags: ['annual'],
+  boxId: '2155656135764',
+  folder: '1 Lab Tests'
+}, {
+  id: 39,
+  name: 'Medical Test Dad — Jan 2015 (B)',
+  date: 'Jan 2015',
+  year: 2015,
+  type: 'Lab',
+  doctor: 'Lab',
+  condition: 'Jan 2015 tests (duplicate)',
+  tags: ['annual'],
+  boxId: '2155667253117',
+  folder: '1 Lab Tests'
+}, {
+  id: 40,
+  name: 'Medical Test Dad — Mar 2015',
+  date: 'Mar 2015',
+  year: 2015,
+  type: 'Lab',
+  doctor: 'Lab',
+  condition: 'Mar 2015 medical tests',
+  tags: ['annual'],
+  boxId: '2155665535102',
+  folder: '1 Lab Tests'
+}, {
+  id: 41,
+  name: 'Medical Test Dad — May 2015',
+  date: 'May 2015',
+  year: 2015,
+  type: 'Lab',
+  doctor: 'Lab',
+  condition: 'May 2015 medical tests',
+  tags: ['annual'],
+  boxId: '2155661359162',
+  folder: '1 Lab Tests'
+}, {
+  id: 42,
+  name: 'Medical Test Dad — Nov 2015',
+  date: 'Nov 2015',
+  year: 2015,
+  type: 'Lab',
+  doctor: 'Lab',
+  condition: 'Nov 2015 medical tests',
+  tags: ['annual'],
+  boxId: '2155662686208',
+  folder: '1 Lab Tests'
+}, {
+  id: 43,
+  name: 'Medical Test Dad — Jan 2016',
+  date: 'Jan 2016',
+  year: 2016,
+  type: 'Lab',
+  doctor: 'Lab',
+  condition: 'Jan 2016 medical tests',
+  tags: ['annual'],
+  boxId: '2155666628911',
+  folder: '1 Lab Tests'
+}, {
+  id: 44,
+  name: 'Dad Reports Combined (large)',
+  date: '2019',
+  year: 2019,
+  type: 'Lab',
+  doctor: 'Multiple',
+  condition: 'Combined reports PDF (52 MB)',
+  tags: ['combined'],
+  boxId: '2155663089061',
+  folder: '1 Lab Tests'
+}, {
+  id: 45,
+  name: 'Bone Density Spinal Cord (Oct 2022)',
+  date: 'Oct 2022',
+  year: 2022,
+  type: 'Lab',
+  doctor: 'Lab',
+  condition: 'Bone density spinal cord scan',
+  tags: ['dexa', 'spine', 'osteoporosis'],
+  boxId: '2161696621506',
+  folder: '1 Lab Tests'
+}, {
+  id: 46,
+  name: 'Bone Density Report (Oct 2022)',
+  date: 'Oct 2022',
+  year: 2022,
+  type: 'Lab',
+  doctor: 'Lab',
+  condition: 'Bone density full report',
+  tags: ['dexa', 'osteoporosis'],
+  boxId: '2155659119923',
+  folder: '1 Lab Tests'
+}, {
+  id: 47,
+  name: 'Bone Density Spinal Cord-ocr',
+  date: '2019',
+  year: 2019,
+  type: 'Lab',
+  doctor: 'Lab',
+  condition: 'Earlier bone density spinal cord',
+  tags: ['dexa'],
+  boxId: '2155658559825',
+  folder: '1 Lab Tests'
+}, {
+  id: 48,
+  name: 'Bone Density (2019)',
+  date: '2019',
+  year: 2019,
+  type: 'Lab',
+  doctor: 'Lab',
+  condition: 'Earlier bone density report',
+  tags: ['dexa'],
+  boxId: '2155666499048',
+  folder: '1 Lab Tests'
+}, {
+  id: 49,
+  name: 'Bone Density Spinal Cord (raw)',
+  date: '2019',
+  year: 2019,
+  type: 'Lab',
+  doctor: 'Lab',
+  condition: 'Raw bone density scan',
+  tags: ['dexa'],
+  boxId: '2155656549074',
+  folder: '1 Lab Tests'
+}, {
+  id: 50,
+  name: 'Bone Density (raw)',
+  date: '2019',
+  year: 2019,
+  type: 'Lab',
+  doctor: 'Lab',
+  condition: 'Raw bone density data',
+  tags: ['dexa'],
+  boxId: '2155660715199',
+  folder: '1 Lab Tests'
+}, {
+  id: 51,
+  name: 'Exercise Stress Test',
+  date: 'Nov 2022',
+  year: 2022,
+  type: 'Lab',
+  doctor: 'Cardiologist',
+  condition: 'Stress test',
+  tags: ['stress-test'],
+  boxId: '2161697409010',
+  folder: '1 Lab Tests'
+}, {
+  id: 52,
+  name: '2D Echo Doppler — Nov 2022',
+  date: 'Nov 2022',
+  year: 2022,
+  type: 'Lab',
+  doctor: 'Cardiologist',
+  condition: '2D Echo Doppler study',
+  tags: ['echo', 'cardiac'],
+  boxId: '2161687168164',
+  folder: '1 Lab Tests'
+}, {
+  id: 53,
+  name: 'Adobe Scan Mar 2026 — Left Shoulder MRI',
+  date: 'Sep 2025',
+  year: 2025,
+  type: 'Imaging',
+  doctor: 'Aarthi Scans / Aster Prime',
+  condition: 'Near-complete supraspinatus tear, adhesive capsulitis',
+  tags: ['mri', 'shoulder', 'rotator-cuff', 'urgent'],
+  boxId: '2161695791307',
+  folder: '1 Lab Tests'
+}, {
+  id: 54,
+  name: 'PSA + Serum Jul 2023',
+  date: 'Jul 2023',
+  year: 2023,
+  type: 'Lab',
+  doctor: 'Lab',
+  condition: 'PSA 0.042, serum creatinine',
+  tags: ['psa'],
+  boxId: '2155665532547',
+  folder: '1 Lab Tests'
+},
+// IMAGING (7 files)
+{
+  id: 55,
+  name: 'CT Coronary Angiogram — Jun 2023',
   date: 'Jun 2023',
   year: 2023,
   type: 'Cardiac',
   doctor: 'Cardiologist',
-  condition: 'CAD Assessment',
+  condition: 'CAD assessment',
   tags: ['ct-angio', 'cad'],
   boxId: '2155662320751',
   folder: '2 Imaging'
 }, {
-  id: 11,
-  name: 'PET Scan (Jun 2019)',
+  id: 56,
+  name: '2D Echo BdasG — Jun 2023',
+  date: 'Jun 2023',
+  year: 2023,
+  type: 'Cardiac',
+  doctor: 'Cardiologist',
+  condition: '2D Echo pre-angio',
+  tags: ['echo', 'cardiac'],
+  boxId: '2155657336358',
+  folder: '2 Imaging'
+}, {
+  id: 57,
+  name: 'CC Shroff Abdomen Ultrasound — Mar 2019',
+  date: 'Mar 2019',
+  year: 2019,
+  type: 'Imaging',
+  doctor: 'CC Shroff',
+  condition: 'Abdominal ultrasound Mar 2019',
+  tags: ['ultrasound', 'abdomen'],
+  boxId: '2155662340154',
+  folder: '2 Imaging'
+}, {
+  id: 58,
+  name: 'ECG — Dec 2022',
+  date: 'Dec 2022',
+  year: 2022,
+  type: 'Imaging',
+  doctor: 'Cardiologist',
+  condition: 'ECG December 2022',
+  tags: ['ecg'],
+  boxId: '2155668075914',
+  folder: '2 Imaging'
+}, {
+  id: 59,
+  name: 'Leg X-Ray — Feb 2023',
+  date: 'Feb 2023',
+  year: 2023,
+  type: 'Imaging',
+  doctor: 'Lab',
+  condition: 'Leg X-ray',
+  tags: ['xray', 'leg'],
+  boxId: '2155661272708',
+  folder: '2 Imaging'
+}, {
+  id: 60,
+  name: 'MRI Dorsal Spine',
+  date: 'Feb 2023',
+  year: 2023,
+  type: 'Imaging',
+  doctor: 'Lab',
+  condition: 'MRI dorsal spine',
+  tags: ['mri', 'spine'],
+  boxId: '2155656445230',
+  folder: '2 Imaging'
+}, {
+  id: 61,
+  name: 'MRI Pelvis',
+  date: 'Feb 2023',
+  year: 2023,
+  type: 'Imaging',
+  doctor: 'Lab',
+  condition: 'MRI pelvis',
+  tags: ['mri', 'pelvis'],
+  boxId: '2155660557596',
+  folder: '2 Imaging'
+},
+// PRESCRIPTIONS (7 files)
+{
+  id: 62,
+  name: 'Dr Rakesh Sahay Aster Prescription — Mar 2026',
+  date: 'Mar 2026',
+  year: 2026,
+  type: 'Prescription',
+  doctor: 'Dr. Rakesh Sahay (Aster)',
+  condition: 'Recent Aster prescription',
+  tags: ['prescription'],
+  boxId: '2179321813577',
+  folder: '3 Prescriptions'
+}, {
+  id: 63,
+  name: 'vHealth e-Prescription — Feb 2023',
+  date: 'Feb 2023',
+  year: 2023,
+  type: 'Prescription',
+  doctor: 'vHealth',
+  condition: 'vHealth prescription Feb 2023',
+  tags: ['prescription'],
+  boxId: '2179315528206',
+  folder: '3 Prescriptions'
+}, {
+  id: 64,
+  name: 'Dr. Vyas Narayan Rao',
+  date: '2019',
+  year: 2019,
+  type: 'Prescription',
+  doctor: 'Dr. Vyas Narayan Rao',
+  condition: 'Prescription',
+  tags: ['prescription'],
+  boxId: '2155659138183',
+  folder: '3 Prescriptions'
+}, {
+  id: 65,
+  name: 'Dr. Sanjai Adla',
+  date: '2019',
+  year: 2019,
+  type: 'Prescription',
+  doctor: 'Dr. Sanjai Adla',
+  condition: 'Prescription',
+  tags: ['prescription'],
+  boxId: '2155661238719',
+  folder: '3 Prescriptions'
+}, {
+  id: 66,
+  name: 'Dental Prescription',
+  date: '2019',
+  year: 2019,
+  type: 'Prescription',
+  doctor: 'Dental',
+  condition: 'Dental prescription',
+  tags: ['dental'],
+  boxId: '2155665774736',
+  folder: '3 Prescriptions'
+}, {
+  id: 67,
+  name: 'Dental Notes',
+  date: '2019',
+  year: 2019,
+  type: 'Prescription',
+  doctor: 'Dental',
+  condition: 'Dental notes',
+  tags: ['dental'],
+  boxId: '2155659227926',
+  folder: '3 Prescriptions'
+}, {
+  id: 68,
+  name: 'Indo American Book (First Pages)',
+  date: '2019',
+  year: 2019,
+  type: 'Prescription',
+  doctor: 'Multiple',
+  condition: 'Medical notes/prescriptions',
+  tags: ['prescription'],
+  boxId: '2155657420095',
+  folder: '3 Prescriptions'
+},
+// HOSPITAL (2 files)
+{
+  id: 69,
+  name: 'Discharge Summary Angiogram — Jun 2023',
+  date: 'Jun 2023',
+  year: 2023,
+  type: 'Hospital',
+  doctor: 'Aster Prime',
+  condition: 'Post-cardiac angiogram discharge',
+  tags: ['hospital', 'angio-discharge'],
+  boxId: '2155660502182',
+  folder: '4 Hospital Visits'
+},
+// PROSTATE FOLDER (27 files)
+{
+  id: 70,
+  name: 'PET CT Scan — Jun 2019',
   date: 'Jun 2019',
   year: 2019,
   type: 'Imaging',
-  doctor: 'Nuclear Medicine',
-  condition: 'Prostate Cancer — Staging',
+  doctor: 'Vijaya Nuclear Medicine',
+  condition: 'Prostate cancer staging — PET positive',
   tags: ['pet-scan', 'prostate', 'staging'],
   boxId: '2155663597221',
   folder: '5 Prostate'
 }, {
-  id: 12,
+  id: 71,
+  name: 'PET CT Imaging 1',
+  date: 'Jun 2019',
+  year: 2019,
+  type: 'Imaging',
+  doctor: 'Nuclear Medicine',
+  condition: 'PET CT scan image',
+  tags: ['pet', 'prostate'],
+  boxId: '2155667260755',
+  folder: '5 Prostate'
+}, {
+  id: 72,
+  name: 'PET CT Imaging 2',
+  date: 'Jun 2019',
+  year: 2019,
+  type: 'Imaging',
+  doctor: 'Nuclear Medicine',
+  condition: 'PET CT scan image 2',
+  tags: ['pet', 'prostate'],
+  boxId: '2155658850958',
+  folder: '5 Prostate'
+}, {
+  id: 73,
+  name: 'Vijaya PET CT Report 1',
+  date: 'Jun 2019',
+  year: 2019,
+  type: 'Imaging',
+  doctor: 'Vijaya Nuclear Medicine',
+  condition: 'PET CT report page 1',
+  tags: ['pet', 'prostate'],
+  boxId: '2155669010210',
+  folder: '5 Prostate'
+}, {
+  id: 74,
+  name: 'Vijaya PET CT Report 2',
+  date: 'Jun 2019',
+  year: 2019,
+  type: 'Imaging',
+  doctor: 'Vijaya Nuclear Medicine',
+  condition: 'PET CT report page 2',
+  tags: ['pet', 'prostate'],
+  boxId: '2155658471798',
+  folder: '5 Prostate'
+}, {
+  id: 75,
   name: 'Histopathology (Biopsy)',
   date: '2019',
   year: 2019,
   type: 'Lab',
   doctor: 'Pathologist',
-  condition: 'Prostate Biopsy — Gleason 3+3=6',
+  condition: 'Prostate biopsy — Gleason 3+3=6',
   tags: ['biopsy', 'histopathology', 'gleason'],
   boxId: '2155658607889',
   folder: '5 Prostate'
+}, {
+  id: 76,
+  name: 'Medical Reports June 2019',
+  date: 'Jun 2019',
+  year: 2019,
+  type: 'Lab',
+  doctor: 'Multiple',
+  condition: 'Comprehensive reports Jun 2019',
+  tags: ['annual', 'prostate'],
+  boxId: '2155657852550',
+  folder: '5 Prostate'
+}, {
+  id: 77,
+  name: 'img050 (Prostate records)',
+  date: '2019',
+  year: 2019,
+  type: 'Lab',
+  doctor: 'Multiple',
+  condition: 'Prostate medical records',
+  tags: ['prostate'],
+  boxId: '2155660897457',
+  folder: '5 Prostate'
+}, {
+  id: 78,
+  name: 'img055 (Prostate records)',
+  date: '2019',
+  year: 2019,
+  type: 'Lab',
+  doctor: 'Multiple',
+  condition: 'Prostate medical records',
+  tags: ['prostate'],
+  boxId: '2155662475064',
+  folder: '5 Prostate'
+}, {
+  id: 79,
+  name: 'PSA (Jun 2019)',
+  date: 'Jun 2019',
+  year: 2019,
+  type: 'Lab',
+  doctor: 'Lab',
+  condition: 'PSA Jun 2019',
+  tags: ['psa'],
+  boxId: '2155658181439',
+  folder: '5 Prostate'
+}, {
+  id: 80,
+  name: 'Indo-American Prescription',
+  date: '2019',
+  year: 2019,
+  type: 'Prescription',
+  doctor: 'Indo-American',
+  condition: 'Prostate prescription',
+  tags: ['prescription', 'prostate'],
+  boxId: '2155663763755',
+  folder: '5 Prostate'
+}, {
+  id: 81,
+  name: 'PSA Jan 2022 (Prostate folder)',
+  date: 'Jan 2022',
+  year: 2022,
+  type: 'Lab',
+  doctor: 'Lab',
+  condition: 'PSA Jan 2022',
+  tags: ['psa'],
+  boxId: '2155666808911',
+  folder: '5 Prostate'
+}, {
+  id: 82,
+  name: 'HbA1c Jan 2022 (Prostate folder)',
+  date: 'Jan 2022',
+  year: 2022,
+  type: 'Lab',
+  doctor: 'Lab',
+  condition: 'HbA1c 5.7% (BEST!)',
+  tags: ['hba1c', 'best'],
+  boxId: '2155657315190',
+  folder: '5 Prostate'
+}, {
+  id: 83,
+  name: 'Lipid + Serum C Feb 2023',
+  date: 'Feb 2023',
+  year: 2023,
+  type: 'Lab',
+  doctor: 'Lab',
+  condition: 'Lipid and serum creatinine Feb 2023',
+  tags: ['lipids'],
+  boxId: '2155661322630',
+  folder: '5 Prostate'
+}, {
+  id: 84,
+  name: 'CT Coronary Angio Jun 2023 (Prostate)',
+  date: 'Jun 2023',
+  year: 2023,
+  type: 'Cardiac',
+  doctor: 'Cardiologist',
+  condition: 'CT Coronary Angio (copy in prostate folder)',
+  tags: ['ct-angio', 'duplicate'],
+  boxId: '2155663305380',
+  folder: '5 Prostate'
+}, {
+  id: 85,
+  name: '2D Echo BdasG (Prostate copy)',
+  date: 'Jun 2023',
+  year: 2023,
+  type: 'Cardiac',
+  doctor: 'Cardiologist',
+  condition: '2D Echo (copy in prostate folder)',
+  tags: ['echo', 'duplicate'],
+  boxId: '2155659618620',
+  folder: '5 Prostate'
+}, {
+  id: 86,
+  name: 'Sravan Prescription — Jun 2023',
+  date: 'Jun 2023',
+  year: 2023,
+  type: 'Prescription',
+  doctor: 'Dr. Sravan',
+  condition: 'Post-angio prescription',
+  tags: ['prescription', 'cardiac'],
+  boxId: '2155659932429',
+  folder: '5 Prostate'
+}, {
+  id: 87,
+  name: 'Sumeet Sinha Prescription — Jun 2023',
+  date: 'Jun 2023',
+  year: 2023,
+  type: 'Prescription',
+  doctor: 'Dr. Sumeet Sinha',
+  condition: 'Cardiologist prescription',
+  tags: ['prescription', 'cardiac'],
+  boxId: '2155662100142',
+  folder: '5 Prostate'
+}, {
+  id: 88,
+  name: 'Angio Screening (HIV/HBsAg/HCV) — Jun 2023',
+  date: 'Jun 2023',
+  year: 2023,
+  type: 'Lab',
+  doctor: 'Lab',
+  condition: 'Pre-angio serology screening — all negative',
+  tags: ['serology', 'pre-angio'],
+  boxId: '2155658151811',
+  folder: '5 Prostate'
+}, {
+  id: 89,
+  name: 'Discharge Summary Angiogram (Prostate copy)',
+  date: 'Jun 2023',
+  year: 2023,
+  type: 'Hospital',
+  doctor: 'Aster Prime',
+  condition: 'Post-angio discharge (copy)',
+  tags: ['hospital', 'duplicate'],
+  boxId: '2155660719712',
+  folder: '5 Prostate'
+}, {
+  id: 90,
+  name: 'Cardio Angio Report — Jun 2023',
+  date: 'Jun 2023',
+  year: 2023,
+  type: 'Cardiac',
+  doctor: 'Cardiologist',
+  condition: 'Coronary angiography report',
+  tags: ['angio', 'cardiac'],
+  boxId: '2155663122130',
+  folder: '5 Prostate'
+}, {
+  id: 91,
+  name: 'Dr Sanjai Review Jun 2018',
+  date: 'Jun 2018',
+  year: 2018,
+  type: 'Consult',
+  doctor: 'Dr. Sanjai',
+  condition: 'Review consultation',
+  tags: ['consult'],
+  boxId: '2155668183925',
+  folder: '5 Prostate'
+}, {
+  id: 92,
+  name: 'Dr Senthil Prescription Jun 2018',
+  date: 'Jun 2018',
+  year: 2018,
+  type: 'Prescription',
+  doctor: 'Dr. Senthil',
+  condition: 'Prescription Jun 2018',
+  tags: ['prescription'],
+  boxId: '2155661516992',
+  folder: '5 Prostate'
+}, {
+  id: 93,
+  name: 'Dr Vyas Narayana Jun 2019',
+  date: 'Jun 2019',
+  year: 2019,
+  type: 'Prescription',
+  doctor: 'Dr. Vyas Narayana',
+  condition: 'Prescription',
+  tags: ['prescription'],
+  boxId: '2155659664765',
+  folder: '5 Prostate'
+}, {
+  id: 94,
+  name: 'Kaushik Bhattacharya Jun 2018',
+  date: 'Jun 2018',
+  year: 2018,
+  type: 'Prescription',
+  doctor: 'Dr. Kaushik Bhattacharya',
+  condition: 'Prescription',
+  tags: ['prescription'],
+  boxId: '2155661682638',
+  folder: '5 Prostate'
+}, {
+  id: 95,
+  name: 'Dr Pulkit Maru Audio (Jun 2019)',
+  date: 'Jun 2019',
+  year: 2019,
+  type: 'Consult',
+  doctor: 'Dr. Pulkit Maru',
+  condition: 'Audio consultation recording',
+  tags: ['audio', 'consult'],
+  boxId: '2155666363066',
+  folder: '5 Prostate'
+}, {
+  id: 96,
+  name: 'Bone Density (Raw 2022)',
+  date: 'Nov 2022',
+  year: 2022,
+  type: 'Lab',
+  doctor: 'Lab',
+  condition: 'Bone density raw data',
+  tags: ['dexa'],
+  boxId: '2155658559825',
+  folder: '1 Lab Tests'
+}, {
+  id: 97,
+  name: 'PSA + Creatinine (Jul 2023 Lucid)',
+  date: 'Jul 2023',
+  year: 2023,
+  type: 'Lab',
+  doctor: 'Lucid Diagnostics',
+  condition: 'PSA 0.042 + creatinine Lucid Jul 2023',
+  tags: ['psa', 'creatinine'],
+  boxId: '2155665532547',
+  folder: '1 Lab Tests'
 }];
 
 // ─── PATIENTS ARRAY ───────────────────────────────────────────────────────────
@@ -2434,8 +4033,8 @@ const PATIENTS = [{
   symptoms: MOM_SYMPTOMS,
   labsKey: MOM_LABS_KEY,
   labsFull: MOM_LABS_FULL,
-  summary: 'TSH 3.89 | LDL 181 | HbA1c 5.2% | VitD 26.2 | CRP 6.7',
-  lastVisit: 'Feb 2026',
+  summary: 'TSH 6.16↑ | LDL 196↑↑ WORST EVER | HbA1c 4.9% | VitD 26.2↓',
+  lastVisit: 'Mar 2026',
   photo: null,
   boxFolders: {
     lab: '372768683500',
@@ -2453,15 +4052,15 @@ const PATIENTS = [{
   status: 'Active Monitoring',
   doctor: 'Multiple Specialists',
   initials: 'BG',
-  urgentCount: 2,
+  urgentCount: 3,
   conditions: DAD_CONDITIONS,
   timeline: DAD_TIMELINE,
   documents: DAD_DOCS,
   symptoms: DAD_SYMPTOMS,
   labsKey: DAD_LABS_KEY,
   labsFull: DAD_LABS_FULL,
-  summary: 'PSA 0.11 (nadir) | HbA1c 6.4% | TSH 6.31 | LDL 172 | Hb 13.5',
-  lastVisit: 'Feb 2026',
+  summary: 'PSA 0.11 (nadir) | HbA1c 6.4% | TSH 6.31↑ | LDL 172↑ | Shoulder MRI urgent',
+  lastVisit: 'Mar 2026',
   photo: null,
   boxFolders: {
     lab: '369528428881',
@@ -2486,12 +4085,6 @@ const SEV_LABELS = {
   monitor: 'MONITOR',
   normal: 'NORMAL'
 };
-const ORGAN_COLORS = {
-  red: '#DC2626',
-  amber: '#D97706',
-  green: '#16A34A',
-  grey: '#94A3B8'
-};
 const DOC_COLORS = {
   Lab: '#2563EB',
   Imaging: '#7C3AED',
@@ -2510,8 +4103,6 @@ const DOC_ICONS = {
   Consult: '👨‍⚕️',
   Prescription: '💊'
 };
-
-// Category labels for Full Markers grouping
 const LAB_CATEGORIES = {
   cardiovascular: {
     label: '❤️ Cardiovascular',
