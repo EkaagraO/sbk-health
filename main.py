@@ -1363,10 +1363,10 @@ async def get_ai_data(patient_key: str):
     conn = await db()
     try:
         row = await conn.fetchrow(
-            "SELECT ai_summary, ai_summary_ts, narrative, narrative_ts "
+            "SELECT ai_summary, ai_summary_ts, narrative, narrative_ts, photo "
             "FROM patient_ai_data WHERE patient_key=$1", patient_key)
         if not row:
-            return JSONResponse({"ai_summary": None, "narrative": None})
+            return JSONResponse({"ai_summary": None, "narrative": None, "photo": None})
         return JSONResponse({
             "ai_summary": {
                 "data": json.loads(row["ai_summary"])  if row["ai_summary"]  else None,
@@ -1375,7 +1375,8 @@ async def get_ai_data(patient_key: str):
             "narrative": {
                 "data": json.loads(row["narrative"])   if row["narrative"]   else None,
                 "ts":   row["narrative_ts"].strftime("%d %b %Y, %I:%M %p")  if row["narrative_ts"]  else None,
-            }
+            },
+            "photo": row["photo"] if row["photo"] else None,
         })
     finally:
         await conn.close()
