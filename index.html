@@ -4817,7 +4817,7 @@ function OverviewTab({
       }
 
       // 2. Narrative
-      const prompt = `You are a clinical narrative writer for a family health app.\n\nPatient: ${patient.name}, Age ${patient.age}, ${patient.gender}, Blood Group ${patient.bg}\nStatus: ${patient.status}\nCurrent values: ${patient.summary}\n\nConditions:\n${patient.conditions.map(c => `- ${c.name} (${c.sev}): ${(c.findings || '').substring(0, 200)}. Action: ${c.action || ''}`).join('\n')}\n\nTimeline:\n${patient.timeline.slice(0, 8).map(e => `- ${e.date}: ${e.title}. ${e.detail || ''}`).join('\n')}\n\nReturn ONLY a JSON object (no markdown, no code fences):\n{"executive":"3-4 sentence executive summary","concerns":[{"name":"condition","sev":"urgent|high|moderate|monitor","text":"2-3 sentences on findings and action","reviewed":"date"}],"recentActivity":"2-3 sentences on most significant recent events","labSummary":"2-3 sentences on key lab trends","recommendations":["bullet 1","bullet 2","bullet 3","bullet 4","bullet 5"],"ts":"${new Date().toLocaleString('en-IN', {
+      const prompt = `You are a clinical narrative writer for a family health app.\n\nPatient: ${patient.name}, Age ${patient.age}, ${patient.gender}, Blood Group ${patient.bg}\nStatus: ${patient.status}\nCurrent values: ${patient.summary}\n\nConditions:\n${patient.conditions.map(c => `- ${c.name} (${c.sev}): ${(c.findings || '').substring(0, 200)}. Action: ${c.action || ''}`).join('\n')}\n\nTimeline:\n${patient.timeline.slice(0, 8).map(e => `- ${e.date}: ${e.title}. ${e.detail || ''}`).join('\n')}\n\nReturn ONLY a JSON object (no markdown, no code fences):\n{"executive":"3-4 sentence executive summary","concerns":[{"name":"condition","sev":"urgent|high|moderate|monitor","text":"2-3 sentences on findings and action","reviewed":"date"}],"recentActivity":"2-3 sentences on most significant recent events","labSummary":"2-3 sentences on key lab trends","recommendations":["First specific recommendation as a complete sentence","Second recommendation","Third recommendation","Fourth recommendation","Fifth recommendation"] IMPORTANT: recommendations MUST be a JSON array of strings, not a paragraph,"ts":"${new Date().toLocaleString('en-IN', {
         dateStyle: 'medium',
         timeStyle: 'short'
       })}"}`;
@@ -4905,7 +4905,13 @@ function OverviewTab({
       return `<tr><td><b>${v.label}</b></td><td style="color:${color};font-weight:700">${last.v} ${v.unit}</td><td>${last.d}</td><td style="color:${color}">${status}</td><td>${trend}</td><td style="color:#64748B;font-size:11px">${v.refLow ? v.refLow + ' – ' : v.refHigh ? '< ' : ''}${v.refHigh || v.refLow || '—'} ${v.unit}</td></tr>`;
     }).join('');
     const tl = patient.timeline.slice(0, 10).map(e => `<tr><td><b>${e.date}</b></td><td>${e.title}</td><td style="font-size:12px;color:#475569">${e.detail || ''}</td></tr>`).join('');
-    const recs = Array.isArray(n.recommendations) ? n.recommendations : typeof n.recommendations === 'string' ? n.recommendations.split(/\n/).filter(Boolean) : [];
+    const recs = (() => {
+      const raw = n.recommendations;
+      if (Array.isArray(raw)) return raw.filter(Boolean);
+      if (typeof raw !== 'string') return [];
+      const items = raw.split(/\n|•|\d+\.\s+|;\s{0,2}/).map(s => s.replace(/^[-*•>\s]+/, '').trim()).filter(s => s.length > 8);
+      return items.length > 1 ? items : [raw];
+    })();
     win.document.write(`<!DOCTYPE html><html><head><title>SBK Health — ${patient.name}</title>
 <style>
   body{font-family:Georgia,serif;max-width:920px;margin:32px auto;color:#1E293B;line-height:1.65;font-size:14px}
@@ -4974,7 +4980,14 @@ Generated ${new Date().toLocaleDateString('en-IN')} | ${patient.documents.length
   const moderate = patient.conditions.filter(c => c.sev === 'moderate');
   const monitor = patient.conditions.filter(c => c.sev === 'monitor' || c.sev === 'normal');
   const n = narr || {};
-  const recs = Array.isArray(n.recommendations) ? n.recommendations : typeof n.recommendations === 'string' ? n.recommendations.split(/\n/).map(s => s.replace(/^[-•*]\s*/, '')).filter(Boolean) : [];
+  const recs = (() => {
+    const raw = n.recommendations;
+    if (Array.isArray(raw)) return raw.filter(Boolean);
+    if (typeof raw !== 'string') return [];
+    // Split on newlines, bullet chars, numbered items, semicolons
+    const items = raw.split(/\n|•|\d+\.\s+|;\s{0,2}/).map(s => s.replace(/^[-*•>\s]+/, '').trim()).filter(s => s.length > 10);
+    return items.length > 1 ? items : [raw];
+  })();
   return /*#__PURE__*/React.createElement("div", {
     className: "fade"
   }, /*#__PURE__*/React.createElement("div", {
@@ -5034,34 +5047,44 @@ Generated ${new Date().toLocaleDateString('en-IN')} | ${patient.documents.length
   }, [{
     l: 'Age',
     v: patient.age + 'y',
-    c: 'var(--blue)'
+    c: 'var(--blue)',
+    tab: null
   }, {
     l: 'Blood Group',
     v: patient.bg,
-    c: 'var(--red)'
+    c: 'var(--red)',
+    tab: null
   }, {
     l: 'Conditions',
     v: patient.conditions.length,
-    c: 'var(--text)'
+    c: 'var(--text)',
+    tab: 'issues'
   }, {
     l: 'Urgent',
     v: urgent.length,
-    c: urgent.length > 0 ? 'var(--red)' : 'var(--green)'
+    c: urgent.length > 0 ? 'var(--red)' : 'var(--green)',
+    tab: 'issues'
   }, {
     l: 'Documents',
     v: patient.documents.length,
-    c: 'var(--blue)'
+    c: 'var(--blue)',
+    tab: 'documents'
   }, {
     l: 'Last Review',
     v: patient.lastVisit,
-    c: 'var(--text2)'
+    c: 'var(--text2)',
+    tab: 'timeline'
   }].map(t => /*#__PURE__*/React.createElement("div", {
     key: t.l,
     className: "card",
     style: {
       padding: '10px 12px',
-      textAlign: 'center'
-    }
+      textAlign: 'center',
+      cursor: t.tab ? 'pointer' : 'default',
+      transition: 'box-shadow .15s'
+    },
+    onClick: () => t.tab && setTab(t.tab),
+    title: t.tab ? `Go to ${t.tab} tab` : undefined
   }, /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 16,
@@ -5077,7 +5100,12 @@ Generated ${new Date().toLocaleDateString('en-IN')} | ${patient.documents.length
       letterSpacing: '.4px',
       marginTop: 2
     }
-  }, t.l.toUpperCase())))), /*#__PURE__*/React.createElement("div", {
+  }, t.l.toUpperCase(), t.tab && /*#__PURE__*/React.createElement("span", {
+    style: {
+      marginLeft: 3,
+      opacity: .5
+    }
+  }, "\u2197"))))), /*#__PURE__*/React.createElement("div", {
     className: "card",
     style: {
       padding: '14px 16px',
@@ -5363,15 +5391,20 @@ Generated ${new Date().toLocaleDateString('en-IN')} | ${patient.documents.length
   }, Object.entries(patient.labsKey || {}).slice(0, 8).map(([k, v]) => {
     const last = v.data[v.data.length - 1];
     const bad = v.refHigh && last.v > v.refHigh || v.refLow && last.v < v.refLow;
+    const hasBox = !!last.boxId;
     return /*#__PURE__*/React.createElement("div", {
       key: k,
+      onClick: () => hasBox && window.open('https://app.box.com/file/' + last.boxId, '_blank'),
+      title: hasBox ? last.src || 'Open source report in Box' : 'No source linked',
       style: {
         background: bad ? 'var(--red-light)' : 'var(--green-light)',
         border: `1px solid ${bad ? '#FECACA' : '#BBF7D0'}`,
         borderRadius: 7,
         padding: '6px 10px',
         textAlign: 'center',
-        minWidth: 80
+        minWidth: 80,
+        cursor: hasBox ? 'pointer' : 'default',
+        position: 'relative'
       }
     }, /*#__PURE__*/React.createElement("div", {
       style: {
@@ -5392,7 +5425,15 @@ Generated ${new Date().toLocaleDateString('en-IN')} | ${patient.documents.length
         fontSize: 9,
         color: 'var(--text3)'
       }
-    }, last.d));
+    }, last.d), hasBox && /*#__PURE__*/React.createElement("div", {
+      style: {
+        position: 'absolute',
+        top: 3,
+        right: 4,
+        fontSize: 8,
+        opacity: .4
+      }
+    }, "\uD83D\uDCC2"));
   }))), recs.length > 0 && /*#__PURE__*/React.createElement("div", {
     className: "card",
     style: {
@@ -6042,9 +6083,9 @@ function HealthIssuesTab({
   isAdmin,
   onAddCondition
 }) {
+  const [exp, setExp] = useState(null); // expanded condition id
   const [selOrgan, setSelOrgan] = useState(null); // organ clicked on body map
-  const [selCond, setSelCond] = useState(null); // condition clicked in list
-  const [exp, setExp] = useState(null); // expanded condition id in list
+
   const sevOrder = {
     urgent: 0,
     high: 1,
@@ -6139,22 +6180,32 @@ function HealthIssuesTab({
     return 'green';
   };
 
-  // Highlighted organ = organ from clicked body part OR organ of clicked condition
-  const activeOrganId = selOrgan?.id || selCond?.organId || null;
-
-  // Conditions to show in detail panel = from organ click OR selected condition
-  const panelConds = selOrgan ? patient.conditions.filter(c => c.organId === selOrgan.id) : selCond ? [selCond] : [];
-  const handleCondClick = c => {
-    setSelCond(selCond?.id === c.id ? null : c);
-    setSelOrgan(null);
-    setExp(exp === c.id ? null : c.id);
-  };
+  // Click on body map organ → expand the first matching condition in the list
   const handleOrganClick = o => {
     const hasConds = patient.conditions.some(c => c.organId === o.id);
     if (!hasConds) return;
-    setSelOrgan(selOrgan?.id === o.id ? null : o);
-    setSelCond(null);
+    if (selOrgan?.id === o.id) {
+      setSelOrgan(null);
+      setExp(null);
+      return;
+    }
+    setSelOrgan(o);
+    // Auto-expand first condition for that organ
+    const first = sorted.find(c => c.organId === o.id);
+    if (first) setExp(first.id);
   };
+
+  // Click on condition card → toggle inline expansion
+  const handleCondClick = c => {
+    const next = exp === c.id ? null : c.id;
+    setExp(next);
+    // Also highlight the organ on body map
+    const organ = organs.find(o => o.id === c.organId);
+    setSelOrgan(next ? organ || null : null);
+  };
+
+  // Organ is highlighted if it matches the currently expanded condition
+  const activeOrganId = selOrgan?.id || null;
   return /*#__PURE__*/React.createElement("div", {
     className: "fade"
   }, isAdmin && /*#__PURE__*/React.createElement("div", {
@@ -6181,16 +6232,18 @@ function HealthIssuesTab({
   }, /*#__PURE__*/React.createElement("div", {
     style: {
       flexShrink: 0,
-      width: 180
+      width: 180,
+      position: 'sticky',
+      top: 8
     }
   }, /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 10,
       color: 'var(--text3)',
-      marginBottom: 8,
+      marginBottom: 6,
       lineHeight: 1.5
     }
-  }, "Click a highlighted organ to view conditions. Click a condition on the right to highlight its organ."), /*#__PURE__*/React.createElement("svg", {
+  }, "Click organ to see conditions. Click a condition to highlight organ."), /*#__PURE__*/React.createElement("svg", {
     viewBox: "0 0 175 290",
     width: "168",
     style: {
@@ -6307,10 +6360,10 @@ function HealthIssuesTab({
     style: {
       display: 'flex',
       gap: 8,
-      marginTop: 8,
+      marginTop: 6,
       flexWrap: 'wrap'
     }
-  }, [['red', 'Urgent'], ['amber', 'High/Mod'], ['green', 'Monitor']].map(([s, l]) => /*#__PURE__*/React.createElement("div", {
+  }, [['red', 'Urgent'], ['amber', 'High'], ['green', 'Normal']].map(([s, l]) => /*#__PURE__*/React.createElement("div", {
     key: s,
     style: {
       display: 'flex',
@@ -6329,33 +6382,32 @@ function HealthIssuesTab({
   }), l)))), /*#__PURE__*/React.createElement("div", {
     style: {
       flex: 1,
-      minWidth: 0
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
+      minWidth: 0,
       display: 'flex',
       flexDirection: 'column',
-      gap: 5,
-      marginBottom: panelConds.length ? 12 : 0
+      gap: 6
     }
   }, sorted.map(c => {
-    const isSelected = selCond?.id === c.id || selOrgan?.id === c.organId;
+    const isExp = exp === c.id;
+    const isHighlit = selOrgan?.id === c.organId;
+    const borderCol = SEV_COLORS[c.sev] || 'var(--blue)';
     return /*#__PURE__*/React.createElement("div", {
       key: c.id,
       className: "card",
       style: {
-        padding: '9px 12px',
-        borderLeft: `3px solid ${SEV_COLORS[c.sev] || 'var(--blue)'}`,
+        borderLeft: `3px solid ${borderCol}`,
+        outline: isHighlit && !isExp ? `2px solid ${borderCol}44` : 'none',
         cursor: 'pointer',
-        background: isSelected ? 'var(--blue-light)' : '',
-        border: isSelected ? '1px solid #BFDBFE' : ''
+        overflow: 'hidden',
+        transition: 'box-shadow .15s'
       },
       onClick: () => handleCondClick(c)
     }, /*#__PURE__*/React.createElement("div", {
       style: {
         display: 'flex',
         alignItems: 'center',
-        gap: 6
+        gap: 8,
+        padding: '10px 13px'
       }
     }, /*#__PURE__*/React.createElement("div", {
       style: {
@@ -6366,13 +6418,14 @@ function HealthIssuesTab({
         display: 'flex',
         alignItems: 'center',
         gap: 6,
-        flexWrap: 'wrap'
+        flexWrap: 'wrap',
+        marginBottom: 2
       }
     }, /*#__PURE__*/React.createElement("span", {
       style: {
         fontSize: 12,
-        fontWeight: 500,
-        color: isSelected ? 'var(--blue)' : 'var(--text)'
+        fontWeight: 600,
+        color: isExp ? borderCol : 'var(--text)'
       }
     }, c.name), /*#__PURE__*/React.createElement(Badge, {
       sev: c.sev
@@ -6383,98 +6436,61 @@ function HealthIssuesTab({
       }
     }, c.organ, " \xB7 ", c.reviewed)), /*#__PURE__*/React.createElement("span", {
       style: {
-        fontSize: 14,
+        fontSize: 16,
         color: 'var(--text3)',
-        transform: exp === c.id ? 'rotate(90deg)' : 'none',
-        transition: 'transform .15s'
+        transition: 'transform .2s',
+        transform: isExp ? 'rotate(90deg)' : 'none',
+        flexShrink: 0
       }
-    }, "\u203A")));
-  })), panelConds.length > 0 && /*#__PURE__*/React.createElement("div", {
-    className: "card fade",
-    style: {
-      padding: 14,
-      borderLeft: `3px solid ${ORGAN_COLORS[getS(panelConds[0].organId)]}`
-    }
-  }, selOrgan && /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 11,
-      fontWeight: 700,
-      color: 'var(--text3)',
-      marginBottom: 10
-    }
-  }, organs.find(o => o.id === selOrgan.id)?.emoji, " ", selOrgan.label.toUpperCase()), panelConds.map(c => /*#__PURE__*/React.createElement("div", {
-    key: c.id,
-    style: {
-      marginBottom: panelConds.length > 1 ? 14 : 0,
-      paddingBottom: panelConds.length > 1 ? 14 : 0,
-      borderBottom: panelConds.length > 1 ? '1px solid var(--border)' : 'none'
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: 'flex',
-      alignItems: 'center',
-      gap: 6,
-      marginBottom: 8
-    }
-  }, /*#__PURE__*/React.createElement("span", {
-    style: {
-      fontSize: 13,
-      fontWeight: 600,
-      color: 'var(--text)'
-    }
-  }, c.name), /*#__PURE__*/React.createElement(Badge, {
-    sev: c.sev
-  })), /*#__PURE__*/React.createElement("div", {
-    style: {
-      background: 'var(--bg3)',
-      borderRadius: 7,
-      padding: '10px 12px',
-      marginBottom: 8
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 10,
-      color: 'var(--text3)',
-      fontWeight: 600,
-      letterSpacing: '.4px',
-      marginBottom: 4
-    }
-  }, "FINDINGS"), /*#__PURE__*/React.createElement("p", {
-    style: {
-      fontSize: 12,
-      color: 'var(--text2)',
-      lineHeight: 1.6,
-      margin: 0
-    }
-  }, c.findings)), /*#__PURE__*/React.createElement("div", {
-    style: {
-      background: 'var(--blue-light)',
-      borderRadius: 7,
-      padding: '10px 12px'
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 10,
-      color: 'var(--blue)',
-      fontWeight: 600,
-      letterSpacing: '.4px',
-      marginBottom: 4
-    }
-  }, "ACTION REQUIRED"), /*#__PURE__*/React.createElement("p", {
-    style: {
-      fontSize: 12,
-      color: 'var(--text2)',
-      lineHeight: 1.6,
-      margin: 0
-    }
-  }, c.action))))), !panelConds.length && /*#__PURE__*/React.createElement("div", {
-    style: {
-      textAlign: 'center',
-      padding: '20px',
-      color: 'var(--text3)',
-      fontSize: 12
-    }
-  }, "Click an organ on the body map or a condition above to see details."))));
+    }, "\u203A")), isExp && /*#__PURE__*/React.createElement("div", {
+      className: "fade",
+      style: {
+        borderTop: '1px solid var(--border)',
+        padding: '12px 13px',
+        background: 'var(--bg3)'
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        marginBottom: 10
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 10,
+        color: 'var(--text3)',
+        fontWeight: 700,
+        letterSpacing: '.4px',
+        marginBottom: 5
+      }
+    }, "FINDINGS"), /*#__PURE__*/React.createElement("p", {
+      style: {
+        fontSize: 12,
+        color: 'var(--text2)',
+        lineHeight: 1.65,
+        margin: 0
+      }
+    }, c.findings)), /*#__PURE__*/React.createElement("div", {
+      style: {
+        background: 'var(--blue-light)',
+        borderRadius: 7,
+        padding: '9px 12px'
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 10,
+        color: 'var(--blue)',
+        fontWeight: 700,
+        letterSpacing: '.4px',
+        marginBottom: 4
+      }
+    }, "ACTION REQUIRED"), /*#__PURE__*/React.createElement("p", {
+      style: {
+        fontSize: 12,
+        color: 'var(--text2)',
+        lineHeight: 1.6,
+        margin: 0
+      }
+    }, c.action))));
+  }))));
 }
 function SymptomsTab({
   patient,
