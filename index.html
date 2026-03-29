@@ -9,6 +9,13 @@
 <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+<script>
+  // Register datalabels plugin globally
+  if(typeof ChartDataLabels !== 'undefined') {
+    Chart.register(ChartDataLabels);
+  }
+</script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -253,9 +260,9 @@ const DAD_CONDITIONS = [{
   sev: 'high',
   organ: 'Cardiovascular',
   organId: 'heart',
-  findings: 'BEST: Jun 2023 pre-angio: LDL 94, HDL 62, TC 181 (EXCELLENT — likely on high-dose statin for angio). Then worsening: Nov 2025: LDL 148, Feb 2026: 172. HDL dropped Feb 2026: 39 (ref >40). TC: 234.',
-  action: 'Increase statin dose or add ezetimibe. Target LDL <100. Cardiology review given 82-year age and history.',
-  reviewed: 'Feb 2026'
+  findings: 'Mar 2026: LDL 119 (improved from 172), but HDL CRASHED to 33 (ref >40) — CRITICALLY LOW. TC 180 (optimal!). TSH 6.61 still very elevated. Non-HDL 146 still high. HDL 33 is a major independent cardiac risk factor.',
+  action: 'Investigate HDL crash to 33 — check fibrate/niacin options. Maintain statin for LDL control. Cardiology review urgently. Target HDL >40, LDL <100.',
+  reviewed: 'Mar 2026'
 }, {
   id: 'shoulder',
   name: 'Left Shoulder Rotator Cuff Tear (Near-Complete Supraspinatus)',
@@ -280,9 +287,9 @@ const DAD_CONDITIONS = [{
   sev: 'moderate',
   organ: 'Thyroid',
   organId: 'thyroid',
-  findings: 'TSH consistently elevated despite levothyroxine: Apr 2022: 6.58, Jan 2025: 5.28, Nov 2025: 6.55, Jan 2026: 6.31 (ref 0.27-5.35). T3/T4 both normal — compensated state.',
-  action: 'Increase levothyroxine dose. Recheck TSH in 6-8 weeks. Target 1.0-3.0 uIU/mL.',
-  reviewed: 'Jan 2026'
+  findings: 'TSH WORSENING: 6.58 (Apr 22) → 5.28 (Jan 25) → 6.55 (Nov 25) → 6.31 (Jan 26) → 6.61 (Mar 26). Pattern of steady worsening. T3 1.39 ng/mL (normal), T4 7.87 µg/dL (normal) — compensated hypothyroidism.',
+  action: 'Increase levothyroxine dose URGENTLY — 5th consecutive elevated reading. Target TSH 1.0-3.0. Recheck in 6 weeks.',
+  reviewed: 'Mar 2026'
 }, {
   id: 'bone2',
   name: 'Osteoporosis / Low Bone Density',
@@ -459,6 +466,14 @@ const MOM_TIMELINE = [{
 
 // ─── DAD: Timeline ────────────────────────────────────────────────────────────
 const DAD_TIMELINE = [{
+  date: 'Mar 2026',
+  year: 2026,
+  type: 'lab',
+  color: '#DC2626',
+  title: 'TSH 6.61 + HDL 33 (CRITICAL)',
+  detail: 'TSH 6.61 (5th consecutive elevated, worsening). HDL crashed to 33 (CRITICAL LOW, ref >40). LDL 119 (improved). TC 180 (optimal). HbA1c 6.1% (slightly improved). Non-HDL 146 (high). T3/T4 normal.',
+  specialty: 'Cardiology/Endocrinology'
+}, {
   date: 'Feb 2026',
   year: 2026,
   type: 'lab',
@@ -1621,8 +1636,13 @@ const DAD_LABS_KEY = {
       v: 6.4,
       boxId: '2155657530240',
       src: 'Master Checkup Nov 2025'
+    }, {
+      d: "Mar'26",
+      v: 6.1,
+      boxId: '2180083773189',
+      src: 'Sai Baba Mar 2026 — slight improvement'
     }],
-    note: 'Pre-diabetic range throughout (5.7-6.4%). BEST: 5.7% (Jan 2022). Worsening: 6.4% (Nov 2025). Urgent lifestyle intervention needed.'
+    note: 'Pre-diabetic range throughout (5.7-6.4%). BEST: 5.7% (Jan 2022). Nov 2025: 6.4%. Mar 2026: 6.1% (improving slightly!). Continue lifestyle measures.'
   },
   tsh: {
     label: 'TSH (Thyroid)',
@@ -1650,8 +1670,13 @@ const DAD_LABS_KEY = {
       v: 6.31,
       boxId: '2161697642376',
       src: 'TSH Bioline Jan 2026'
+    }, {
+      d: "Mar'26",
+      v: 6.61,
+      boxId: '2180083773189',
+      src: 'Sai Baba Mar 2026 — WORSENING!'
     }],
-    note: 'Consistently elevated despite levothyroxine: 6.58 → 5.28 → 6.55 → 6.31. Dose increase needed. T3/T4 both normal (compensated).'
+    note: 'Consistently elevated — WORSENING: 6.58 → 5.28 → 6.55 → 6.31 → 6.61 (Mar 2026). Dose increase critical. T3 1.39 normal, T4 7.87 normal.'
   },
   ldl: {
     label: 'LDL Cholesterol',
@@ -1678,8 +1703,13 @@ const DAD_LABS_KEY = {
       v: 172,
       boxId: '2161689467391',
       src: 'Lipid Profile Feb 2026'
+    }, {
+      d: "Mar'26",
+      v: 119,
+      boxId: '2180083773189',
+      src: 'Sai Baba Mar 2026 — improved'
     }],
-    note: 'BEST: 94 (Jun 2023 pre-angio). WORSENING: 94→105→148→172 mg/dL. Urgent dose review or ezetimibe addition.'
+    note: 'BEST: 94 (Jun 2023 pre-angio). Trend: 94→105→148→172→119. Mar 2026: 119 is improved but HDL crashed to 33 (CRITICAL). Non-HDL 146 still high.'
   },
   hb: {
     label: 'Haemoglobin',
@@ -1748,8 +1778,13 @@ const DAD_LABS_FULL = {
       d: "Feb'26",
       v: 234,
       boxId: '2161689467391'
+    }, {
+      d: "Mar'26",
+      v: 180,
+      boxId: '2180083773189',
+      src: 'Sai Baba Mar 2026'
     }],
-    note: 'Jun 2023: 181 (optimal). Worsening: 225 (Nov 25) → 234 (Feb 26). Target <200.'
+    note: 'Jun 2023: 181 (optimal). Worsened: 225→234. Mar 2026: 180 (BACK TO OPTIMAL! — possible statin dose change). Target <200.'
   },
   hdl: {
     label: 'HDL Cholesterol',
@@ -1773,8 +1808,13 @@ const DAD_LABS_FULL = {
       d: "Feb'26",
       v: 39,
       boxId: '2161689467391'
+    }, {
+      d: "Mar'26",
+      v: 33,
+      boxId: '2180083773189',
+      src: 'CRITICAL LOW — Sai Baba Mar 2026'
     }],
-    note: 'Jun 2023: 62 (excellent!). Feb 2026: dropped to 39 (ref >40). Low HDL significantly increases cardiac risk.'
+    note: 'Jun 2023: 62 (excellent!). Declining: 62→48→54→39→33. Mar 2026: HDL 33 CRITICALLY LOW (ref >40). Urgent investigation — fibrate or niacin option.'
   },
   tg: {
     label: 'Triglycerides',
@@ -1798,8 +1838,13 @@ const DAD_LABS_FULL = {
       d: "Feb'26",
       v: 117,
       boxId: '2161689467391'
+    }, {
+      d: "Mar'26",
+      v: 143,
+      boxId: '2180083773189',
+      src: 'Sai Baba Mar 2026'
     }],
-    note: 'All readings <150 except Apr 2022 (155). Well controlled triglycerides — good dietary response.'
+    note: 'Mostly well controlled. Mar 2026: 143 (borderline, <150 threshold).'
   },
   // THYROID
   t3: {
@@ -1819,8 +1864,13 @@ const DAD_LABS_FULL = {
       v: 126,
       boxId: '2155657530240',
       src: 'Master Checkup Nov 2025'
+    }, {
+      d: "Mar'26",
+      v: 139,
+      boxId: '2180083773189',
+      src: 'Sai Baba Mar 2026 (1.39 ng/mL)'
     }],
-    note: 'T3 normal on both readings despite elevated TSH. Peripheral conversion functioning. Apr 22: 113.8, Nov 25: 126 ng/dL.'
+    note: 'T3 normal throughout despite elevated TSH. Apr 22: 113.8, Nov 25: 126, Mar 26: 139 ng/dL (all normal 76-221). Peripheral conversion adequate.'
   },
   t4: {
     label: 'T4 (Total Thyroxine)',
@@ -1837,8 +1887,13 @@ const DAD_LABS_FULL = {
       d: "Nov'25",
       v: 7.06,
       boxId: '2155657530240'
+    }, {
+      d: "Mar'26",
+      v: 7.87,
+      boxId: '2180083773189',
+      src: 'Sai Baba Mar 2026'
     }],
-    note: 'T4 normal. Normal T4 with elevated TSH = compensated hypothyroidism. Dose optimization needed.'
+    note: 'T4 normal on all readings. Mar 2026: 7.87 (normal 5-13). T4 normal + TSH 6.61 = levothyroxine dose still insufficient.'
   },
   // METABOLIC
   vitd: {
@@ -2940,6 +2995,17 @@ const DAD_DOCS = [
 // LAB REPORTS (54 files)
 {
   id: 1,
+  name: 'HbA1c + TSH + Lipid — Mar 2026',
+  date: 'Mar 2026',
+  year: 2026,
+  type: 'Lab',
+  doctor: 'Sai Baba Speciality Hospital',
+  condition: 'TSH 6.61 (worsening), LDL 119, HDL 33 (CRITICAL LOW), HbA1c 6.1%',
+  tags: ['thyroid', 'lipids', 'hdl-critical', 'tsh-high'],
+  boxId: '2180083773189',
+  folder: '1 Lab Tests'
+}, {
+  id: 2,
   name: 'Lipid Profile — Feb 2026',
   date: 'Feb 2026',
   year: 2026,
@@ -4059,7 +4125,7 @@ const PATIENTS = [{
   symptoms: DAD_SYMPTOMS,
   labsKey: DAD_LABS_KEY,
   labsFull: DAD_LABS_FULL,
-  summary: 'PSA 0.11 (nadir) | HbA1c 6.4% | TSH 6.31↑ | LDL 172↑ | Shoulder MRI urgent',
+  summary: 'PSA 0.11 (nadir) | HbA1c 6.1% | TSH 6.61↑↑ | HDL 33↓↓ CRITICAL | LDL 119 | Shoulder urgent',
   lastVisit: 'Mar 2026',
   photo: null,
   boxFolders: {
@@ -4256,6 +4322,24 @@ function MiniChart({
         plugins: {
           legend: {
             display: false
+          },
+          datalabels: {
+            display: true,
+            align: 'top',
+            anchor: 'end',
+            color: ctx => {
+              const v = ctx.dataset.data[ctx.dataIndex];
+              const refH = refHigh,
+                refL = refLow;
+              if (refH && v > refH) return '#DC2626';
+              if (refL && v < refL) return '#F59E0B';
+              return '#16A34A';
+            },
+            font: {
+              size: 9,
+              weight: '600'
+            },
+            formatter: v => v % 1 === 0 ? v.toString() : parseFloat(v.toFixed(1)).toString()
           },
           tooltip: {
             backgroundColor: '#1E293B',
