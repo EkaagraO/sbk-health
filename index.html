@@ -4045,8 +4045,8 @@ const PATIENTS = [{
 }, {
   id: 'P002',
   name: 'Bhagwandas Gandhi',
-  dob: '15 Jun 1943',
-  age: 82,
+  dob: '15 Jul 1958',
+  age: 67,
   gender: 'Male',
   bg: 'A+',
   status: 'Active Monitoring',
@@ -4077,6 +4077,12 @@ const SEV_COLORS = {
   moderate: '#D97706',
   monitor: '#0369A1',
   normal: '#16A34A'
+};
+const ORGAN_COLORS = {
+  red: '#DC2626',
+  amber: '#D97706',
+  green: '#16A34A',
+  grey: '#94A3B8'
 };
 const SEV_LABELS = {
   urgent: 'URGENT',
@@ -4255,13 +4261,17 @@ function MiniChart({
             backgroundColor: '#1E293B',
             borderColor: '#334155',
             borderWidth: 1,
-            titleColor: '#94A3B8',
+            titleColor: '#F8FAFC',
+            titleFont: {
+              size: 12,
+              weight: 'bold'
+            },
             bodyColor: '#F1F5F9',
             padding: 10,
             callbacks: {
               title: ctx => {
                 const pt = data[ctx[0].dataIndex];
-                return label + ' — ' + (pt?.d || ctx[0].label);
+                return [label, pt?.d || ctx[0].label];
               },
               label: ctx => {
                 const v = ctx.parsed.y;
@@ -5006,6 +5016,15 @@ function OverviewTab({
         setAi(d.ai_summary.data);
         setAiTs(d.ai_summary.ts || '');
       }
+      // Fix: load photo for ALL users (viewer + admin) from backend
+      if (d?.photo) {
+        updatePatient({
+          photo: d.photo
+        });
+        try {
+          localStorage.setItem('sbk_photo_' + patient.id, d.photo);
+        } catch (_) {}
+      }
     }).catch(() => {});
   }, [patient.id]);
   const [selCond, setSelCond] = useState(null);
@@ -5602,39 +5621,39 @@ function LabTrendsTab({
     return /*#__PURE__*/React.createElement("div", {
       key: cat,
       style: {
-        marginBottom: 10
+        display: 'flex',
+        alignItems: 'center',
+        flexWrap: 'wrap',
+        gap: 5,
+        marginBottom: 6,
+        paddingBottom: 6,
+        borderBottom: '1px solid var(--border)'
       }
-    }, /*#__PURE__*/React.createElement("div", {
+    }, /*#__PURE__*/React.createElement("span", {
       style: {
         fontSize: 10,
         fontWeight: 700,
         color: catInfo.color,
-        letterSpacing: '.5px',
-        marginBottom: 5,
-        paddingLeft: 2
+        letterSpacing: '.4px',
+        flexShrink: 0,
+        minWidth: 90
       }
-    }, catInfo.label), /*#__PURE__*/React.createElement("div", {
-      style: {
-        display: 'flex',
-        gap: 5,
-        flexWrap: 'wrap',
-        marginBottom: 2
-      }
-    }, markers.map(([k, v]) => /*#__PURE__*/React.createElement("button", {
+    }, catInfo.label), markers.map(([k, v]) => /*#__PURE__*/React.createElement("button", {
       key: k,
       onClick: () => setActive(k),
       style: {
-        padding: '4px 10px',
+        padding: '3px 9px',
         fontSize: 11,
         fontWeight: 500,
         border: '1px solid',
-        borderRadius: 6,
+        borderRadius: 5,
         cursor: 'pointer',
-        background: active === k ? v.color + '12' : 'var(--bg2)',
+        background: active === k ? v.color + '18' : 'var(--bg2)',
         color: active === k ? v.color : 'var(--text2)',
-        borderColor: active === k ? v.color : 'var(--border)'
+        borderColor: active === k ? v.color : 'var(--border)',
+        whiteSpace: 'nowrap'
       }
-    }, v.label))));
+    }, v.label)));
   }), view === 'key' && /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'flex',
