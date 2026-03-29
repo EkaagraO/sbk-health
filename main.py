@@ -677,6 +677,50 @@ async def ai_refresh(pid: str):
         await conn.close()
 
 
+
+@app.post("/api/patients/{pid}/refresh-summary")
+async def refresh_summary_with_context(pid: str, request: Request):
+    """
+    Called by frontend after Sync completes.
+    Accepts the full patient JSON context from the frontend (hardcoded data + extracted labs),
+    runs Claude on it, and saves the result — same as the Refresh button but invoked server-side.
+    """
+    if not ANTHROPIC_KEY:
+        raise HTTPException(503, "ANTHROPIC_KEY not set")
+    try:
+        body = await request.json()
+        patient_data = body.get("patient_data", {})
+        if not patient_data:
+            raise HTTPException(400, "patient_data required")
+
+        # Call the same summary generator used by the Refresh button
+        summary = await generate_ai_summary(patient_data, narrative_mode=False)
+        narrative = await generate_ai_summary(patient_data, narrative_mode=True)
+
+        if DATABASE_URL:
+            conn = await db()
+            try:
+                await conn.execute(
+                    """INSERT INTO patient_ai_data (patient_key, ai_summary, ai_summary_ts, narrative, narrative_ts, updated_at)
+                       VALUES ($1, $2::jsonb, NOW(), $3::jsonb, NOW(), NOW())
+                       ON CONFLICT (patient_key) DO UPDATE
+                       SET ai_summary=$2::jsonb, ai_summary_ts=NOW(),
+                           narrative=$3::jsonb, narrative_ts=NOW(), updated_at=NOW()""",
+                    pid,
+                    json.dumps({"data": summary,   "ts": datetime.utcnow().strftime("%d %b %Y")}),
+                    json.dumps({"data": narrative, "ts": datetime.utcnow().strftime("%d %b %Y")}),
+                )
+            finally:
+                await conn.close()
+
+        return {"status": "ok", "summary_length": len(str(summary)), "narrative_length": len(str(narrative))}
+    except HTTPException:
+        raise
+    except Exception as e:
+        log.error(f"refresh_summary_with_context failed: {e}")
+        raise HTTPException(500, str(e))
+
+
 # ── Box Sync Pipeline ─────────────────────────────────────────────────────────
 # Lists all Box folders for a patient, finds files not yet extracted,
 # downloads each, runs Claude AI extraction, updates DB and regenerates summary.
