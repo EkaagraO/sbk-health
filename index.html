@@ -8246,17 +8246,6 @@ function PatientPage({
     patient: patient,
     isAdmin: isAdmin,
     onUpload: () => setShowUpload(true)
-  }), tab === 'issues' && /*#__PURE__*/React.createElement(HealthIssuesTab, {
-    patient: patient,
-    isAdmin: isAdmin,
-    onAddCondition: () => setCondModal({
-      mode: 'add'
-    }),
-    onEditCondition: c => setCondModal({
-      mode: 'edit',
-      cond: c
-    }),
-    onAddNote: c => setNoteModal(c)
   }), tab === 'fitness' && /*#__PURE__*/React.createElement(HealthDataTab, null)));
 }
 
@@ -8330,15 +8319,15 @@ function App() {
   };
   const isAdmin = user?.role === 'admin';
 
-  // Load photos from backend cloud (cross-device sync) on mount
+  // Load photos + AI data for all patients on login (admin AND viewer)
   useEffect(() => {
     if (!user) return;
     const bkUrl = (localStorage.getItem('sbk_backend_url') || DEFAULT_BACKEND_URL).replace(/\/$/, '');
     if (!bkUrl) return;
-    // Fetch photo for EVERY known patient (admin + viewer get same data)
+    // Use ai-data endpoint (now includes photo) — works for all users, no auth required
     ['P001', 'P002'].forEach(async pid => {
       try {
-        const r = await fetch(`${bkUrl}/api/patients/${pid}/photo`);
+        const r = await fetch(`${bkUrl}/api/ai-data/${pid}`);
         if (r.ok) {
           const d = await r.json();
           if (d.photo) {
