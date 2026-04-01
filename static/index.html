@@ -144,7 +144,7 @@ const MOM_CONDITIONS = [{
   organ: 'Cardiovascular',
   organId: 'heart',
   findings: 'WORST EVER: LDL 196 mg/dL (Mar 2026). Full cascade: LDL 196, HDL 38, TG 204, TC 274, CRP 6.7 (Feb 2026). 11+ year chronic history since LDL 207 (Jan 2015). Statin NEVER started in 11 years.',
-  action: 'START STATIN IMMEDIATELY — Rosuvastatin 10-20mg. Urgent cardiology review. Target LDL <100. Recheck 6 weeks post-initiation.',
+  action: 'Urgent cardiology referral — initiate lipid-lowering therapy (Rosuvastatin 10-20mg or equivalent). No lipid-lowering medication has ever been prescribed in 11+ years despite consistently elevated LDL. Target LDL <100 mg/dL. Recheck 6 weeks after starting.',
   reviewed: 'Mar 2026'
 }, {
   id: 'thy',
@@ -250,12 +250,12 @@ const DAD_CONDITIONS = [{
   reviewed: 'Nov 2025'
 }, {
   id: 'lipid2',
-  name: 'Dyslipidaemia WORSENING — Despite Statin',
+  name: 'Dyslipidaemia WORSENING — No Statin History',
   sev: 'high',
   organ: 'Cardiovascular',
   organId: 'heart',
-  findings: 'Mar 2026: LDL 119 (improved from 172), but HDL CRASHED to 33 (ref >40) — CRITICALLY LOW. TC 180 (optimal!). TSH 6.61 still very elevated. Non-HDL 146 still high. HDL 33 is a major independent cardiac risk factor.',
-  action: 'Investigate HDL crash to 33 — check fibrate/niacin options. Maintain statin for LDL control. Cardiology review urgently. Target HDL >40, LDL <100.',
+  findings: 'Mar 2026: LDL 119 (improved from 172), but HDL CRASHED to 33 (ref >40) — CRITICALLY LOW. TC 180 (optimal). TSH 6.61 still very elevated. Non-HDL 146 still high. HDL 33 is a major independent cardiac risk factor. NOTE: No statin or lipid-lowering medication has ever been prescribed to this patient.',
+  action: 'Investigate HDL crash to 33 — check fibrate/niacin options. Cardiology review urgently. Start lipid-lowering therapy. Target LDL <100, HDL >40.',
   reviewed: 'Mar 2026'
 }, {
   id: 'shoulder',
@@ -302,7 +302,7 @@ const MOM_TIMELINE = [{
   type: 'lab',
   color: '#DC2626',
   title: 'LDL 196 — WORST EVER! TSH Relapsed 6.16',
-  detail: 'LDL 196 (highest in 11-year history!). TSH relapsed from 3.89 (Jan) to 6.16 (Mar) in just 2 months. TC 274, HDL 38, TG 204. HbA1c 4.9% (excellent). URGENT: start statin + increase levothyroxine.',
+  detail: 'LDL 196 (highest in 11-year history!). TSH relapsed from 3.89 (Jan) to 6.16 (Mar) in just 2 months. TC 274, HDL 38, TG 204. HbA1c 4.9% (excellent). URGENT: start lipid-lowering therapy + increase levothyroxine.',
   specialty: 'Cardiology/Endocrinology'
 }, {
   date: 'Feb 2026',
@@ -310,7 +310,7 @@ const MOM_TIMELINE = [{
   type: 'lab',
   color: '#DC2626',
   title: 'Lipid + CRP Critical — LDL 181',
-  detail: 'LDL 181, HDL 37, TG 207, CRP 6.7. Urgent statin indication ignored since 2015.',
+  detail: 'LDL 181, HDL 37, TG 207, CRP 6.7. No lipid-lowering medication has ever been started despite 11-year history.',
   specialty: 'Cardiology'
 }, {
   date: 'Feb 2026',
@@ -446,7 +446,7 @@ const MOM_TIMELINE = [{
   type: 'lab',
   color: '#DC2626',
   title: 'WORST EVER Lipid Panel — LDL 207',
-  detail: 'LDL 207, TC 309, TG 328, HDL 36. Statin NOT started. Pattern of non-treatment began here.',
+  detail: 'LDL 207, TC 309, TG 328, HDL 36. No lipid-lowering medication prescribed. Untreated dyslipidaemia pattern began here.',
   specialty: 'Cardiology'
 }, {
   date: 'Apr 2013',
@@ -473,7 +473,7 @@ const DAD_TIMELINE = [{
   type: 'lab',
   color: '#D97706',
   title: 'Lipid Profile — LDL 172',
-  detail: 'LDL 172, HDL 39 (low), TC 234. Dyslipidaemia worsening despite statin.',
+  detail: 'LDL 172, HDL 39 (low), TC 234. Dyslipidaemia worsening. No lipid-lowering medication has ever been started.',
   specialty: 'Cardiology'
 }, {
   date: 'Jan 2026',
@@ -1001,7 +1001,7 @@ const MOM_LABS_FULL = {
       v: 274,
       boxId: '2179998942528'
     }],
-    note: 'Persistently elevated. WORST: 309 (Jan 2015). Latest: 274 (Mar 2026). Jul 2023: 178 (best). Statin needed urgently.'
+    note: 'Persistently elevated 11+ years. WORST: 309 (Jan 2015). Latest: 274 (Mar 2026). Jul 2023: 178 (best). No lipid-lowering medication ever prescribed. Urgent cardiology review required.'
   },
   hdl: {
     label: 'HDL Cholesterol',
@@ -1778,7 +1778,7 @@ const DAD_LABS_FULL = {
       boxId: '2180083773189',
       src: 'Sai Baba Mar 2026'
     }],
-    note: 'Jun 2023: 181 (optimal). Worsened: 225→234. Mar 2026: 180 (BACK TO OPTIMAL! — possible statin dose change). Target <200.'
+    note: 'Jun 2023: 181 (optimal). Worsened: 225→234. Mar 2026: 180 (BACK TO OPTIMAL — unexplained improvement; no statin ever prescribed). Target <200.'
   },
   hdl: {
     label: 'HDL Cholesterol',
@@ -2030,7 +2030,7 @@ const MOM_SYMPTOMS = [{
   symptom: 'Dyslipidaemia with LDL 196 — worst ever',
   severity: 'critical',
   status: 'ongoing',
-  note: 'No statin initiated despite 11-year history'
+  note: 'No lipid-lowering medication ever started despite 11-year history of elevated LDL'
 }, {
   date: 'Mar 2026',
   symptom: 'TSH relapse 6.16 — 2 months after 3.89',
@@ -2103,7 +2103,7 @@ const MOM_DOCS = [
   year: 2026,
   type: 'Lab',
   doctor: 'Sai Baba Speciality Hospital',
-  condition: 'LDL 181, CRP 6.7 — urgent statin needed',
+  condition: 'LDL 181, CRP 6.7 — urgent lipid-lowering therapy needed, no medication started',
   tags: ['lipids', 'crp', 'critical'],
   boxId: '2175290687427',
   folder: '1 Lab Reports'
@@ -2521,7 +2521,7 @@ const MOM_DOCS = [
   year: 2015,
   type: 'Lab',
   doctor: 'CC Shroff',
-  condition: 'WORST: LDL 207, TC 309, TG 328 — Statin NOT started',
+  condition: 'WORST: LDL 207, TC 309, TG 328 — No lipid-lowering medication started',
   tags: ['annual', 'ldl-worst', 'lipids-critical'],
   boxId: '2175600861238',
   folder: '1 Lab Reports'
@@ -4768,6 +4768,7 @@ function OverviewTab({
   const [ai, setAi] = useState(null);
   const [aiTs, setAiTs] = useState('');
   const [narr, setNarr] = useState(null);
+  const [docNarr, setDocNarr] = useState(null);
   const [ld, setLd] = useState(false);
   const [err, setErr] = useState('');
   const bkUrl = (localStorage.getItem('sbk_backend_url') || DEFAULT_BACKEND_URL).replace(/\/$/, '');
@@ -4783,6 +4784,10 @@ function OverviewTab({
       if (d?.narrative?.data) setNarr({
         ...d.narrative.data,
         ts: d.narrative.ts || ''
+      });
+      if (d?.doctor_narrative?.data) setDocNarr({
+        ...d.doctor_narrative.data,
+        ts: d.doctor_narrative.ts || ''
       });
       if (d?.photo && updatePatient) {
         updatePatient({
@@ -4820,6 +4825,7 @@ function OverviewTab({
           bg: patient.bg,
           status: patient.status,
           summary: patient.summary,
+          medication_note: 'IMPORTANT: This patient has NEVER taken any statin, fibrate, or lipid-lowering medication. Do not assume or imply any lipid medication effect.',
           conditions: patient.conditions.map(c => ({
             name: c.name,
             sev: c.sev,
@@ -4898,6 +4904,63 @@ function OverviewTab({
           });
         } catch (_) {}
       }
+
+      // 3. Doctor Narrative — structured consultation briefing
+      const condFull = patient.conditions.map(c => `${c.name} (${c.sev}): ${c.findings || ''} — Action: ${c.action || ''}`).join('\n');
+      const labSumLine = Object.entries(patient.labsKey || {}).map(([, v]) => {
+        const l = v.data[v.data.length - 1];
+        return `${v.label}: ${l.v}${v.unit}(${l.d})`;
+      }).join(', ');
+      const tlLine = patient.timeline.slice(0, 8).map(e => `${e.date}: ${e.title}`).join('; ');
+      const docPrompt = `You are writing a clinical briefing note for a doctor consulting this patient.\n\nPatient: ${patient.name}, Age ${patient.age}, ${patient.gender}, Blood Group ${patient.bg}\nIMPORTANT: Neither this patient nor any family member has EVER taken statins, fibrates, or lipid-lowering medication.\n\nConditions:\n${condFull}\n\nKey Lab Values: ${labSumLine}\nTimeline: ${tlLine}\nLatest summary: ${patient.summary}\n\nReturn ONLY a JSON object (no markdown):\n{"chiefPresentation":"1-2 sentences on overall health status and reason for consultation","medicalHistory":"2-3 sentences on key past diagnoses, major events, investigations","currentStatus":"2-3 sentences on what is controlled vs uncontrolled with specific latest values","urgentAttention":["specific urgent item 1","item 2","item 3"],"suggestedFocusAreas":["focus area 1","area 2","area 3"],"medicationNote":"Current medications and notable treatment gaps","ts":"${new Date().toLocaleString('en-IN', {
+        dateStyle: 'medium',
+        timeStyle: 'short'
+      })}"}`;
+      try {
+        const rd = await fetch(`${bkUrl}/api/ai/summary`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            name: patient.name,
+            age: patient.age,
+            gender: patient.gender,
+            bg: patient.bg,
+            status: patient.status,
+            summary: patient.summary,
+            conditions: patient.conditions.map(c => ({
+              name: c.name,
+              sev: c.sev,
+              findings: c.findings || ''
+            })),
+            medication_note: 'Neither this patient nor any family member has ever taken statins or lipid-lowering medication.',
+            narrative_mode: true,
+            prompt_override: docPrompt
+          })
+        });
+        if (rd.ok) {
+          const dd = await rd.json();
+          const dts = new Date().toLocaleString('en-IN', {
+            dateStyle: 'medium',
+            timeStyle: 'short'
+          });
+          dd.ts = dts;
+          setDocNarr(dd);
+          try {
+            await fetch(`${bkUrl}/api/ai-data/${patient.id}/doctor-narrative`, {
+              method: 'PUT',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                data: dd,
+                ts: dts
+              })
+            });
+          } catch (_) {}
+        }
+      } catch (_) {}
     } catch (e) {
       setErr(`AI refresh failed: ${e.message}`);
     }
@@ -5473,7 +5536,212 @@ Generated ${new Date().toLocaleDateString('en-IN')} | ${patient.documents.length
       lineHeight: 1.6,
       marginBottom: 4
     }
-  }, r)))));
+  }, r)))), /*#__PURE__*/React.createElement("div", {
+    className: "card",
+    style: {
+      padding: '14px 16px',
+      marginBottom: 14,
+      borderLeft: '3px solid #7C3AED',
+      borderTop: '2px solid #7C3AED',
+      borderTopLeftRadius: 0
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 10,
+      marginBottom: 10,
+      flexWrap: 'wrap'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 7
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 16
+    }
+  }, "\uD83E\uDE7A"), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 12,
+      fontWeight: 700,
+      color: '#7C3AED',
+      letterSpacing: '.3px'
+    }
+  }, "DOCTOR NARRATIVE"), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 10,
+      color: 'var(--text3)',
+      fontWeight: 400
+    }
+  }, "\u2014 Clinical Consultation Briefing")), docNarr?.ts && /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 10,
+      color: 'var(--text3)',
+      marginLeft: 'auto'
+    }
+  }, "Updated: ", docNarr.ts)), !docNarr && !ld && /*#__PURE__*/React.createElement("div", {
+    style: {
+      textAlign: 'center',
+      padding: '16px 0',
+      color: 'var(--text3)'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 28,
+      marginBottom: 6
+    }
+  }, "\uD83E\uDE7A"), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 12,
+      margin: '0 0 8px'
+    }
+  }, "Doctor consultation briefing not yet generated."), /*#__PURE__*/React.createElement("button", {
+    className: "btn",
+    onClick: refreshAll,
+    style: {
+      fontSize: 11,
+      color: '#7C3AED',
+      borderColor: '#DDD6FE',
+      background: '#F5F3FF'
+    }
+  }, "Generate Doctor Narrative")), docNarr && /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 12
+    }
+  }, docNarr.chiefPresentation && /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 10,
+      fontWeight: 700,
+      color: 'var(--text3)',
+      letterSpacing: '.4px',
+      marginBottom: 4
+    }
+  }, "CHIEF PRESENTATION"), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 12,
+      color: 'var(--text2)',
+      lineHeight: 1.65,
+      margin: 0
+    }
+  }, docNarr.chiefPresentation)), docNarr.medicalHistory && /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 10,
+      fontWeight: 700,
+      color: 'var(--text3)',
+      letterSpacing: '.4px',
+      marginBottom: 4
+    }
+  }, "MEDICAL HISTORY"), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 12,
+      color: 'var(--text2)',
+      lineHeight: 1.65,
+      margin: 0
+    }
+  }, docNarr.medicalHistory)), docNarr.currentStatus && /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 10,
+      fontWeight: 700,
+      color: 'var(--text3)',
+      letterSpacing: '.4px',
+      marginBottom: 4
+    }
+  }, "CURRENT STATUS"), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 12,
+      color: 'var(--text2)',
+      lineHeight: 1.65,
+      margin: 0
+    }
+  }, docNarr.currentStatus)), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'grid',
+      gridTemplateColumns: '1fr 1fr',
+      gap: 10
+    }
+  }, docNarr.urgentAttention?.length > 0 && /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: '#FFF1F2',
+      border: '1px solid #FECDD3',
+      borderRadius: 7,
+      padding: '10px 12px'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 10,
+      fontWeight: 700,
+      color: '#9F1239',
+      letterSpacing: '.4px',
+      marginBottom: 6
+    }
+  }, "\uD83D\uDEA8 URGENT ATTENTION"), /*#__PURE__*/React.createElement("ul", {
+    style: {
+      margin: 0,
+      paddingLeft: 16
+    }
+  }, docNarr.urgentAttention.map((x, i) => /*#__PURE__*/React.createElement("li", {
+    key: i,
+    style: {
+      fontSize: 11,
+      color: '#881337',
+      lineHeight: 1.5,
+      marginBottom: 3
+    }
+  }, x)))), docNarr.suggestedFocusAreas?.length > 0 && /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: '#EFF6FF',
+      border: '1px solid #BFDBFE',
+      borderRadius: 7,
+      padding: '10px 12px'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 10,
+      fontWeight: 700,
+      color: '#1648A0',
+      letterSpacing: '.4px',
+      marginBottom: 6
+    }
+  }, "\uD83C\uDFAF FOCUS AREAS"), /*#__PURE__*/React.createElement("ul", {
+    style: {
+      margin: 0,
+      paddingLeft: 16
+    }
+  }, docNarr.suggestedFocusAreas.map((x, i) => /*#__PURE__*/React.createElement("li", {
+    key: i,
+    style: {
+      fontSize: 11,
+      color: '#1E3A8A',
+      lineHeight: 1.5,
+      marginBottom: 3
+    }
+  }, x))))), docNarr.medicationNote && /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: 'var(--bg3)',
+      borderRadius: 7,
+      padding: '10px 12px'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 10,
+      fontWeight: 700,
+      color: 'var(--text3)',
+      letterSpacing: '.4px',
+      marginBottom: 4
+    }
+  }, "\uD83D\uDC8A MEDICATION NOTE"), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 12,
+      color: 'var(--text2)',
+      lineHeight: 1.6,
+      margin: 0
+    }
+  }, docNarr.medicationNote)))));
 }
 function TimelineTab({
   patient
