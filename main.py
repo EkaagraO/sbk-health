@@ -721,6 +721,46 @@ async def refresh_summary_with_context(pid: str, request: Request):
         raise HTTPException(500, str(e))
 
 
+@app.get("/api/box/file-link/{file_id}")
+async def get_box_shared_link(file_id: str):
+    """
+    Create or retrieve a public shared link for a Box file.
+    Returns a URL that works without Box login.
+    """
+    try:
+        token = await box_get_token()
+    except Exception:
+        # Box not connected — fall back to direct file URL
+        return JSONResponse({"url": f"https://app.box.com/file/{file_id}", "public": False})
+
+    async with httpx.AsyncClient(timeout=15) as client:
+        # First check if file already has a shared link
+        r = await client.get(
+            f"https://api.box.com/2.0/files/{file_id}",
+            headers={"Authorization": f"Bearer {token}"},
+            params={"fields": "shared_link"}
+        )
+        if r.status_code == 200:
+            data = r.json()
+            sl = data.get("shared_link")
+            if sl and sl.get("url"):
+                return JSONResponse({"url": sl["url"], "public": True})
+
+        # Create a new open shared link
+        r2 = await client.put(
+            f"https://api.box.com/2.0/files/{file_id}",
+            headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json"},
+            json={"shared_link": {"access": "open", "permissions": {"can_download": True}}}
+        )
+        if r2.status_code in (200, 201):
+            sl2 = r2.json().get("shared_link", {})
+            url = sl2.get("url") or f"https://app.box.com/file/{file_id}"
+            return JSONResponse({"url": url, "public": True})
+
+    # Fallback
+    return JSONResponse({"url": f"https://app.box.com/file/{file_id}", "public": False})
+
+
 # ── Box Sync Pipeline ─────────────────────────────────────────────────────────
 # Lists all Box folders for a patient, finds files not yet extracted,
 # downloads each, runs Claude AI extraction, updates DB and regenerates summary.
