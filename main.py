@@ -176,14 +176,22 @@ CREATE TABLE IF NOT EXISTS audit_log (
 -- Stores AI summaries, narratives, and photos per patient (keyed by frontend ID: P001, P002)
 -- Using patient_key (not UUID) because frontend uses hardcoded string IDs
 CREATE TABLE IF NOT EXISTS patient_ai_data (
-    patient_key       VARCHAR(20)  PRIMARY KEY,
-    ai_summary        JSONB,
-    ai_summary_ts     TIMESTAMPTZ,
-    narrative         JSONB,
-    narrative_ts      TIMESTAMPTZ,
-    photo             TEXT,        -- base64 data URL for cross-device photo storage
-    updated_at        TIMESTAMPTZ  DEFAULT NOW()
+    patient_key           VARCHAR(20)  PRIMARY KEY,
+    ai_summary            JSONB,
+    ai_summary_ts         TIMESTAMPTZ,
+    narrative             JSONB,
+    narrative_ts          TIMESTAMPTZ,
+    doctor_narrative      JSONB,       -- doctor consultation summary
+    doctor_narrative_ts   TIMESTAMPTZ,
+    photo                 TEXT,        -- base64 data URL for cross-device photo storage
+    updated_at            TIMESTAMPTZ  DEFAULT NOW()
 );
+-- Add doctor_narrative column if upgrading existing DB
+DO $$ BEGIN
+  ALTER TABLE patient_ai_data ADD COLUMN IF NOT EXISTS doctor_narrative JSONB;
+  ALTER TABLE patient_ai_data ADD COLUMN IF NOT EXISTS doctor_narrative_ts TIMESTAMPTZ;
+EXCEPTION WHEN OTHERS THEN NULL;
+END $$;
 
 -- Seed default accounts (only if they don't already exist)
 -- Passwords: admin/admin123  viewer/viewer123
@@ -761,6 +769,26 @@ async def get_box_shared_link(file_id: str):
     return JSONResponse({"url": f"https://app.box.com/file/{file_id}", "public": False})
 
 
+@app.put("/api/ai-data/{patient_key}/doctor-narrative")
+async def save_doctor_narrative(patient_key: str, body: AISummaryStore):
+    """Save doctor narrative to patient_ai_data table."""
+    if not DATABASE_URL:
+        return JSONResponse({"status": "no-db"})
+    conn = await db()
+    try:
+        await conn.execute(
+            """INSERT INTO patient_ai_data (patient_key, doctor_narrative, doctor_narrative_ts, updated_at)
+               VALUES ($1, $2::jsonb, NOW(), NOW())
+               ON CONFLICT (patient_key) DO UPDATE
+               SET doctor_narrative=$2::jsonb, doctor_narrative_ts=NOW(), updated_at=NOW()""",
+            patient_key, json.dumps({"data": body.data, "ts": body.ts or datetime.utcnow().strftime("%d %b %Y")}))
+        return JSONResponse({"status": "saved"})
+    except Exception as e:
+        raise HTTPException(500, str(e))
+    finally:
+        await conn.close()
+
+
 # ── Box Sync Pipeline ─────────────────────────────────────────────────────────
 # Lists all Box folders for a patient, finds files not yet extracted,
 # downloads each, runs Claude AI extraction, updates DB and regenerates summary.
@@ -1306,6 +1334,7 @@ class AISummaryIn(BaseModel):
     conditions: Optional[list] = []
     narrative_mode: Optional[bool] = False
     prompt_override: Optional[str] = None
+    medication_note: Optional[str] = None  # clinical context passed by frontend
 
 @app.post("/api/ai/summary")
 async def ai_summary_public(data: AISummaryIn):
@@ -1321,6 +1350,7 @@ async def ai_summary_public(data: AISummaryIn):
     )
     prompt = (
         f"Clinical AI. Patient: {data.name}, Age {data.age}, {data.gender}, BG {data.bg}\n"
+        f"CRITICAL: Neither this patient nor any family member has EVER taken statins, fibrates, or lipid-lowering medication. Do NOT assume or imply any medication effect on lipid levels.\n"
         f"Status: {data.status}. Latest: {data.summary}\n"
         f"Conditions:\n{cond_text}\n"
         f'Return ONLY JSON (no markdown): {{"summary":"2-3 sentences",'
@@ -1403,10 +1433,11 @@ async def get_ai_data(patient_key: str):
     conn = await db()
     try:
         row = await conn.fetchrow(
-            "SELECT ai_summary, ai_summary_ts, narrative, narrative_ts, photo "
+            "SELECT ai_summary, ai_summary_ts, narrative, narrative_ts, "
+            "doctor_narrative, doctor_narrative_ts, photo "
             "FROM patient_ai_data WHERE patient_key=$1", patient_key)
         if not row:
-            return JSONResponse({"ai_summary": None, "narrative": None, "photo": None})
+            return JSONResponse({"ai_summary": None, "narrative": None, "doctor_narrative": None, "photo": None})
         return JSONResponse({
             "ai_summary": {
                 "data": json.loads(row["ai_summary"])  if row["ai_summary"]  else None,
@@ -1415,6 +1446,10 @@ async def get_ai_data(patient_key: str):
             "narrative": {
                 "data": json.loads(row["narrative"])   if row["narrative"]   else None,
                 "ts":   row["narrative_ts"].strftime("%d %b %Y, %I:%M %p")  if row["narrative_ts"]  else None,
+            },
+            "doctor_narrative": {
+                "data": json.loads(row["doctor_narrative"]) if row["doctor_narrative"] else None,
+                "ts":   row["doctor_narrative_ts"].strftime("%d %b %Y, %I:%M %p") if row["doctor_narrative_ts"] else None,
             },
             "photo": row["photo"] if row["photo"] else None,
         })
