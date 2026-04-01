@@ -4196,6 +4196,23 @@ const LAB_CATEGORIES = {
   }
 };
 
+// 
+// ── Box Link Helper — opens files via public shared link (no login required) ──
+async function openBoxFile(boxId, bkUrl) {
+  if (!boxId) return;
+  const base = (bkUrl || localStorage.getItem('sbk_backend_url') || DEFAULT_BACKEND_URL).replace(/\/$/, '');
+  try {
+    const r = await fetch(`${base}/api/box/file-link/${boxId}`);
+    if (r.ok) {
+      const d = await r.json();
+      window.open(d.url, '_blank');
+      return;
+    }
+  } catch (_) {}
+  // Fallback to direct link
+  window.open('https://app.box.com/file/' + boxId, '_blank');
+}
+
 // ─── UTILITIES ────────────────────────────────────────────────────────────────
 const {
   useState,
@@ -4310,7 +4327,7 @@ function MiniChart({
           if (elements.length > 0) {
             const idx = elements[0].index;
             const pt = data[idx];
-            if (pt?.boxId) window.open('https://app.box.com/file/' + pt.boxId, '_blank');
+            if (pt?.boxId) openBoxFile(pt.boxId);
           }
         },
         plugins: {
@@ -5394,7 +5411,7 @@ Generated ${new Date().toLocaleDateString('en-IN')} | ${patient.documents.length
     const hasBox = !!last.boxId;
     return /*#__PURE__*/React.createElement("div", {
       key: k,
-      onClick: () => hasBox && window.open('https://app.box.com/file/' + last.boxId, '_blank'),
+      onClick: () => hasBox && openBoxFile(last.boxId),
       title: hasBox ? last.src || 'Open source report in Box' : 'No source linked',
       style: {
         background: bad ? 'var(--red-light)' : 'var(--green-light)',
@@ -6052,6 +6069,10 @@ function DocumentsTab({
       }
     }, doc.type), doc.boxId && !String(doc.boxId).startsWith('PENDING_') ? /*#__PURE__*/React.createElement("a", {
       href: 'https://app.box.com/file/' + doc.boxId,
+      onClick: e => {
+        e.preventDefault();
+        openBoxFile(doc.boxId);
+      },
       target: "_blank",
       rel: "noreferrer",
       style: {
@@ -6924,6 +6945,10 @@ function UploadModal({
     }
   }, "\uD83E\uDD16 ", /*#__PURE__*/React.createElement("strong", null, "AI analysis queued."), " Claude will extract lab values from this file in ~30 seconds. The clinical summary and narrative will update automatically."), /*#__PURE__*/React.createElement("a", {
     href: 'https://app.box.com/file/' + result?.box_file_id,
+    onClick: e => {
+      e.preventDefault();
+      openBoxFile(result?.box_file_id);
+    },
     target: "_blank",
     rel: "noreferrer",
     style: {
